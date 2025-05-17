@@ -1,7 +1,6 @@
 package com.example.sigema.models;
 
 import jakarta.persistence.*;
-
 import java.io.Serializable;
 import java.util.Date;
 

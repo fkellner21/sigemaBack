@@ -14,5 +14,4 @@ public class Grado implements Serializable {
 
     @Column(nullable = false, unique = true)
     private String nombre;
-
 }

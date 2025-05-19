@@ -3,11 +3,16 @@ package com.example.sigema.models;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.TipoTramite;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Date;
 
 @Entity
 @Table(name = "Tramites")
+@Getter
+@Setter
 public class Tramite implements Serializable {
 
     @Id

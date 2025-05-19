@@ -1,11 +1,16 @@
 package com.example.sigema.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
 @Entity
 @Table(name = "ModelosEquipos")
+@Getter
+@Setter
 public class ModeloEquipo implements Serializable {
 
     @Id

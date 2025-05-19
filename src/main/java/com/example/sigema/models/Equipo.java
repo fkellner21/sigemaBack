@@ -3,12 +3,16 @@ package com.example.sigema.models;
 import com.example.sigema.models.enums.EstadoEquipo;
 import com.example.sigema.models.enums.UnidadMedida;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
 @Entity
 @Table(name = "Equipos")
+@Getter
+@Setter
 public class Equipo implements Serializable {
 
     @Id

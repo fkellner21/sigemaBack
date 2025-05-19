@@ -1,11 +1,15 @@
 package com.example.sigema.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 @Entity
 @Table(name = "CantidadRepuestosMantenimientos")
+@Getter
+@Setter
 public class CantidadRepuestoMantenimiento implements Serializable {
 
     //Chequear id compuesto TODO

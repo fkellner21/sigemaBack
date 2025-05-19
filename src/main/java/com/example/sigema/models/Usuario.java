@@ -2,11 +2,15 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.Rol;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 @Entity
 @Table(name = "Usuarios")
+@Getter
+@Setter
 public class Usuario implements Serializable {
 
     @Id

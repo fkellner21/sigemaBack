@@ -2,11 +2,15 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.TipoRepuesto;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 @Entity
 @Table(name = "Repuestos")
+@Getter
+@Setter
 public class Repuesto implements Serializable {
 
     @Id

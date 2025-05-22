@@ -1,4 +1,5 @@
 package com.example.sigema.services;
+
 import com.example.sigema.models.TipoEquipo;
 import java.util.List;
 import java.util.Optional;

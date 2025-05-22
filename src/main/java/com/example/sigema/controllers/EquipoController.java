@@ -1,14 +1,13 @@
 package com.example.sigema.controllers;
 
 import com.example.sigema.models.Equipo;
-import com.example.sigema.repositories.IEquipoService;
+import com.example.sigema.services.IEquipoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/equipos")
@@ -23,9 +22,9 @@ public class EquipoController {
     }
 
     @GetMapping
-    public ResponseEntity<?> listar() {
+    public ResponseEntity<?> obtenerTodos() {
         try{
-            List<Equipo> equipos = repositorioEquipo.Listar();
+            List<Equipo> equipos = repositorioEquipo.obtenerTodos();
                return ResponseEntity.ok().body(equipos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -35,9 +34,9 @@ public class EquipoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> agregar(@RequestBody Equipo equipo) {
+    public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try{
-           repositorioEquipo.Agregar(equipo);
+           repositorioEquipo.Crear(equipo);
            return ResponseEntity.ok().body(equipo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -57,9 +56,9 @@ public class EquipoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscar(@PathVariable Long id) {
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
-            Equipo equipo = repositorioEquipo.Buscar(id);
+            Optional<Equipo> equipo = repositorioEquipo.obtenerPorId(id);
 
 
             return ResponseEntity.ok().body(equipo);
@@ -70,10 +69,10 @@ public class EquipoController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> modificar(@PathVariable Long id, @RequestBody Equipo equipo) {
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Equipo equipo) {
         try{
             equipo.setId(id);
-            repositorioEquipo.Modificar(equipo);
+            repositorioEquipo.Editar(equipo);
             return ResponseEntity.ok().body(equipo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

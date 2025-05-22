@@ -47,7 +47,7 @@ public class TiposEquiposController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> crear(@RequestBody TipoEquipo tipoEquipo){
         try {
             TipoEquipo tipoEquipoCreado = tiposEquiposService.Crear(tipoEquipo);

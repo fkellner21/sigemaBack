@@ -8,8 +8,8 @@ import lombok.Setter;
 
 import java.io.Serializable;
 
-@Entity
-@Table(name = "ReglaAlertaEquipo")
+//@Entity
+//@Table(name = "ReglaAlertaEquipo")
 @Getter
 @Setter
 public class ReglaAlertaEquipo implements Serializable {

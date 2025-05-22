@@ -14,17 +14,17 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class EquipoController {
 
-    private final IEquipoService repositorioEquipo;
+    private final IEquipoService servicioEquipo;
 
     @Autowired
     public EquipoController(IEquipoService repoEquipo) {
-        this.repositorioEquipo = repoEquipo;
+        this.servicioEquipo = repoEquipo;
     }
 
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
         try{
-            List<Equipo> equipos = repositorioEquipo.obtenerTodos();
+            List<Equipo> equipos = servicioEquipo.obtenerTodos();
                return ResponseEntity.ok().body(equipos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -36,7 +36,7 @@ public class EquipoController {
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try{
-           repositorioEquipo.Crear(equipo);
+           servicioEquipo.Crear(equipo);
            return ResponseEntity.ok().body(equipo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -48,7 +48,7 @@ public class EquipoController {
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         try{
-            repositorioEquipo.Eliminar(id);
+            servicioEquipo.Eliminar(id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -58,7 +58,7 @@ public class EquipoController {
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
-            Optional<Equipo> equipo = repositorioEquipo.obtenerPorId(id);
+            Optional<Equipo> equipo = servicioEquipo.obtenerPorId(id);
 
 
             return ResponseEntity.ok().body(equipo);
@@ -72,7 +72,7 @@ public class EquipoController {
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Equipo equipo) {
         try{
             equipo.setId(id);
-            repositorioEquipo.Editar(equipo);
+            servicioEquipo.Editar(equipo);
             return ResponseEntity.ok().body(equipo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

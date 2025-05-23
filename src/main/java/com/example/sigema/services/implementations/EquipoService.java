@@ -53,7 +53,7 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
         equipoEditar.setMatricula(equipo.getMatricula());
         equipoEditar.setUnidadMedida(equipo.getUnidadMedida());
-        equipoEditar.setIdUltimaPosicion(equipo.getIdUltimaPosicion();
+        equipoEditar.setIdUltimaPosicion(equipo.getIdUltimaPosicion());
 
         return equipoRepository.save(equipoEditar);
     }

@@ -22,14 +22,6 @@ public class TipoEquipo implements Serializable {
     @Column(nullable = true, unique = true)
     private String nombre;
 
-    public String getCodigo() {
-        return codigo;
-    }
-
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
-    }
-
     @Column(nullable = false)
     private boolean activo = false;
 
@@ -52,4 +44,9 @@ public class TipoEquipo implements Serializable {
     public Long getId() {
         return id;
     }
+
+    public String getCodigo() {return codigo; }
+
+    public void setCodigo(String codigo) {this.codigo = codigo;}
+
 }

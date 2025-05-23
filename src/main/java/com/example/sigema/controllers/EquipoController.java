@@ -14,18 +14,19 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class EquipoController {
 
-    private final IEquipoService servicioEquipo;
+    private final IEquipoService equiposService;
 
     @Autowired
-    public EquipoController(IEquipoService repoEquipo) {
-        this.servicioEquipo = repoEquipo;
+    public EquipoController(IEquipoService equiposService) {
+        this.equiposService = equiposService;
     }
 
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
         try{
-            List<Equipo> equipos = servicioEquipo.obtenerTodos();
-               return ResponseEntity.ok().body(equipos);
+            List<Equipo> equipos = equiposService.obtenerTodos();
+
+            return ResponseEntity.ok().body(equipos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -34,19 +35,19 @@ public class EquipoController {
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try{
-           servicioEquipo.Crear(equipo);
-           return ResponseEntity.ok().body(equipo);
+           Equipo creado = equiposService.Crear(equipo);
+
+           return ResponseEntity.ok().body(creado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
     }
 
-    //NOTERMINADO
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         try{
-            servicioEquipo.Eliminar(id);
+            equiposService.Eliminar(id);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -56,8 +57,7 @@ public class EquipoController {
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
-            Optional<Equipo> equipo = servicioEquipo.obtenerPorId(id);
-
+            Equipo equipo = equiposService.ObtenerPorId(id).orElse(null);
 
             return ResponseEntity.ok().body(equipo);
         } catch (Exception e) {
@@ -69,9 +69,9 @@ public class EquipoController {
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Equipo equipo) {
         try{
-            equipo.setId(id);
-            servicioEquipo.Editar(equipo);
-            return ResponseEntity.ok().body(equipo);
+            Equipo editado = equiposService.Editar(id, equipo);
+
+            return ResponseEntity.ok().body(editado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

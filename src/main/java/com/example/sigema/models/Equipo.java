@@ -35,6 +35,62 @@ public class Equipo implements Serializable {
     @Column
     private Long idUltimaPosicion;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(String matricula) {
+        this.matricula = matricula;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+
+    public UnidadMedida getUnidadMedida() {
+        return unidadMedida;
+    }
+
+    public void setUnidadMedida(UnidadMedida unidadMedida) {
+        this.unidadMedida = unidadMedida;
+    }
+
+    public double getCantidadUnidadMedida() {
+        return cantidadUnidadMedida;
+    }
+
+    public void setCantidadUnidadMedida(double cantidadUnidadMedida) {
+        this.cantidadUnidadMedida = cantidadUnidadMedida;
+    }
+
+    public Long getIdUltimaPosicion() {
+        return idUltimaPosicion;
+    }
+
+    public void setIdUltimaPosicion(Long idUltimaPosicion) {
+        this.idUltimaPosicion = idUltimaPosicion;
+    }
+
+    public EstadoEquipo getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoEquipo estado) {
+        this.estado = estado;
+    }
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoEquipo estado;

@@ -3,11 +3,8 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.Equipo;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.services.IEquipoService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,8 +27,8 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public void Crear(Equipo equipo) throws Exception {
-        equipoRepository.save(equipo);
+    public Equipo Crear(Equipo equipo) throws Exception {
+        return equipoRepository.save(equipo);
     }
 
     @Override
@@ -40,13 +37,25 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public Optional<Equipo> obtenerPorId(Long id) throws Exception {
+    public Optional<Equipo> ObtenerPorId(Long id) throws Exception {
         return equipoRepository.findById(id);
     }
 
     @Override
-    public void Editar(Equipo equipo) throws Exception {
-        equipoRepository.save(equipo); // save sirve para crear o actualizar
+    public Equipo Editar(Long id, Equipo equipo) throws Exception {
+        Equipo equipoEditar = ObtenerPorId(id).orElse(null);
+
+        if(equipoEditar == null){
+            throw new Exception("El equipo no existe");
+        }
+
+        equipoEditar.setEstado(equipo.getEstado());
+        equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
+        equipoEditar.setMatricula(equipo.getMatricula());
+        equipoEditar.setUnidadMedida(equipo.getUnidadMedida());
+        equipoEditar.setIdUltimaPosicion(equipo.getIdUltimaPosicion();
+
+        return equipoRepository.save(equipoEditar);
     }
 }
 

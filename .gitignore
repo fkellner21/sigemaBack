@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ###string de conexion a BD###
-src/main/resources/application.properties
+/src/main/resources/application.properties

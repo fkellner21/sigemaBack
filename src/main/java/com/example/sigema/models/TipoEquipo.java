@@ -17,7 +17,18 @@ public class TipoEquipo implements Serializable {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    private String codigo;
+
+    @Column(nullable = true, unique = true)
     private String nombre;
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
+    }
 
     @Column(nullable = false)
     private boolean activo = false;

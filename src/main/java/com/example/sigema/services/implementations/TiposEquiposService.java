@@ -32,6 +32,7 @@ public class TiposEquiposService implements ITiposEquiposService {
         }
 
         tipoEquipoBuscado.setNombre(tipoEquipo.getNombre());
+        tipoEquipoBuscado.setCodigo(tipoEquipo.getCodigo());
         tipoEquipoBuscado.setActivo(tipoEquipo.isActivo());
 
         return tiposEquiposRepository.save(tipoEquipoBuscado);

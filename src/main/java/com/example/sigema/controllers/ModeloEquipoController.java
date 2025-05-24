@@ -31,32 +31,32 @@ public class ModeloEquipoController {
     }
 
     @GetMapping
-    public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo) throws Exception {
+    public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo){
         try{
             ModeloEquipo model = modeloEquipoService.Crear(modeloEquipo);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
-            throw new Exception(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping
-    public ResponseEntity<?> obtenerModeloEquipo(@PathVariable Long id) throws Exception {
+    public ResponseEntity<?> obtenerModeloEquipo(@PathVariable Long id)  {
         try{
             ModeloEquipo model = modeloEquipoService.ObtenerPorId(id).orElse(null);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
-            throw new Exception(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping
-    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo) throws Exception {
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo)  {
         try{
             ModeloEquipo model = modeloEquipoService.Editar(id, modeloEquipo);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
-            throw new Exception(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

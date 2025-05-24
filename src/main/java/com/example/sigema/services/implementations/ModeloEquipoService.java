@@ -28,22 +28,20 @@ public class ModeloEquipoService implements IModeloEquipoService {
 
     @Override
     public ModeloEquipo Editar(Long id, ModeloEquipo modeloEquipo) throws Exception {
-        Optional<ModeloEquipo> modeloExistenteOpt = modeloEquipoRepository.findById(id);
+        ModeloEquipo modeloExistenteOpt = modeloEquipoRepository.findById(id).orElse(null);
 
-        if (modeloExistenteOpt.isEmpty()) {
+        if (modeloExistenteOpt == null) {
             throw new Exception("Modelo con ID " + id + " no encontrado");
         }
 
-        ModeloEquipo existente = modeloExistenteOpt.get();
+        modeloExistenteOpt.setAnio(modeloEquipo.getAnio());
+        modeloExistenteOpt.setModelo(modeloEquipo.getModelo());
+        modeloExistenteOpt.setCapacidad(modeloEquipo.getCapacidad());
+        modeloExistenteOpt.setIdMarca(modeloEquipo.getIdMarca());
+        modeloExistenteOpt.setIdEquipos(modeloEquipo.getIdEquipos());
+        modeloExistenteOpt.setIdRepuestos(modeloEquipo.getIdRepuestos());
 
-        existente.setAnio(modeloEquipo.getAnio());
-        existente.setModelo(modeloEquipo.getModelo());
-        existente.setCapacidad(modeloEquipo.getCapacidad());
-        existente.setIdMarca(modeloEquipo.getIdMarca());
-        existente.setIdEquipos(modeloEquipo.getIdEquipos());
-        existente.setIdRepuestos(modeloEquipo.getIdRepuestos());
-
-        return modeloEquipoRepository.save(existente);
+        return modeloEquipoRepository.save(modeloExistenteOpt);
     }
 
 

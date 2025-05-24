@@ -30,7 +30,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @GetMapping
+    @PostMapping
     public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo){
         try{
             ModeloEquipo model = modeloEquipoService.Crear(modeloEquipo);
@@ -40,7 +40,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<?> obtenerModeloEquipo(@PathVariable Long id)  {
         try{
             ModeloEquipo model = modeloEquipoService.ObtenerPorId(id).orElse(null);
@@ -50,7 +50,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @GetMapping
+    @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo)  {
         try{
             ModeloEquipo model = modeloEquipoService.Editar(id, modeloEquipo);

@@ -54,10 +54,19 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Initialize EB CLI
+      - name: Create .elasticbeanstalk/config.yml
         run: |
-          eb init -p Docker $EBS_APP_NAME --region us-east-1
-          eb use $EBS_ENV_NAME
+          mkdir -p .elasticbeanstalk
+          cat <<EOF > .elasticbeanstalk/config.yml
+          branch-defaults:
+            main:
+              environment: $EBS_ENV_NAME
+          global:
+            application_name: $EBS_APP_NAME
+            default_region: us-east-1
+            platform: Docker
+            workspace_type: Application
+          EOF
 
       - name: Deploy to Elastic Beanstalk
         run: eb deploy

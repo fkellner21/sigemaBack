@@ -5,8 +5,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  EBS_APP_NAME: sigema
-  EBS_ENV_NAME: sigema-env
+  EBS_APP_NAME: Sigema
+  EBS_ENV_NAME: Sigema-env
   DOCKER_IMAGE_NAME: joacoseo1/sigema
 
 jobs:

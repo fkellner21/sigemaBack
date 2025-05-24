@@ -21,12 +21,12 @@ public class ModeloEquipoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ModeloEquipo>> obtenerTodos() {
+    public ResponseEntity<?> obtenerTodos() {
         try{
             List<ModeloEquipo> modeloEquipos = modeloEquipoService.ObtenerTodos();
             return ResponseEntity.ok().body(modeloEquipos);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

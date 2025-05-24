@@ -56,7 +56,7 @@ jobs:
 
       - name: Initialize EB CLI
         run: |
-          eb init $EBS_APP_NAME --platform "Docker" --region $AWS_REGION
+          eb init sigema --region us-east-1 --platform "Docker"
           eb use $EBS_ENV_NAME
 
       - name: Deploy to Elastic Beanstalk

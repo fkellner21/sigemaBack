@@ -1,4 +1,4 @@
-name: Build, Push and Deploy to Elastic Beanstalk
+name: Build, Push y Deploy
 
 on:
   workflow_dispatch:

@@ -1,12 +1,16 @@
 {
-  "AWSEBDockerrunVersion": "1",
-  "Image": {
-    "Name": "joacoseo1/sigema:latest",
-    "Update": "true"
-  },
-  "Ports": [
+  "AWSEBDockerrunVersion": 1,
+  "containerDefinitions": [
     {
-      "ContainerPort": "8080"
+      "name": "sigema",
+      "image": "joacoseo1/sigema:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 80
+        }
+      ]
     }
   ]
 }

@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 @Entity
 @Table(name = "Equipos")
@@ -36,12 +35,13 @@ public class Equipo implements Serializable {
     private Long idUltimaPosicion;
 
     @ManyToOne
-    @JoinColumn(name="modelo_equipo_id")
+    @JoinColumn(name = "modelo_equipo_id")
     private ModeloEquipo modeloEquipo;
 
     public ModeloEquipo getModeloEquipo() {
         return modeloEquipo;
     }
+
     public void setModeloEquipo(ModeloEquipo modeloEquipo) {
         this.modeloEquipo = modeloEquipo;
     }
@@ -106,5 +106,5 @@ public class Equipo implements Serializable {
     @Column(nullable = false)
     private EstadoEquipo estado;
 
-   // private ArrayList<Long> idMantenimientos;
+    // private ArrayList<Long> idMantenimientos;
 }

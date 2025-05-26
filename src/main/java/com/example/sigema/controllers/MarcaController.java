@@ -1,7 +1,7 @@
 package com.example.sigema.controllers;
 
-import com.example.sigema.models.Equipo;
-import com.example.sigema.services.IEquipoService;
+import com.example.sigema.models.Marca;
+import com.example.sigema.services.IMarcaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,73 +9,58 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/equipos")
+@RequestMapping("/api/marcas")
 @CrossOrigin(origins = "*")
-public class EquipoController {
+public class MarcaController {
 
-    private final IEquipoService equiposService;
+    private final IMarcaService marcasService;
 
     @Autowired
-    public EquipoController(IEquipoService equiposService) {
-        this.equiposService = equiposService;
+    public MarcaController(IMarcaService marcasService) {
+        this.marcasService = marcasService;
     }
 
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
         try {
-            List<Equipo> equipos = equiposService.obtenerTodos();
+            List<Marca> marcas = marcasService.ObtenerTodos();
 
-            return ResponseEntity.ok().body(equipos);
+            return ResponseEntity.ok().body(marcas);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
+    public ResponseEntity<?> crear(@RequestBody Marca marca) {
         try {
-            Equipo creado = equiposService.Crear(equipo);
+            Marca creado = marcasService.Crear(marca);
 
             return ResponseEntity.ok().body(creado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-    }
-
-    @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
-        try {
-            equiposService.Eliminar(id);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
-            Equipo equipo = equiposService.ObtenerPorId(id).orElse(null);
+            Marca marca = marcasService.ObtenerPorId(id).orElse(null);
 
-            return ResponseEntity.ok().body(equipo);
+            return ResponseEntity.ok().body(marca);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Equipo equipo) {
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Marca marca) {
         try {
-            Equipo editado = equiposService.Editar(id, equipo);
+            Marca editado = marcasService.Editar(id, marca);
 
             return ResponseEntity.ok().body(editado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
     }
-
-
 }

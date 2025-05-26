@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface IModeloEquipoService {
 
-        public ModeloEquipo Crear(ModeloEquipo modeloEquipo) throws Exception;
+    public ModeloEquipo Crear(ModeloEquipo modeloEquipo) throws Exception;
 
-        public ModeloEquipo Editar(Long id, ModeloEquipo modeloEquipo) throws Exception;
+    public ModeloEquipo Editar(Long id, ModeloEquipo modeloEquipo) throws Exception;
 
-        public Optional<ModeloEquipo> ObtenerPorId(Long id) throws Exception;
+    public Optional<ModeloEquipo> ObtenerPorId(Long id) throws Exception;
 
-        public List<ModeloEquipo> ObtenerTodos();
+    public List<ModeloEquipo> ObtenerTodos();
 }

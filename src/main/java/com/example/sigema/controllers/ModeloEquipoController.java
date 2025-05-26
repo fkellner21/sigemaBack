@@ -22,7 +22,7 @@ public class ModeloEquipoController {
 
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
-        try{
+        try {
             List<ModeloEquipo> modeloEquipos = modeloEquipoService.ObtenerTodos();
             return ResponseEntity.ok().body(modeloEquipos);
         } catch (Exception e) {
@@ -31,8 +31,8 @@ public class ModeloEquipoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo){
-        try{
+    public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo) {
+        try {
             ModeloEquipo model = modeloEquipoService.Crear(modeloEquipo);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
@@ -41,8 +41,8 @@ public class ModeloEquipoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerModeloEquipo(@PathVariable Long id)  {
-        try{
+    public ResponseEntity<?> obtenerModeloEquipo(@PathVariable Long id) {
+        try {
             ModeloEquipo model = modeloEquipoService.ObtenerPorId(id).orElse(null);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
@@ -51,16 +51,14 @@ public class ModeloEquipoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo)  {
-        try{
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo) {
+        try {
             ModeloEquipo model = modeloEquipoService.Editar(id, modeloEquipo);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-
 
 
 }

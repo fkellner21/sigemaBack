@@ -5,6 +5,7 @@ import com.example.sigema.repositories.ITiposEquiposRepository;
 import com.example.sigema.services.ITiposEquiposService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +15,7 @@ public class TiposEquiposService implements ITiposEquiposService {
 
     private final ITiposEquiposRepository tiposEquiposRepository;
 
-    public TiposEquiposService(ITiposEquiposRepository tiposEquiposRepository){
+    public TiposEquiposService(ITiposEquiposRepository tiposEquiposRepository) {
         this.tiposEquiposRepository = tiposEquiposRepository;
     }
 
@@ -27,7 +28,7 @@ public class TiposEquiposService implements ITiposEquiposService {
     public TipoEquipo Editar(Long id, TipoEquipo tipoEquipo) throws Exception {
         TipoEquipo tipoEquipoBuscado = ObtenerPorId(id).orElse(null);
 
-        if(tipoEquipoBuscado == null){
+        if (tipoEquipoBuscado == null) {
             throw new Exception("El tipo de equipo no existe");
         }
 
@@ -47,7 +48,7 @@ public class TiposEquiposService implements ITiposEquiposService {
     public List<TipoEquipo> ObtenerTodos(boolean soloActivos) {
         List<TipoEquipo> tiposEquipos = tiposEquiposRepository.findAll();
 
-        if(soloActivos) {
+        if (soloActivos) {
             tiposEquipos = tiposEquipos.stream().filter(TipoEquipo::isActivo).toList();
         }
 

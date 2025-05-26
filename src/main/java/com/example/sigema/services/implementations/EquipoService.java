@@ -45,7 +45,7 @@ public class EquipoService implements IEquipoService {
     public Equipo Editar(Long id, Equipo equipo) throws Exception {
         Equipo equipoEditar = ObtenerPorId(id).orElse(null);
 
-        if(equipoEditar == null){
+        if (equipoEditar == null) {
             throw new Exception("El equipo no existe");
         }
 

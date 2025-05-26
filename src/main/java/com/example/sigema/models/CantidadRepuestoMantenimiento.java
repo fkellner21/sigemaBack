@@ -1,6 +1,6 @@
 package com.example.sigema.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -35,6 +35,17 @@ public class Equipo implements Serializable {
     @Column
     private Long idUltimaPosicion;
 
+    @ManyToOne
+    @JoinColumn(name="modelo_equipo_id")
+    private ModeloEquipo modeloEquipo;
+
+    public ModeloEquipo getModeloEquipo() {
+        return modeloEquipo;
+    }
+    public void setModeloEquipo(ModeloEquipo modeloEquipo) {
+        this.modeloEquipo = modeloEquipo;
+    }
+
     public Long getId() {
         return id;
     }
@@ -95,5 +106,5 @@ public class Equipo implements Serializable {
     @Column(nullable = false)
     private EstadoEquipo estado;
 
-    private ArrayList<Long> idMantenimientos;
+   // private ArrayList<Long> idMantenimientos;
 }

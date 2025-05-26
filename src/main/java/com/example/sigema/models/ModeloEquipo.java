@@ -27,9 +27,23 @@ public class ModeloEquipo implements Serializable {
     private double capacidad;
 
     @Column(nullable = false)
+    @ManyToOne
+    private Marca marca;
+
     private Long idMarca;
 
-    private ArrayList<Long> idEquipos;
+    @OneToMany(mappedBy = "modeloEquipo")
+    private ArrayList<Equipo> equipos = new ArrayList<>();
 
-    private ArrayList<Long> idRepuestos;
+    @ManyToMany
+    @JoinTable(name="ModeloEquipoRepuesto",joinColumns = @JoinColumn(name = "modeloEquipoId"),inverseJoinColumns = @JoinColumn(name="repuestoId"))
+    private ArrayList<Repuesto> repuestos = new ArrayList<>();
+
+    public Long getIdMarca() {
+        return idMarca;
+    }
+
+    public void setIdMarca(Long idMarca) {
+        this.idMarca = idMarca;
+    }
 }

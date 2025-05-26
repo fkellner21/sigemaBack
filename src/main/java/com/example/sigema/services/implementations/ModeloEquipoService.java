@@ -37,9 +37,7 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloExistenteOpt.setAnio(modeloEquipo.getAnio());
         modeloExistenteOpt.setModelo(modeloEquipo.getModelo());
         modeloExistenteOpt.setCapacidad(modeloEquipo.getCapacidad());
-        modeloExistenteOpt.setIdMarca(modeloEquipo.getIdMarca());
-        modeloExistenteOpt.setIdEquipos(modeloEquipo.getIdEquipos());
-        modeloExistenteOpt.setIdRepuestos(modeloEquipo.getIdRepuestos());
+
 
         return modeloEquipoRepository.save(modeloExistenteOpt);
     }

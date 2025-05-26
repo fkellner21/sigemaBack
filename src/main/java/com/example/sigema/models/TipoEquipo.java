@@ -45,8 +45,12 @@ public class TipoEquipo implements Serializable {
         return id;
     }
 
-    public String getCodigo() {return codigo; }
+    public String getCodigo() {
+        return codigo;
+    }
 
-    public void setCodigo(String codigo) {this.codigo = codigo;}
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
+    }
 
 }

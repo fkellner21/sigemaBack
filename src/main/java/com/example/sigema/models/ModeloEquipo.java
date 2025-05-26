@@ -74,6 +74,29 @@ public class ModeloEquipo implements Serializable {
     @Transient
     private Long idMarca;
 
+    public Long getIdTipoEquipo() {
+        return idTipoEquipo;
+    }
+
+    public void setIdTipoEquipo(Long idTipoEquipo) {
+        this.idTipoEquipo = idTipoEquipo;
+    }
+
+    public TipoEquipo getTipoEquipo() {
+        return tipoEquipo;
+    }
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_tipo_equipo", referencedColumnName = "id", nullable = false)
+    private TipoEquipo tipoEquipo;
+
+    public void setTipoEquipo(TipoEquipo tipoEquipo) {
+        this.tipoEquipo = tipoEquipo;
+    }
+
+    @Transient
+    private Long idTipoEquipo;
+
     @OneToMany(mappedBy = "modeloEquipo")
     private List<Equipo> equipos = new ArrayList<>();
 

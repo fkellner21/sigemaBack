@@ -2,9 +2,11 @@ package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.Marca;
 import com.example.sigema.models.ModeloEquipo;
+import com.example.sigema.models.TipoEquipo;
 import com.example.sigema.repositories.IModeloEquipoRepository;
 import com.example.sigema.services.IMarcaService;
 import com.example.sigema.services.IModeloEquipoService;
+import com.example.sigema.services.ITiposEquiposService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -16,22 +18,30 @@ import java.util.Optional;
 public class ModeloEquipoService implements IModeloEquipoService {
     private final IModeloEquipoRepository modeloEquipoRepository;
     private final IMarcaService marcaService;
+    private final ITiposEquiposService tiposEquiposService;
 
-    public ModeloEquipoService(IModeloEquipoRepository modeloEquipoRepository, IMarcaService marcaService) {
+    public ModeloEquipoService(IModeloEquipoRepository modeloEquipoRepository, IMarcaService marcaService, ITiposEquiposService tiposEquiposService) {
         this.modeloEquipoRepository = modeloEquipoRepository;
         this.marcaService = marcaService;
+        this.tiposEquiposService = tiposEquiposService;
     }
 
 
     @Override
     public ModeloEquipo Crear(ModeloEquipo modeloEquipo) throws Exception {
         Marca marca = marcaService.ObtenerPorId(modeloEquipo.getIdMarca()).orElse(null);
+        TipoEquipo tipoEquipo = tiposEquiposService.ObtenerPorId(modeloEquipo.getIdTipoEquipo()).orElse(null);
 
         if (marca == null) {
             throw new Exception("Marca con ID " + modeloEquipo.getIdMarca() + " no encontrado");
         }
 
+        if (tipoEquipo == null) {
+            throw new Exception("Tipo de Equipo con ID " + modeloEquipo.getIdTipoEquipo() + " no encontrado");
+        }
+
         modeloEquipo.setMarca(marca);
+        modeloEquipo.setTipoEquipo(tipoEquipo);
 
         return modeloEquipoRepository.save(modeloEquipo);
     }
@@ -40,6 +50,7 @@ public class ModeloEquipoService implements IModeloEquipoService {
     public ModeloEquipo Editar(Long id, ModeloEquipo modeloEquipo) throws Exception {
         ModeloEquipo modeloExistenteOpt = modeloEquipoRepository.findById(id).orElse(null);
         Marca marca = marcaService.ObtenerPorId(modeloEquipo.getIdMarca()).orElse(null);
+        TipoEquipo tipoEquipo = tiposEquiposService.ObtenerPorId(modeloEquipo.getIdTipoEquipo()).orElse(null);
 
         if (modeloExistenteOpt == null) {
             throw new Exception("Modelo con ID " + id + " no encontrado");
@@ -49,10 +60,15 @@ public class ModeloEquipoService implements IModeloEquipoService {
             throw new Exception("Marca con ID " + modeloEquipo.getIdMarca() + " no encontrado");
         }
 
+        if (tipoEquipo == null) {
+            throw new Exception("Tipo de Equipo con ID " + modeloEquipo.getIdTipoEquipo() + " no encontrado");
+        }
+
         modeloExistenteOpt.setAnio(modeloEquipo.getAnio());
         modeloExistenteOpt.setModelo(modeloEquipo.getModelo());
         modeloExistenteOpt.setCapacidad(modeloEquipo.getCapacidad());
         modeloExistenteOpt.setMarca(marca);
+        modeloExistenteOpt.setTipoEquipo(tipoEquipo);
 
         return modeloEquipoRepository.save(modeloExistenteOpt);
     }

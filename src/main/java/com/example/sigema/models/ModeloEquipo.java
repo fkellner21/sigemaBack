@@ -90,6 +90,7 @@ public class ModeloEquipo implements Serializable {
     @JoinColumn(name = "id_tipo_equipo", referencedColumnName = "id", nullable = false)
     private TipoEquipo tipoEquipo;
 
+
     public void setTipoEquipo(TipoEquipo tipoEquipo) {
         this.tipoEquipo = tipoEquipo;
     }

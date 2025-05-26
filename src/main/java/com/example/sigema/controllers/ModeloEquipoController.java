@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/modeloEquipo")
+@RequestMapping("/api/modelosEquipo")
 @CrossOrigin(origins = "*")
 public class ModeloEquipoController {
 

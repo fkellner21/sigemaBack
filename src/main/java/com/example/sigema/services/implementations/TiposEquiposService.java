@@ -3,6 +3,7 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.TipoEquipo;
 import com.example.sigema.repositories.ITiposEquiposRepository;
 import com.example.sigema.services.ITiposEquiposService;
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +22,31 @@ public class TiposEquiposService implements ITiposEquiposService {
 
     @Override
     public TipoEquipo Crear(TipoEquipo tipoEquipo) throws Exception {
+        tipoEquipo.validar();
+
+        TipoEquipo existente = tiposEquiposRepository.findByCodigo(tipoEquipo.getCodigo()).orElse(null);
+
+        if(existente != null){
+            throw new SigemaException("Ya existe un tipo de equipo con el código " + tipoEquipo.getCodigo());
+        }
+
         return tiposEquiposRepository.save(tipoEquipo);
     }
 
     @Override
     public TipoEquipo Editar(Long id, TipoEquipo tipoEquipo) throws Exception {
+        tipoEquipo.validar();
+
+        TipoEquipo existente = tiposEquiposRepository.findByCodigo(tipoEquipo.getCodigo()).orElse(null);
+
+        if(existente != null && existente.getId() != null && !existente.getId().equals(id)){
+            throw new SigemaException("Ya existe un tipo de equipo con el código " + tipoEquipo.getCodigo());
+        }
+
         TipoEquipo tipoEquipoBuscado = ObtenerPorId(id).orElse(null);
 
         if (tipoEquipoBuscado == null) {
-            throw new Exception("El tipo de equipo no existe");
+            throw new SigemaException("El tipo de equipo ha editar no existe");
         }
 
         tipoEquipoBuscado.setNombre(tipoEquipo.getNombre());

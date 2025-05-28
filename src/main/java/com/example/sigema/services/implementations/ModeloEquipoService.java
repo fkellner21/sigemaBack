@@ -7,6 +7,7 @@ import com.example.sigema.repositories.IModeloEquipoRepository;
 import com.example.sigema.services.IMarcaService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.ITiposEquiposService;
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -29,15 +30,17 @@ public class ModeloEquipoService implements IModeloEquipoService {
 
     @Override
     public ModeloEquipo Crear(ModeloEquipo modeloEquipo) throws Exception {
+        modeloEquipo.validar();
+
         Marca marca = marcaService.ObtenerPorId(modeloEquipo.getIdMarca()).orElse(null);
         TipoEquipo tipoEquipo = tiposEquiposService.ObtenerPorId(modeloEquipo.getIdTipoEquipo()).orElse(null);
 
         if (marca == null) {
-            throw new Exception("Marca con ID " + modeloEquipo.getIdMarca() + " no encontrado");
+            throw new SigemaException("Marca con ID " + modeloEquipo.getIdMarca() + " no encontrado");
         }
 
         if (tipoEquipo == null) {
-            throw new Exception("Tipo de Equipo con ID " + modeloEquipo.getIdTipoEquipo() + " no encontrado");
+            throw new SigemaException("Tipo de Equipo con ID " + modeloEquipo.getIdTipoEquipo() + " no encontrado");
         }
 
         modeloEquipo.setMarca(marca);
@@ -48,20 +51,22 @@ public class ModeloEquipoService implements IModeloEquipoService {
 
     @Override
     public ModeloEquipo Editar(Long id, ModeloEquipo modeloEquipo) throws Exception {
+        modeloEquipo.validar();
+
         ModeloEquipo modeloExistenteOpt = modeloEquipoRepository.findById(id).orElse(null);
         Marca marca = marcaService.ObtenerPorId(modeloEquipo.getIdMarca()).orElse(null);
         TipoEquipo tipoEquipo = tiposEquiposService.ObtenerPorId(modeloEquipo.getIdTipoEquipo()).orElse(null);
 
         if (modeloExistenteOpt == null) {
-            throw new Exception("Modelo con ID " + id + " no encontrado");
+            throw new SigemaException("Modelo con ID " + id + " no encontrado");
         }
 
         if (marca == null) {
-            throw new Exception("Marca con ID " + modeloEquipo.getIdMarca() + " no encontrado");
+            throw new SigemaException("Marca con ID " + modeloEquipo.getIdMarca() + " no encontrado");
         }
 
         if (tipoEquipo == null) {
-            throw new Exception("Tipo de Equipo con ID " + modeloEquipo.getIdTipoEquipo() + " no encontrado");
+            throw new SigemaException("Tipo de Equipo con ID " + modeloEquipo.getIdTipoEquipo() + " no encontrado");
         }
 
         modeloExistenteOpt.setAnio(modeloEquipo.getAnio());

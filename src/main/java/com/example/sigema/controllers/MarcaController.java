@@ -2,6 +2,7 @@ package com.example.sigema.controllers;
 
 import com.example.sigema.models.Marca;
 import com.example.sigema.services.IMarcaService;
+import com.example.sigema.utilidades.SigemaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,11 @@ public class MarcaController {
             List<Marca> marcas = marcasService.ObtenerTodos();
 
             return ResponseEntity.ok().body(marcas);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -37,8 +41,11 @@ public class MarcaController {
             Marca creado = marcasService.Crear(marca);
 
             return ResponseEntity.ok().body(creado);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -48,8 +55,11 @@ public class MarcaController {
             Marca marca = marcasService.ObtenerPorId(id).orElse(null);
 
             return ResponseEntity.ok().body(marca);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -59,8 +69,11 @@ public class MarcaController {
             Marca editado = marcasService.Editar(id, marca);
 
             return ResponseEntity.ok().body(editado);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 }

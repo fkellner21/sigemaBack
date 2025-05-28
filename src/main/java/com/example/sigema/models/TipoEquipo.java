@@ -1,5 +1,6 @@
 package com.example.sigema.models;
 
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +12,9 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class TipoEquipo implements Serializable {
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,4 +57,13 @@ public class TipoEquipo implements Serializable {
         this.codigo = codigo;
     }
 
+    public void validar() throws SigemaException{
+        if(nombre.isEmpty()){
+            throw new SigemaException("Debe ingresar un nombre");
+        }
+
+        if(codigo.isEmpty()){
+            throw new SigemaException("Debe ingresar un código");
+        }
+    }
 }

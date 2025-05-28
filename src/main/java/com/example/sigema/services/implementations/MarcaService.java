@@ -3,6 +3,7 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.Marca;
 import com.example.sigema.repositories.IMarcaRepository;
 import com.example.sigema.services.IMarcaService;
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +21,27 @@ public class MarcaService implements IMarcaService {
 
     @Override
     public Marca Crear(Marca marca) throws Exception {
+        marca.validar();
+
+        Marca existente = marcaRepository.findByNombre(marca.getNombre()).orElse(null);
+
+        if(existente != null){
+            throw new SigemaException("Ya existe una marca con ese nombre");
+        }
+
         return marcaRepository.save(marca);
     }
 
     @Override
     public Marca Editar(Long id, Marca marca) throws Exception {
+        marca.validar();
+
+        Marca existente = marcaRepository.findByNombre(marca.getNombre()).orElse(null);
+
+        if(existente != null && !existente.getId().equals(id)){
+            throw new SigemaException("Ya existe una marca con ese nombre");
+        }
+
         Marca marcaExistenteOpt = marcaRepository.findById(id).orElse(null);
 
         if (marcaExistenteOpt == null) {

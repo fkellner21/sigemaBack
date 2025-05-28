@@ -2,6 +2,7 @@ package com.example.sigema.controllers;
 
 import com.example.sigema.models.TipoEquipo;
 import com.example.sigema.services.ITiposEquiposService;
+import com.example.sigema.utilidades.SigemaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,10 +26,11 @@ public class TiposEquiposController {
             List<TipoEquipo> tiposEquipos = tiposEquiposService.ObtenerTodos(soloActivos);
 
             return ResponseEntity.ok(tiposEquipos);
-        } catch (Exception ex) {
-            //Chequear despues los tipos de expceciones segun errores
-
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -38,14 +40,15 @@ public class TiposEquiposController {
             TipoEquipo tipoEquipo = tiposEquiposService.ObtenerPorId(id).orElse(null);
 
             if (tipoEquipo == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tipo de equipo no encontrado");
+                throw new SigemaException("Tipo de equipo no encontrado");
             }
 
             return ResponseEntity.ok(tipoEquipo);
-        } catch (Exception ex) {
-            //Chequear despues los tipos de expceciones segun errores
-
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -55,10 +58,11 @@ public class TiposEquiposController {
             TipoEquipo tipoEquipoCreado = tiposEquiposService.Crear(tipoEquipo);
 
             return ResponseEntity.ok(tipoEquipoCreado);
-        } catch (Exception ex) {
-            //Chequear despues los tipos de expceciones segun errores
-
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -68,10 +72,11 @@ public class TiposEquiposController {
             TipoEquipo tipoEquipoEditado = tiposEquiposService.Editar(id, tipoEquipo);
 
             return ResponseEntity.ok(tipoEquipoEditado);
-        } catch (Exception ex) {
-            //Chequear despues los tipos de expceciones segun errores
-
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 }

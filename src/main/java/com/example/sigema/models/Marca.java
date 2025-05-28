@@ -1,5 +1,6 @@
 package com.example.sigema.models;
 
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,5 +34,11 @@ public class Marca implements Serializable {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public void validar() throws SigemaException{
+        if(nombre.isEmpty()){
+            throw new SigemaException("Debe ingresar el nombre");
+        }
     }
 }

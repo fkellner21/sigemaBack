@@ -1,10 +1,12 @@
 package com.example.sigema.models;
 
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,5 +129,31 @@ public class ModeloEquipo implements Serializable {
 
     public void setIdMarca(Long idMarca) {
         this.idMarca = idMarca;
+    }
+
+    public void validar() throws SigemaException{
+        if(anio < 1900){
+            throw new SigemaException("El año debe ser mayor o igual a 1900");
+        }
+
+        if(anio > (LocalDate.now().getYear() + 1)){
+            throw new SigemaException("El año debe ser menor a " + (LocalDate.now().getYear() + 1));
+        }
+
+        if(modelo.isEmpty()){
+            throw new SigemaException("Debe ingresar un modelo");
+        }
+
+        if(capacidad <= 0){
+            throw new SigemaException("La capacidad debe ser mayor a 0");
+        }
+
+        if(idMarca == 0 && marca.getId() == 0){
+            throw new SigemaException("Debe ingresar una marca");
+        }
+
+        if(idTipoEquipo == 0 && tipoEquipo.getId() == 0){
+            throw new SigemaException("Debe ingresar un tipo de equipo");
+        }
     }
 }

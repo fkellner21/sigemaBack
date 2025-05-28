@@ -2,6 +2,7 @@ package com.example.sigema.controllers;
 
 import com.example.sigema.models.Equipo;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.utilidades.SigemaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,11 @@ public class EquipoController {
             List<Equipo> equipos = equiposService.obtenerTodos();
 
             return ResponseEntity.ok().body(equipos);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -37,20 +41,26 @@ public class EquipoController {
             Equipo creado = equiposService.Crear(equipo);
 
             return ResponseEntity.ok().body(creado);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
             equiposService.Eliminar(id);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
 
+            return ResponseEntity.ok().body("Se ha eliminado con exito");
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
+        }
     }
 
     @GetMapping("/{id}")
@@ -59,8 +69,11 @@ public class EquipoController {
             Equipo equipo = equiposService.ObtenerPorId(id).orElse(null);
 
             return ResponseEntity.ok().body(equipo);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
 
@@ -71,11 +84,11 @@ public class EquipoController {
             Equipo editado = equiposService.Editar(id, equipo);
 
             return ResponseEntity.ok().body(editado);
-        } catch (Exception e) {
+        } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
+        }
     }
-
-
 }

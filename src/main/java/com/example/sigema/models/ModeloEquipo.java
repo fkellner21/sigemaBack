@@ -33,6 +33,23 @@ public class ModeloEquipo implements Serializable {
     @JoinColumn(name = "id_marca", referencedColumnName = "id", nullable = false)
     private Marca marca;
 
+    @Transient
+    private Long idMarca;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_tipo_equipo", referencedColumnName = "id", nullable = false)
+    private TipoEquipo tipoEquipo;
+
+    @Transient
+    private Long idTipoEquipo;
+
+    @OneToMany(mappedBy = "modeloEquipo")
+    private List<Equipo> equipos = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "ModeloEquipoRepuesto", joinColumns = @JoinColumn(name = "modeloEquipoId"), inverseJoinColumns = @JoinColumn(name = "repuestoId"))
+    private List<Repuesto> repuestos = new ArrayList<>();
+
     public Long getId() {
         return id;
     }
@@ -73,9 +90,6 @@ public class ModeloEquipo implements Serializable {
         this.marca = marca;
     }
 
-    @Transient
-    private Long idMarca;
-
     public Long getIdTipoEquipo() {
         return idTipoEquipo;
     }
@@ -88,20 +102,9 @@ public class ModeloEquipo implements Serializable {
         return tipoEquipo;
     }
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "id_tipo_equipo", referencedColumnName = "id", nullable = false)
-    private TipoEquipo tipoEquipo;
-
-
     public void setTipoEquipo(TipoEquipo tipoEquipo) {
         this.tipoEquipo = tipoEquipo;
     }
-
-    @Transient
-    private Long idTipoEquipo;
-
-    @OneToMany(mappedBy = "modeloEquipo")
-    private List<Equipo> equipos = new ArrayList<>();
 
     public List<Repuesto> getRepuestos() {
         return repuestos;
@@ -118,10 +121,6 @@ public class ModeloEquipo implements Serializable {
     public void setEquipos(List<Equipo> equipos) {
         this.equipos = equipos;
     }
-
-    @ManyToMany
-    @JoinTable(name = "ModeloEquipoRepuesto", joinColumns = @JoinColumn(name = "modeloEquipoId"), inverseJoinColumns = @JoinColumn(name = "repuestoId"))
-    private List<Repuesto> repuestos = new ArrayList<>();
 
     public Long getIdMarca() {
         return idMarca;
@@ -140,7 +139,7 @@ public class ModeloEquipo implements Serializable {
             throw new SigemaException("El año debe ser menor a " + (LocalDate.now().getYear() + 1));
         }
 
-        if(modelo.isEmpty()){
+        if(modelo==null||modelo.isEmpty()){
             throw new SigemaException("Debe ingresar un modelo");
         }
 

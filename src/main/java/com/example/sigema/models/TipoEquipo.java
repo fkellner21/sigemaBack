@@ -58,11 +58,11 @@ public class TipoEquipo implements Serializable {
     }
 
     public void validar() throws SigemaException{
-        if(nombre.isEmpty()){
+        if(this.getNombre()==null||nombre.isEmpty()){
             throw new SigemaException("Debe ingresar un nombre");
         }
 
-        if(codigo.isEmpty()){
+        if(codigo==null||codigo.isEmpty()){
             throw new SigemaException("Debe ingresar un código");
         }
     }

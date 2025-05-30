@@ -156,3 +156,4 @@ public class ModeloEquipo implements Serializable {
         }
     }
 }
+//todo agregar la unidad de medida

@@ -74,6 +74,7 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloExistenteOpt.setCapacidad(modeloEquipo.getCapacidad());
         modeloExistenteOpt.setMarca(marca);
         modeloExistenteOpt.setTipoEquipo(tipoEquipo);
+        modeloExistenteOpt.setUnidadMedida(modeloEquipo.getUnidadMedida());
 
         return modeloEquipoRepository.save(modeloExistenteOpt);
     }

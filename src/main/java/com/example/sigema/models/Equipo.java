@@ -25,10 +25,6 @@ public class Equipo implements Serializable {
     @Column
     private String observaciones;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UnidadMedida unidadMedida;
-
     @Column(nullable = false)
     private double cantidadUnidadMedida = 0;
 
@@ -45,6 +41,10 @@ public class Equipo implements Serializable {
 
     @Transient
     private Long idModeloEquipo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoEquipo estado = EstadoEquipo.Verde;
 
     public Long getIdModeloEquipo() {
         return idModeloEquipo;
@@ -82,14 +82,6 @@ public class Equipo implements Serializable {
         this.observaciones = observaciones;
     }
 
-    public UnidadMedida getUnidadMedida() {
-        return unidadMedida;
-    }
-
-    public void setUnidadMedida(UnidadMedida unidadMedida) {
-        this.unidadMedida = unidadMedida;
-    }
-
     public double getCantidadUnidadMedida() {
         return cantidadUnidadMedida;
     }
@@ -114,23 +106,13 @@ public class Equipo implements Serializable {
         this.estado = estado;
     }
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoEquipo estado;
-
-    // private ArrayList<Long> idMantenimientos;
-
     public void validar() throws SigemaException {
         if(matricula.isEmpty()){
             throw new SigemaException("Debe ingresar una matricula");
         }
 
-        if(unidadMedida != UnidadMedida.HT && unidadMedida != UnidadMedida.KMs){
-            throw new SigemaException("La unidad de medida debe ser HT (horas) o KMs (Kilometros), las opciones a ingresar HT, KMs");
-        }
-
         if(cantidadUnidadMedida < 0){
-            throw new SigemaException("La cantidad de " + unidadMedida + " no debe ser menor a 0");
+            throw new SigemaException("La cantidad de " + this.modeloEquipo.getUnidadMedida() + " no debe ser menor a 0");
         }
 
         if ((idModeloEquipo == null || idModeloEquipo == 0) && (modeloEquipo == null || modeloEquipo.getId() == null || modeloEquipo.getId() == 0)) {
@@ -141,4 +123,6 @@ public class Equipo implements Serializable {
             throw new SigemaException("El estado debe ser Verde, Amarillo, Rojo o Negro");
         }
     }
+
+    // private ArrayList<Long> idMantenimientos;
 }

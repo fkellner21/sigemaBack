@@ -1,5 +1,6 @@
 package com.example.sigema.models;
 
+import com.example.sigema.models.enums.UnidadMedida;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -49,6 +50,22 @@ public class ModeloEquipo implements Serializable {
     @ManyToMany
     @JoinTable(name = "ModeloEquipoRepuesto", joinColumns = @JoinColumn(name = "modeloEquipoId"), inverseJoinColumns = @JoinColumn(name = "repuestoId"))
     private List<Repuesto> repuestos = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UnidadMedida unidadMedida=UnidadMedida.HT;
+
+    @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)//cascade hace que si borro el modelo, borro los docs
+    private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
+
+
+    public UnidadMedida getUnidadMedida() {
+        return unidadMedida;
+    }
+
+    public void setUnidadMedida(UnidadMedida unidadMedida) {
+        this.unidadMedida = unidadMedida;
+    }
 
     public Long getId() {
         return id;
@@ -156,4 +173,3 @@ public class ModeloEquipo implements Serializable {
         }
     }
 }
-//todo agregar la unidad de medida

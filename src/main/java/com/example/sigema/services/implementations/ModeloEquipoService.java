@@ -27,7 +27,6 @@ public class ModeloEquipoService implements IModeloEquipoService {
         this.tiposEquiposService = tiposEquiposService;
     }
 
-
     @Override
     public ModeloEquipo Crear(ModeloEquipo modeloEquipo) throws Exception {
         modeloEquipo.validar();
@@ -74,6 +73,7 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloExistenteOpt.setCapacidad(modeloEquipo.getCapacidad());
         modeloExistenteOpt.setMarca(marca);
         modeloExistenteOpt.setTipoEquipo(tipoEquipo);
+        modeloExistenteOpt.setUnidadMedida(modeloEquipo.getUnidadMedida());
 
         return modeloEquipoRepository.save(modeloExistenteOpt);
     }

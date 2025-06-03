@@ -41,7 +41,7 @@ public class EquiposTest
     private Equipo crearEquipoValido() {
         Equipo equipo = new Equipo();
         equipo.setMatricula("ABC123");
-        equipo.setUnidadMedida(UnidadMedida.HT);
+//        equipo.setUnidadMedida(UnidadMedida.HT);
         equipo.setCantidadUnidadMedida(100);
         equipo.setEstado(EstadoEquipo.Verde);
         equipo.setIdModeloEquipo(1L);

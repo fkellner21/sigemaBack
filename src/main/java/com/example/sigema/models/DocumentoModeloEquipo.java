@@ -1,0 +1,30 @@
+package com.example.sigema.models;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "DocumentosModeloEquipo")
+@Getter
+@Setter
+public class DocumentoModeloEquipo implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nombreArchivo;
+
+    private String rutaArchivo;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "modelo_equipo_id")
+    private ModeloEquipo modeloEquipo;
+
+    private LocalDate fechaSubida = LocalDate.now();
+}

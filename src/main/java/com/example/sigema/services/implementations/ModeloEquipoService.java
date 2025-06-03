@@ -27,7 +27,6 @@ public class ModeloEquipoService implements IModeloEquipoService {
         this.tiposEquiposService = tiposEquiposService;
     }
 
-
     @Override
     public ModeloEquipo Crear(ModeloEquipo modeloEquipo) throws Exception {
         modeloEquipo.validar();

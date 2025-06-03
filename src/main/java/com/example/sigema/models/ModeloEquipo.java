@@ -55,6 +55,10 @@ public class ModeloEquipo implements Serializable {
     @Column(nullable = false)
     private UnidadMedida unidadMedida=UnidadMedida.HT;
 
+    @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)//cascade hace que si borro el modelo, borro los docs
+    private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
+
+
     public UnidadMedida getUnidadMedida() {
         return unidadMedida;
     }
@@ -169,4 +173,3 @@ public class ModeloEquipo implements Serializable {
         }
     }
 }
-//todo agregar la unidad de medida

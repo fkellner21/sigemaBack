@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/modelosEquipo")
@@ -42,7 +40,6 @@ public class ModeloEquipoController {
     public ResponseEntity<?> obtenerTodos() {
         try {
             List<ModeloEquipo> modeloEquipos = modeloEquipoService.ObtenerTodos();
-
             return ResponseEntity.ok().body(modeloEquipos);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -95,15 +92,15 @@ public class ModeloEquipoController {
     }
 
     @PostMapping("/{id}/documentos")
-    public ResponseEntity<String> subirDocumento(
+    public ResponseEntity<Map<String, String>>  subirDocumento(
             @PathVariable Long id,
             @RequestParam("archivo") MultipartFile archivo) {
 
         try {
-            ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(id).orElseThrow(() -> new RuntimeException("Modelo no encontrado"));;
+            ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(id).orElseThrow(() -> new SigemaException("Modelo no encontrado"));;
 
             String nombreArchivo = UUID.randomUUID() + "_" + archivo.getOriginalFilename();
-            Path ruta = Paths.get(carpetaUploads + nombreArchivo);
+            Path ruta = Paths.get(carpetaUploads+modelo.getId()+ '/' + nombreArchivo);
             Files.createDirectories(ruta.getParent());
             Files.write(ruta, archivo.getBytes());
 
@@ -114,16 +111,21 @@ public class ModeloEquipoController {
 
             documentoService.save(documento);
 
-            return ResponseEntity.ok("Documento subido correctamente");
+            Map<String, String> respuesta = new HashMap<>();
+            respuesta.put("mensaje", "Documento subido correctamente");
+            return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al subir el documento: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al subir el documento: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+
+    
     @GetMapping("/documentos/{id}/descargar")
-    public ResponseEntity<Resource> descargar(@PathVariable Long id) throws IOException {
+    public ResponseEntity<Resource> descargar(@PathVariable Long id) throws Exception {
         DocumentoModeloEquipo doc = documentoService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+                .orElseThrow(() -> new SigemaException("Documento no encontrado"));
 
         Path path = Paths.get(doc.getRutaArchivo());
         Resource resource = new UrlResource(path.toUri());
@@ -132,4 +134,44 @@ public class ModeloEquipoController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getNombreArchivo() + "\"")
                 .body(resource);
     }
+    @GetMapping("/{id}/documentos")
+    public ResponseEntity<?> listarDocumentos(@PathVariable Long id) {
+        try {
+            ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(id)
+                    .orElseThrow(() -> new SigemaException("Modelo no encontrado"));
+
+            List<DocumentoModeloEquipo> documentos = documentoService.findByModeloEquipo(modelo);
+            return ResponseEntity.ok(documentos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener documentos: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/documentos/{id}")
+    public ResponseEntity<?> eliminarDocumento(@PathVariable Long id) {
+        try {
+            DocumentoModeloEquipo documento = documentoService.findById(id)
+                    .orElseThrow(() -> new SigemaException("Documento no encontrado"));
+
+            // Eliminar el archivo del sistema
+            Path path = Paths.get(documento.getRutaArchivo());
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException e) {
+                // Si no se puede borrar, igual seguimos con el borrado en BD, pero logueamos
+                System.err.println("No se pudo eliminar el archivo: " + e.getMessage());
+            }
+
+            // Eliminar de la base de datos
+            documentoService.delete(documento);
+
+            return ResponseEntity.ok().body(Map.of("mensaje", "Documento eliminado correctamente"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "No se pudo eliminar el documento: " + e.getMessage()));
+        }
+    }
+
+
 }

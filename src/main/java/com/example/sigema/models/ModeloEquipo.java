@@ -10,6 +10,9 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 
 @Entity
 @Table(name = "ModelosEquipos")
@@ -56,6 +59,7 @@ public class ModeloEquipo implements Serializable {
     private UnidadMedida unidadMedida=UnidadMedida.HT;
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)//cascade hace que si borro el modelo, borro los docs
+    @JsonManagedReference
     private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
 
 

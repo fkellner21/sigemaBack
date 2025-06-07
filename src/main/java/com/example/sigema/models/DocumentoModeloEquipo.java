@@ -7,6 +7,8 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 
 @Entity
 @Table(name = "DocumentosModeloEquipo")
@@ -24,6 +26,7 @@ public class DocumentoModeloEquipo implements Serializable {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "modelo_equipo_id")
+    @JsonBackReference
     private ModeloEquipo modeloEquipo;
 
     private LocalDate fechaSubida = LocalDate.now();

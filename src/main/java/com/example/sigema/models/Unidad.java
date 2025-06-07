@@ -18,4 +18,7 @@ public class Unidad implements Serializable {
 
     @Column(nullable = false, unique = true)
     private String nombre;
+
+    public void validar() {
+    }
 }

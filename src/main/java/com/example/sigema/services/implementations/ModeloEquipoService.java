@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-@Service // mejor que @Repository para servicios
+@Service
 @Transactional
 public class ModeloEquipoService implements IModeloEquipoService {
     private final IModeloEquipoRepository modeloEquipoRepository;

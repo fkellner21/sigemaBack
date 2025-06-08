@@ -176,4 +176,13 @@ public class ModeloEquipo implements Serializable {
             throw new SigemaException("Debe ingresar un tipo de equipo");
         }
     }
+
+    public List<DocumentoModeloEquipo> getDocumentos() {
+        return documentos;
+    }
+
+    public void setDocumentos(List<DocumentoModeloEquipo> documentos) {
+        this.documentos = documentos;
+    }
+
 }

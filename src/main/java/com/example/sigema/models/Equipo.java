@@ -1,7 +1,6 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoEquipo;
-import com.example.sigema.models.enums.UnidadMedida;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -35,10 +34,6 @@ public class Equipo implements Serializable {
     @JoinColumn(name = "modelo_equipo_id")
     private ModeloEquipo modeloEquipo;
 
-    public ModeloEquipo getModeloEquipo() {
-        return modeloEquipo;
-    }
-
     @Transient
     private Long idModeloEquipo;
 
@@ -46,16 +41,26 @@ public class Equipo implements Serializable {
     @Column(nullable = false)
     private EstadoEquipo estado = EstadoEquipo.Verde;
 
+    @ManyToOne
+    @JoinColumn(name = "unidad_id", nullable = false)
+    private Unidad unidad;
+
+    // Getters y Setters
+
+    public ModeloEquipo getModeloEquipo() {
+        return modeloEquipo;
+    }
+
+    public void setModeloEquipo(ModeloEquipo modeloEquipo) {
+        this.modeloEquipo = modeloEquipo;
+    }
+
     public Long getIdModeloEquipo() {
         return idModeloEquipo;
     }
 
     public void setIdModeloEquipo(Long idModeloEquipo) {
         this.idModeloEquipo = idModeloEquipo;
-    }
-
-    public void setModeloEquipo(ModeloEquipo modeloEquipo) {
-        this.modeloEquipo = modeloEquipo;
     }
 
     public Long getId() {
@@ -106,23 +111,37 @@ public class Equipo implements Serializable {
         this.estado = estado;
     }
 
+    public Unidad getUnidad() {
+        return unidad;
+    }
+
+    public void setUnidad(Unidad unidad) {
+        this.unidad = unidad;
+    }
+
     public void validar() throws SigemaException {
-        if(matricula.isEmpty()){
+        if (matricula == null || matricula.isEmpty()) {
             throw new SigemaException("Debe ingresar una matricula");
         }
 
-        if(cantidadUnidadMedida < 0){
+        if (cantidadUnidadMedida < 0) {
             throw new SigemaException("La cantidad de " + this.modeloEquipo.getUnidadMedida() + " no debe ser menor a 0");
         }
 
-        if ((idModeloEquipo == null || idModeloEquipo == 0) && (modeloEquipo == null || modeloEquipo.getId() == null || modeloEquipo.getId() == 0)) {
+        if ((idModeloEquipo == null || idModeloEquipo == 0) &&
+                (modeloEquipo == null || modeloEquipo.getId() == null || modeloEquipo.getId() == 0)) {
             throw new SigemaException("Debe ingresar un modelo de equipo");
         }
 
-        if(estado != EstadoEquipo.Amarillo && estado != EstadoEquipo.Negro && estado != EstadoEquipo.Rojo && estado != EstadoEquipo.Verde){
+        if (estado != EstadoEquipo.Amarillo &&
+                estado != EstadoEquipo.Negro &&
+                estado != EstadoEquipo.Rojo &&
+                estado != EstadoEquipo.Verde) {
             throw new SigemaException("El estado debe ser Verde, Amarillo, Rojo o Negro");
         }
-    }
 
-    // private ArrayList<Long> idMantenimientos;
+        if (unidad == null || unidad.getId() == null || unidad.getId() == 0) {
+            throw new SigemaException("Debe asociar una unidad válida al equipo");
+        }
+    }
 }

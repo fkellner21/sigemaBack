@@ -86,10 +86,10 @@ public class EquiposTest
         equipo.setId(1L);
 
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
-        Optional<Equipo> resultado = equipoService.ObtenerPorId(1L);
+        Equipo resultado = equipoService.ObtenerPorId(1L);
 
-        assertTrue(resultado.isPresent());
-        assertEquals(1L, resultado.get().getId());
+        assertTrue(resultado != null);
+        assertEquals(1L, resultado.getId());
     }
 
     @Test

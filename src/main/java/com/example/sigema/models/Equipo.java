@@ -45,7 +45,17 @@ public class Equipo implements Serializable {
     @JoinColumn(name = "unidad_id", nullable = false)
     private Unidad unidad;
 
-    // Getters y Setters
+    @Transient
+    private Long idUnidad;
+
+    public Long getIdUnidad() {
+        return idUnidad;
+    }
+
+    public void setIdUnidad(Long idUnidad) {
+        this.idUnidad = idUnidad;
+    }
+// Getters y Setters
 
     public ModeloEquipo getModeloEquipo() {
         return modeloEquipo;
@@ -140,7 +150,7 @@ public class Equipo implements Serializable {
             throw new SigemaException("El estado debe ser Verde, Amarillo, Rojo o Negro");
         }
 
-        if (unidad == null || unidad.getId() == null || unidad.getId() == 0) {
+        if (idUnidad == null || idUnidad == 0) {
             throw new SigemaException("Debe asociar una unidad válida al equipo");
         }
     }

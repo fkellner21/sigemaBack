@@ -45,7 +45,7 @@ public class UnidadService implements IUnidadService {
     @Override
     public Unidad Editar(Long id, Unidad unidad) throws Exception {
         unidad.validar();
-        Unidad unidadEditar = ObtenerPorId(id).orElseThrow(() -> new Exception("Unidad no encontrada"));
+        Unidad unidadEditar = ObtenerPorId(id).orElseThrow(() -> new SigemaException("Unidad no encontrada"));
         unidadEditar.setNombre(unidad.getNombre());
         return unidadRepository.save(unidadEditar);
     }

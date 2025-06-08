@@ -66,7 +66,7 @@ public class EquipoController {
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
-            Equipo equipo = equiposService.ObtenerPorId(id).orElse(null);
+            Equipo equipo = equiposService.ObtenerPorId(id);
 
             return ResponseEntity.ok().body(equipo);
         } catch(SigemaException e){

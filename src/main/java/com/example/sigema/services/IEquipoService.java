@@ -13,8 +13,7 @@ public interface IEquipoService {
 
     public void Eliminar(Long id) throws Exception;
 
-    public Optional<Equipo> ObtenerPorId(Long id) throws Exception;
+    public Equipo ObtenerPorId(Long id) throws Exception;
 
     public Equipo Editar(Long id, Equipo equipo) throws Exception;
-
 }

@@ -47,8 +47,8 @@ public class ModeloEquipo implements Serializable {
     @Transient
     private Long idTipoEquipo;
 
-    @OneToMany(mappedBy = "modeloEquipo")
-    private List<Equipo> equipos = new ArrayList<>();
+//    @OneToMany(mappedBy = "modeloEquipo")
+//    private List<Equipo> equipos = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(name = "ModeloEquipoRepuesto", joinColumns = @JoinColumn(name = "modeloEquipoId"), inverseJoinColumns = @JoinColumn(name = "repuestoId"))
@@ -135,13 +135,13 @@ public class ModeloEquipo implements Serializable {
         this.repuestos = repuestos;
     }
 
-    public List<Equipo> getEquipos() {
-        return equipos;
-    }
-
-    public void setEquipos(List<Equipo> equipos) {
-        this.equipos = equipos;
-    }
+//    public List<Equipo> getEquipos() {
+//        return equipos;
+//    }
+//
+//    public void setEquipos(List<Equipo> equipos) {
+//        this.equipos = equipos;
+//    }
 
     public Long getIdMarca() {
         return idMarca;

@@ -2,6 +2,7 @@ package com.example.sigema.controllers;
 
 
 import com.example.sigema.models.Repuesto;
+import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.utilidades.SigemaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +22,6 @@ public class RepuestoController {
     @Autowired
     public RepuestoController(IRepuestoService r) {
         this.repuestosService = r;
-    }
-
-    @GetMapping
-    public ResponseEntity<?> obtenerTodos() {
-        try {
-            List<Repuesto> repuestos = repuestosService.ObtenerTodos();
-
-            return ResponseEntity.ok().body(repuestos);
-        } catch(SigemaException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
-        }
     }
 
     @PostMapping

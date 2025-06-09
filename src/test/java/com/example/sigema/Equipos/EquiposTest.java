@@ -2,10 +2,12 @@ package com.example.sigema.Equipos;
 
 import com.example.sigema.models.Equipo;
 import com.example.sigema.models.ModeloEquipo;
+import com.example.sigema.models.Unidad;
 import com.example.sigema.models.enums.EstadoEquipo;
 import com.example.sigema.models.enums.UnidadMedida;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.services.IModeloEquipoService;
+import com.example.sigema.services.IUnidadService;
 import com.example.sigema.services.implementations.EquipoService;
 import com.example.sigema.utilidades.SigemaException;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +35,9 @@ public class EquiposTest
 
     @Mock
     private IModeloEquipoService modeloEquipoService;
+
+    @Mock
+    private IUnidadService unidadService;
 
     @BeforeEach
     void setUp() {
@@ -53,7 +59,13 @@ public class EquiposTest
         Equipo equipo = crearEquipoValido();
         ModeloEquipo modelo = new ModeloEquipo();
         modelo.setId(1L);
+        Unidad unidad = new Unidad();
+        unidad.setId(1L);
 
+        equipo.setIdUnidad(1L);
+        equipo.setIdModeloEquipo(1L);
+
+        when(unidadService.ObtenerPorId(1L)).thenReturn(Optional.of(unidad));
         when(modeloEquipoService.ObtenerPorId(1L)).thenReturn(Optional.of(modelo));
         when(equipoRepository.save(any(Equipo.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -67,6 +79,12 @@ public class EquiposTest
     @Test
     void testCrearEquipoConModeloInvalido() throws Exception {
         Equipo equipo = crearEquipoValido();
+        Unidad unidad = new Unidad();
+        unidad.setId(1L);
+
+        equipo.setIdUnidad(1L);
+
+        when(unidadService.ObtenerPorId(1L)).thenReturn(Optional.of(unidad));
         when(modeloEquipoService.ObtenerPorId(1L)).thenReturn(Optional.empty());
 
         SigemaException ex = assertThrows(SigemaException.class, () -> equipoService.Crear(equipo));
@@ -105,7 +123,12 @@ public class EquiposTest
         modelo.setId(1L);
         Equipo existente = crearEquipoValido();
         existente.setId(1L);
+        Unidad unidad = new Unidad();
+        unidad.setId(1L);
 
+        nuevo.setIdUnidad(1L);
+
+        when(unidadService.ObtenerPorId(1L)).thenReturn(Optional.of(unidad));
         when(modeloEquipoService.ObtenerPorId(1L)).thenReturn(Optional.of(modelo));
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(existente));
         when(equipoRepository.save(any(Equipo.class))).thenAnswer(i -> i.getArgument(0));
@@ -122,7 +145,12 @@ public class EquiposTest
         Equipo nuevo = crearEquipoValido();
         ModeloEquipo modelo = new ModeloEquipo();
         modelo.setId(1L);
+        Unidad unidad = new Unidad();
+        unidad.setId(1L);
 
+        nuevo.setIdUnidad(1L);
+
+        when(unidadService.ObtenerPorId(1L)).thenReturn(Optional.of(unidad));
         when(modeloEquipoService.ObtenerPorId(1L)).thenReturn(Optional.of(modelo));
         when(equipoRepository.findById(1L)).thenReturn(Optional.empty());
 

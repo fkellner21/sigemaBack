@@ -2,6 +2,7 @@ package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.Marca;
 import com.example.sigema.models.Repuesto;
+import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.repositories.IMarcaRepository;
 import com.example.sigema.repositories.IRepuestoRepository;
 import com.example.sigema.services.IMarcaService;
@@ -9,6 +10,7 @@ import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +29,13 @@ public class RepuestoService implements IRepuestoService
     public Repuesto Crear(Repuesto r) throws Exception {
         r.validar();
 
-        Repuesto existente = (Repuesto) repuestoRepository.findByNombre(r.getNombre()).orElse(null);
+        Repuesto existenteCodigoSice = repuestoRepository.findByCodigoSICE(r.getCodigoSICE()).orElse(null);
+
+        if(existenteCodigoSice != null){
+            throw new SigemaException("Ya existe un repuesto con ese código SICE");
+        }
+
+        Repuesto existente = repuestoRepository.findByNombre(r.getNombre()).orElse(null);
 
         if(existente != null){
             throw new SigemaException("Ya existe un repuesto con ese nombre");
@@ -40,9 +48,13 @@ public class RepuestoService implements IRepuestoService
     public Repuesto Editar(Long id, Repuesto r) throws Exception {
         r.validar();
 
-        Repuesto existente = (Repuesto) repuestoRepository.findByNombre(r.getNombre()).orElse(null);
+        Repuesto existenteCodigoSice = repuestoRepository.findByCodigoSICE(r.getCodigoSICE()).orElse(null);
 
+        if(existenteCodigoSice != null){
+            throw new SigemaException("Ya existe un repuesto con ese código SICE");
+        }
 
+        Repuesto existente = repuestoRepository.findByNombre(r.getNombre()).orElse(null);
 
         if(existente != null && !existente.getId().equals(id)){
             throw new SigemaException("Ya existe un repuesto con ese nombre");
@@ -51,10 +63,15 @@ public class RepuestoService implements IRepuestoService
         Repuesto rpuestoExt = repuestoRepository.findById(id).orElse(null);
 
         if (rpuestoExt == null) {
-            throw new Exception("Respuesto con ID " + id + " no encontrado");
+            throw new Exception("Repuesto con ID " + id + " no encontrado");
         }
 
         rpuestoExt.setNombre(r.getNombre());
+        rpuestoExt.setTipo(r.getTipo());
+        rpuestoExt.setCantidad(r.getCantidad());
+        rpuestoExt.setCodigoSICE(r.getCodigoSICE());
+        rpuestoExt.setCaracteristicas(r.getCaracteristicas());
+        rpuestoExt.setObservaciones(r.getObservaciones());
 
         return repuestoRepository.save(rpuestoExt);
     }
@@ -65,7 +82,7 @@ public class RepuestoService implements IRepuestoService
     }
 
     @Override
-    public List<Repuesto> ObtenerTodos() {
-        return repuestoRepository.findAll();
+    public List<Repuesto> ObtenerTodos(Long idModelo, TipoRepuesto tipoRepuesto) {
+        return repuestoRepository.findByIdModeloAndTipo(idModelo, tipoRepuesto);
     }
 }

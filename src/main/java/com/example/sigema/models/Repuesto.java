@@ -38,4 +38,7 @@ public class Repuesto implements Serializable {
 
     @Column(unique = true)
     private String codigoSICE;
+
+    public void validar() {
+    }
 }

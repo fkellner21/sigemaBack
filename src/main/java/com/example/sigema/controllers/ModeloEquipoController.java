@@ -2,8 +2,11 @@ package com.example.sigema.controllers;
 
 import com.example.sigema.models.DocumentoModeloEquipo;
 import com.example.sigema.models.ModeloEquipo;
+import com.example.sigema.models.Repuesto;
+import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.services.IDocumentoModeloEquipoService;
 import com.example.sigema.services.IModeloEquipoService;
+import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -27,13 +30,30 @@ public class ModeloEquipoController {
 
     private final IModeloEquipoService modeloEquipoService;
     private final IDocumentoModeloEquipoService documentoService;
+    private final IRepuestoService repuestoService;
 
     private final String carpetaUploads = "uploads/documentos-modelo/";
 
     @Autowired
-    public ModeloEquipoController(IModeloEquipoService modelEquipoService, IDocumentoModeloEquipoService documentoService) {
+    public ModeloEquipoController(IModeloEquipoService modelEquipoService, IDocumentoModeloEquipoService documentoService,
+                                  IRepuestoService repuestoService) {
         this.modeloEquipoService = modelEquipoService;
         this.documentoService = documentoService;
+        this.repuestoService = repuestoService;
+    }
+
+    @GetMapping("/{id}/repuestos/tipoRepuesto/{tipoRepuesto}")
+    public ResponseEntity<?> obtenerTodos(@PathVariable Long id, @PathVariable TipoRepuesto tipoRepuesto) {
+        try {
+            List<Repuesto> repuestos = repuestoService.ObtenerTodos(id, tipoRepuesto);
+
+            return ResponseEntity.ok().body(repuestos);
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
+        }
     }
 
     @GetMapping

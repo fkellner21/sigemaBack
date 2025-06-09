@@ -48,10 +48,11 @@ public class ModeloEquipo implements Serializable {
     private Long idTipoEquipo;
 
     @OneToMany(mappedBy = "modeloEquipo")
+    @JsonManagedReference
     private List<Equipo> equipos = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(name = "ModeloEquipoRepuesto", joinColumns = @JoinColumn(name = "modeloEquipoId"), inverseJoinColumns = @JoinColumn(name = "repuestoId"))
+    @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Repuesto> repuestos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

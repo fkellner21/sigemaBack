@@ -2,6 +2,7 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.utilidades.SigemaException;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +37,11 @@ public class Repuesto implements Serializable {
 
     @Column
     private String observaciones;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "modelo_equipo_id", referencedColumnName = "id")
+    @JsonBackReference
+    private ModeloEquipo modeloEquipo;
 
     public String getCodigoSICE() {
         return codigoSICE;

@@ -2,6 +2,7 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.UnidadMedida;
 import com.example.sigema.utilidades.SigemaException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,10 +50,12 @@ public class ModeloEquipo implements Serializable {
 
     @OneToMany(mappedBy = "modeloEquipo")
     @JsonManagedReference
+    @JsonIgnore
     private List<Equipo> equipos = new ArrayList<>();
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
     @JsonManagedReference
+    @JsonIgnore
     private List<Repuesto> repuestos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -61,6 +64,7 @@ public class ModeloEquipo implements Serializable {
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
     @JsonManagedReference
+    @JsonIgnore
     private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
 
     public UnidadMedida getUnidadMedida() {

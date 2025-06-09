@@ -2,6 +2,7 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoEquipo;
 import com.example.sigema.utilidades.SigemaException;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +33,7 @@ public class Equipo implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "modelo_equipo_id")
+    @JsonBackReference
     private ModeloEquipo modeloEquipo;
 
     @Transient
@@ -56,7 +58,6 @@ public class Equipo implements Serializable {
         this.idUnidad = idUnidad;
     }
 // Getters y Setters
-
     public ModeloEquipo getModeloEquipo() {
         return modeloEquipo;
     }

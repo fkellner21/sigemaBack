@@ -3,12 +3,14 @@ package com.example.sigema.models;
 import com.example.sigema.models.enums.EstadoEquipo;
 import com.example.sigema.utilidades.SigemaException;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
 @Table(name = "Equipos")
 @Getter
@@ -33,7 +35,6 @@ public class Equipo implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "modelo_equipo_id")
-    @JsonBackReference
     private ModeloEquipo modeloEquipo;
 
     @Transient

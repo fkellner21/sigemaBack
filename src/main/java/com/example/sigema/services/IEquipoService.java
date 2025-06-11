@@ -16,4 +16,6 @@ public interface IEquipoService {
     public Equipo ObtenerPorId(Long id) throws Exception;
 
     public Equipo Editar(Long id, Equipo equipo) throws Exception;
+
+    public List<Equipo> obtenerEquiposPorIdModelo(Long idModelo);
 }

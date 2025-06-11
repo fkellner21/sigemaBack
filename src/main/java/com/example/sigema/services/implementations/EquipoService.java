@@ -92,5 +92,10 @@ public class EquipoService implements IEquipoService {
 
         return equipoRepository.save(equipoEditar);
     }
+
+    @Override
+    public List<Equipo> obtenerEquiposPorIdModelo(Long idModelo) {
+        return equipoRepository.findByModeloEquipoId(idModelo);
+    }
 }
 

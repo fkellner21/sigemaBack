@@ -15,4 +15,5 @@ public interface IModeloEquipoService {
     public Optional<ModeloEquipo> ObtenerPorId(Long id) throws Exception;
 
     public List<ModeloEquipo> ObtenerTodos();
+
 }

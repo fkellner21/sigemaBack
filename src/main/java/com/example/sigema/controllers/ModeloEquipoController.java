@@ -1,10 +1,12 @@
 package com.example.sigema.controllers;
 
 import com.example.sigema.models.DocumentoModeloEquipo;
+import com.example.sigema.models.Equipo;
 import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.Repuesto;
 import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.services.IDocumentoModeloEquipoService;
+import com.example.sigema.services.IEquipoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
@@ -31,15 +33,18 @@ public class ModeloEquipoController {
     private final IModeloEquipoService modeloEquipoService;
     private final IDocumentoModeloEquipoService documentoService;
     private final IRepuestoService repuestoService;
+    @Autowired
+    private IEquipoService equipoService;
 
     private final String carpetaUploads = "uploads/documentos-modelo/";
 
     @Autowired
     public ModeloEquipoController(IModeloEquipoService modelEquipoService, IDocumentoModeloEquipoService documentoService,
-                                  IRepuestoService repuestoService) {
+                                  IRepuestoService repuestoService, IEquipoService equipoService) {
         this.modeloEquipoService = modelEquipoService;
         this.documentoService = documentoService;
         this.repuestoService = repuestoService;
+        this.equipoService = equipoService;
     }
 
     @GetMapping("/{id}/repuestos/tipoRepuesto/{tipoRepuesto}")
@@ -190,6 +195,16 @@ public class ModeloEquipoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "No se pudo eliminar el documento: " + e.getMessage()));
+        }
+    }
+    @GetMapping("/{id}/equipos")
+    public ResponseEntity<?> obtenerEquiposPorModelo(@PathVariable Long id) {
+        try {
+            List<Equipo> equipos = equipoService.obtenerEquiposPorIdModelo(id);
+            return ResponseEntity.ok(equipos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener los equipos del modelo: " + e.getMessage());
         }
     }
 

@@ -87,4 +87,5 @@ public class ModeloEquipoService implements IModeloEquipoService {
     public List<ModeloEquipo> ObtenerTodos() {
         return modeloEquipoRepository.findAll();
     }
+
 }

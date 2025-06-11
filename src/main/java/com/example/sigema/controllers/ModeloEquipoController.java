@@ -207,6 +207,5 @@ public class ModeloEquipoController {
                     .body("Error al obtener los equipos del modelo: " + e.getMessage());
         }
     }
-
-
+//PONGO PARA VER SI ME DEJA MERGEAR
 }

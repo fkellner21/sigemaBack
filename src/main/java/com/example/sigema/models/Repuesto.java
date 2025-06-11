@@ -107,6 +107,14 @@ public class Repuesto implements Serializable {
         this.id = id;
     }
 
+    public ModeloEquipo getModeloEquipo() {
+        return modeloEquipo;
+    }
+
+    public void setModeloEquipo(ModeloEquipo modeloEquipo) {
+        this.modeloEquipo = modeloEquipo;
+    }
+
     @Column(unique = true)
     private String codigoSICE;
 

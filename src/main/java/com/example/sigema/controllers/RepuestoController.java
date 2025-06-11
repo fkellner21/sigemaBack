@@ -3,13 +3,11 @@ package com.example.sigema.controllers;
 
 import com.example.sigema.models.Repuesto;
 import com.example.sigema.models.enums.TipoRepuesto;
+import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.sigema.services.IRepuestoService;
-
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -20,8 +18,8 @@ public class RepuestoController {
     private final IRepuestoService repuestosService;
 
     @Autowired
-    public RepuestoController(IRepuestoService r) {
-        this.repuestosService = r;
+    public RepuestoController(IRepuestoService r, IRepuestoService repuestoService) {
+        this.repuestosService = repuestoService;
     }
 
     @PostMapping

@@ -1,16 +1,14 @@
 package com.example.sigema.services.implementations;
 
-import com.example.sigema.models.Marca;
+import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.Repuesto;
 import com.example.sigema.models.enums.TipoRepuesto;
-import com.example.sigema.repositories.IMarcaRepository;
 import com.example.sigema.repositories.IRepuestoRepository;
-import com.example.sigema.services.IMarcaService;
+import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +18,11 @@ import java.util.Optional;
 public class RepuestoService implements IRepuestoService
 {
     private final IRepuestoRepository repuestoRepository;
+    private final IModeloEquipoService modeloEquipoService;
 
-    public RepuestoService(IRepuestoRepository rRepository) {
+    public RepuestoService(IRepuestoRepository rRepository, IModeloEquipoService modeloEquipoService) {
         this.repuestoRepository = rRepository;
+        this.modeloEquipoService = modeloEquipoService;
     }
 
     @Override
@@ -41,6 +41,14 @@ public class RepuestoService implements IRepuestoService
             throw new SigemaException("Ya existe un repuesto con ese nombre");
         }
 
+        ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(r.getIdModelo()).orElse(null);
+
+        if(modelo == null){
+            throw new SigemaException("No existe el modelo");
+        }
+
+        r.setModeloEquipo(modelo);
+
         return repuestoRepository.save(r);
     }
 
@@ -50,7 +58,7 @@ public class RepuestoService implements IRepuestoService
 
         Repuesto existenteCodigoSice = repuestoRepository.findByCodigoSICE(r.getCodigoSICE()).orElse(null);
 
-        if(existenteCodigoSice != null){
+        if(existenteCodigoSice != null && !existenteCodigoSice.getId().equals(id)){
             throw new SigemaException("Ya existe un repuesto con ese código SICE");
         }
 

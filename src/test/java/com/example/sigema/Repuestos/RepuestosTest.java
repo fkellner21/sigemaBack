@@ -1,8 +1,10 @@
 package com.example.sigema.Repuestos;
 
+import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.Repuesto;
 import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.repositories.IRepuestoRepository;
+import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.implementations.RepuestoService;
 import com.example.sigema.utilidades.SigemaException;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +19,13 @@ public class RepuestosTest {
 
     private IRepuestoRepository repuestoRepository;
     private RepuestoService repuestoService;
+    private IModeloEquipoService modeloEquipoService;
 
     @BeforeEach
     void setup() {
         repuestoRepository = mock(IRepuestoRepository.class);
-        repuestoService = new RepuestoService(repuestoRepository);
+        modeloEquipoService = mock(IModeloEquipoService.class);
+        repuestoService = new RepuestoService(repuestoRepository, modeloEquipoService);
     }
 
     // Helper para crear un repuesto válido
@@ -35,19 +39,30 @@ public class RepuestosTest {
         return r;
     }
 
-    // Crear repuesto válido - éxito
     @Test
     void crearRepuesto_Exitoso() throws Exception {
         Repuesto nuevo = crearRepuestoValido();
+        ModeloEquipo modeloValido = crearModeloEquipoValido();
 
         when(repuestoRepository.findByCodigoSICE("SICE001")).thenReturn(Optional.empty());
         when(repuestoRepository.findByNombre("Filtro")).thenReturn(Optional.empty());
+        when(modeloEquipoService.ObtenerPorId(1L)).thenReturn(Optional.of(modeloValido));
         when(repuestoRepository.save(nuevo)).thenReturn(nuevo);
 
         Repuesto creado = repuestoService.Crear(nuevo);
 
         assertEquals("Filtro", creado.getNombre());
         verify(repuestoRepository).save(nuevo);
+    }
+
+    private ModeloEquipo crearModeloEquipoValido() {
+        ModeloEquipo modelo = new ModeloEquipo();
+        modelo.setId(1L);
+        modelo.setAnio(2023);
+        modelo.setModelo("Modelo X");
+        modelo.setCapacidad(100.0);
+
+        return modelo;
     }
 
     // Crear repuesto con validación: idModelo null -> excepción

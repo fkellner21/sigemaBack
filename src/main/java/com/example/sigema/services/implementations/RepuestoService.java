@@ -28,17 +28,14 @@ public class RepuestoService implements IRepuestoService
     @Override
     public Repuesto Crear(Repuesto r) throws Exception {
         r.validar();
+        if (r.getCodigoSICE()!=null){
 
-        Repuesto existenteCodigoSice = repuestoRepository.findByCodigoSICE(r.getCodigoSICE()).orElse(null);
+            Repuesto existenteCodigoSice = repuestoRepository.findByCodigoSICE(r.getCodigoSICE()).orElse(null);
 
-        if(existenteCodigoSice != null){
-            throw new SigemaException("Ya existe un repuesto con ese código SICE");
-        }
+            if(existenteCodigoSice != null){
+                throw new SigemaException("Ya existe un repuesto con ese código SICE");
+            }
 
-        Repuesto existente = repuestoRepository.findByNombre(r.getNombre()).orElse(null);
-
-        if(existente != null){
-            throw new SigemaException("Ya existe un repuesto con ese nombre");
         }
 
         ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(r.getIdModelo()).orElse(null);

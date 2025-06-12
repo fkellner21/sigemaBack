@@ -127,10 +127,6 @@ public class Repuesto implements Serializable {
             throw new SigemaException("Debe ingresar el nombre");
         }
 
-        if(codigoSICE == null || codigoSICE.isEmpty()){
-            throw new SigemaException("Debe ingresar el código SICE");
-        }
-
         if(cantidad <= 0){
             throw new SigemaException("Debe ingresar la cantidad");
         }

@@ -87,17 +87,6 @@ public class RepuestosTest {
         verify(repuestoRepository, never()).save(any());
     }
 
-    // Crear repuesto con validación: codigoSICE vacío -> excepción
-    @Test
-    void crearRepuesto_Validacion_CodigoSICEVacio() {
-        Repuesto r = crearRepuestoValido();
-        r.setCodigoSICE(null);
-
-        SigemaException ex = assertThrows(SigemaException.class, () -> repuestoService.Crear(r));
-        assertEquals("Debe ingresar el código SICE", ex.getMessage());
-        verify(repuestoRepository, never()).save(any());
-    }
-
     // Crear repuesto con validación: cantidad <= 0 -> excepción
     @Test
     void crearRepuesto_Validacion_CantidadInvalida() {
@@ -129,19 +118,6 @@ public class RepuestosTest {
 
         SigemaException ex = assertThrows(SigemaException.class, () -> repuestoService.Crear(r));
         assertEquals("Ya existe un repuesto con ese código SICE", ex.getMessage());
-        verify(repuestoRepository, never()).save(any());
-    }
-
-    // Crear repuesto con nombre ya existente -> excepción
-    @Test
-    void crearRepuesto_NombreExistente() throws Exception {
-        Repuesto r = crearRepuestoValido();
-
-        when(repuestoRepository.findByCodigoSICE("SICE001")).thenReturn(Optional.empty());
-        when(repuestoRepository.findByNombre("Filtro")).thenReturn(Optional.of(new Repuesto()));
-
-        SigemaException ex = assertThrows(SigemaException.class, () -> repuestoService.Crear(r));
-        assertEquals("Ya existe un repuesto con ese nombre", ex.getMessage());
         verify(repuestoRepository, never()).save(any());
     }
 
@@ -195,26 +171,6 @@ public class RepuestosTest {
 
         SigemaException ex = assertThrows(SigemaException.class, () -> repuestoService.Editar(1L, modificado));
         assertEquals("Ya existe un repuesto con ese código SICE", ex.getMessage());
-    }
-
-    // Editar repuesto con nombre repetido -> excepción
-    @Test
-    void editarRepuesto_NombreExistente() throws Exception {
-        Repuesto existente = crearRepuestoValido();
-        existente.setId(1L);
-
-        Repuesto modificado = crearRepuestoValido();
-        modificado.setNombre("NombreExistente");
-
-        Repuesto otro = new Repuesto();
-        otro.setId(2L);
-
-        when(repuestoRepository.findById(1L)).thenReturn(Optional.of(existente));
-        when(repuestoRepository.findByCodigoSICE("SICE001")).thenReturn(Optional.empty());
-        when(repuestoRepository.findByNombre("NombreExistente")).thenReturn(Optional.of(otro));
-
-        SigemaException ex = assertThrows(SigemaException.class, () -> repuestoService.Editar(1L, modificado));
-        assertEquals("Ya existe un repuesto con ese nombre", ex.getMessage());
     }
 
 }

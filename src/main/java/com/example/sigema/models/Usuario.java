@@ -37,4 +37,6 @@ public class Usuario implements Serializable {
     private Rol rol;
 
 
+    public void validar() {
+    }
 }

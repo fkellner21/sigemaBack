@@ -29,7 +29,12 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private Long idUnidad;
 
+    @Column(nullable = false)
+    private Long telefono;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Rol rol;
+
+
 }

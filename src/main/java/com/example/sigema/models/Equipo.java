@@ -132,9 +132,6 @@ public class Equipo implements Serializable {
     }
 
     public void validar() throws SigemaException {
-        if (matricula == null || matricula.isEmpty()) {
-            throw new SigemaException("Debe ingresar una matricula");
-        }
 
         if (cantidadUnidadMedida < 0) {
             throw new SigemaException("La cantidad de " + this.modeloEquipo.getUnidadMedida() + " no debe ser menor a 0");

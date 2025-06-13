@@ -59,16 +59,10 @@ public class RepuestoService implements IRepuestoService
             throw new SigemaException("Ya existe un repuesto con ese código SICE");
         }
 
-        Repuesto existente = repuestoRepository.findByNombre(r.getNombre()).orElse(null);
-
-        if(existente != null && !existente.getId().equals(id)){
-            throw new SigemaException("Ya existe un repuesto con ese nombre");
-        }
-
-        Repuesto rpuestoExt = repuestoRepository.findById(id).orElse(null);
+       Repuesto rpuestoExt = repuestoRepository.findById(id).orElse(null);
 
         if (rpuestoExt == null) {
-            throw new Exception("Repuesto con ID " + id + " no encontrado");
+            throw new SigemaException("Repuesto con ID " + id + " no encontrado");
         }
 
         rpuestoExt.setNombre(r.getNombre());

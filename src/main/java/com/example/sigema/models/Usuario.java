@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "Usuarios")
@@ -23,14 +24,91 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long idGrado;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long idUnidad;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long telefono;
+
+    @Column(nullable = false, unique = true)
+    private String cedula;
+
+    public Usuario(String cedula, String password, Rol rol) {
+        this.cedula = cedula;
+        this.password = password;
+        this.rol = rol;
+    }
+
+    public Usuario() {
+
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNombreCompleto() {
+        return nombreCompleto;
+    }
+
+    public void setNombreCompleto(String nombreCompleto) {
+        this.nombreCompleto = nombreCompleto;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Long getIdGrado() {
+        return idGrado;
+    }
+
+    public void setIdGrado(Long idGrado) {
+        this.idGrado = idGrado;
+    }
+
+    public Long getIdUnidad() {
+        return idUnidad;
+    }
+
+    public void setIdUnidad(Long idUnidad) {
+        this.idUnidad = idUnidad;
+    }
+
+    public Long getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(Long telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getCedula() {
+        return cedula;
+    }
+
+    public void setCedula(String cedula) {
+        this.cedula = cedula;
+    }
+
+    public Rol getRol() {
+        return rol;
+    }
+
+    public void setRol(Rol rol) {
+        this.rol = rol;
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

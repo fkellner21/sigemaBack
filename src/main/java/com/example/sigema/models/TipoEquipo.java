@@ -1,5 +1,6 @@
 package com.example.sigema.models;
 
+import com.example.sigema.models.enums.TareaEquipo;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,6 +29,17 @@ public class TipoEquipo implements Serializable {
 
     @Column(nullable = false)
     private boolean activo = false;
+
+    @Column(nullable = false)
+    private TareaEquipo tarea;
+
+    public TareaEquipo getTarea() {
+        return tarea;
+    }
+
+    public void setTarea(TareaEquipo tarea) {
+        this.tarea = tarea;
+    }
 
     public String getNombre() {
         return nombre;

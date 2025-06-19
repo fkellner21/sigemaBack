@@ -4,6 +4,7 @@ import com.example.sigema.models.Usuario;
 import com.example.sigema.services.IUsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class UsuarioController {
     }
 
     // Crear usuario
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Usuario usuario) {
         try {
@@ -31,7 +33,7 @@ public class UsuarioController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) {
         try {
@@ -42,7 +44,7 @@ public class UsuarioController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
@@ -53,7 +55,7 @@ public class UsuarioController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerUsuarioPorId(@PathVariable Long id) {
         try {
@@ -64,7 +66,7 @@ public class UsuarioController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping
     public ResponseEntity<List<Usuario>> obtenerUsuarios() {
         try {

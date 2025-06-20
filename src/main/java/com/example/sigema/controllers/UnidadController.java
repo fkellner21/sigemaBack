@@ -39,7 +39,7 @@ public class UnidadController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Unidad equipo) {
         try {
@@ -54,7 +54,7 @@ public class UnidadController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
@@ -84,7 +84,7 @@ public class UnidadController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Unidad unidad) {
         try {

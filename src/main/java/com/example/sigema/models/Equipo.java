@@ -2,13 +2,13 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoEquipo;
 import com.example.sigema.utilidades.SigemaException;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
@@ -30,8 +30,14 @@ public class Equipo implements Serializable {
     @Column(nullable = false)
     private double cantidadUnidadMedida = 0;
 
-    @Column
-    private Long idUltimaPosicion;
+    @Column(nullable = false)
+    private double latitud;
+
+    @Column(nullable = false)
+    private double longitud;
+
+    @Column(nullable = false)
+    private Date fechaUltimaPosicion = new Date();
 
     @ManyToOne
     @JoinColumn(name = "modelo_equipo_id")
@@ -51,6 +57,14 @@ public class Equipo implements Serializable {
     @Transient
     private Long idUnidad;
 
+    public double getLatitud() {return latitud;}
+
+    public void setLatitud(double latitud) {this.latitud = latitud;}
+
+    public double getLongitud() {return longitud;}
+
+    public void setLongitud(double longitud) {this.longitud = longitud;}
+
     public Long getIdUnidad() {
         return idUnidad;
     }
@@ -58,7 +72,7 @@ public class Equipo implements Serializable {
     public void setIdUnidad(Long idUnidad) {
         this.idUnidad = idUnidad;
     }
-// Getters y Setters
+
     public ModeloEquipo getModeloEquipo() {
         return modeloEquipo;
     }
@@ -105,14 +119,6 @@ public class Equipo implements Serializable {
 
     public void setCantidadUnidadMedida(double cantidadUnidadMedida) {
         this.cantidadUnidadMedida = cantidadUnidadMedida;
-    }
-
-    public Long getIdUltimaPosicion() {
-        return idUltimaPosicion;
-    }
-
-    public void setIdUltimaPosicion(Long idUltimaPosicion) {
-        this.idUltimaPosicion = idUltimaPosicion;
     }
 
     public EstadoEquipo getEstado() {

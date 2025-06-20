@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +54,9 @@ public class EquipoService implements IEquipoService {
 
         equipo.setModeloEquipo(modeloEquipo);
         equipo.setUnidad(unidad);
+        equipo.setLatitud(unidad.getLatitud());
+        equipo.setLongitud(unidad.getLongitud());
+        equipo.setFechaUltimaPosicion(new Date());
 
         return equipoRepository.save(equipo);
     }
@@ -85,7 +89,6 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
         equipoEditar.setMatricula(equipo.getMatricula());
-        equipoEditar.setIdUltimaPosicion(equipo.getIdUltimaPosicion());
         equipoEditar.setIdUnidad(equipo.getIdUnidad());
         equipoEditar.setIdModeloEquipo(equipo.getIdModeloEquipo());
         equipoEditar.setObservaciones(equipo.getObservaciones());

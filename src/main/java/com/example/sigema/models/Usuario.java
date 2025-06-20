@@ -1,6 +1,7 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.Rol;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,13 +22,34 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private String nombreCompleto;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
+    @JsonBackReference
     private String password;
 
     @Column(nullable = true)
-    private Long idGrado;
+    private Grado grado;
 
     @Column(nullable = true)
+    private Unidad unidad;
+
+    public Grado getGrado() {
+        return grado;
+    }
+
+    public void setGrado(Grado grado) {
+        this.grado = grado;
+    }
+
+    public Unidad getUnidad() {
+        return unidad;
+    }
+
+    public void setUnidad(Unidad unidad) {
+        this.unidad = unidad;
+    }
+
+    private Long idGrado;
+
     private Long idUnidad;
 
     @Column(nullable = true)

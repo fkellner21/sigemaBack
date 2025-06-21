@@ -26,10 +26,12 @@ public class Usuario implements Serializable {
     @JsonBackReference
     private String password;
 
-    @Column(nullable = true)
+    @ManyToOne
+    @JoinColumn(name = "grado_id")
     private Grado grado;
 
-    @Column(nullable = true)
+    @ManyToOne
+    @JoinColumn(name = "unidad_id")
     private Unidad unidad;
 
     public Grado getGrado() {

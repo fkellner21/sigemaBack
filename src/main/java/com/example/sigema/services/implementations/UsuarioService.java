@@ -1,6 +1,6 @@
 package com.example.sigema.services.implementations;
 
-import com.example.sigema.configurations.SecurityConfig;
+import com.example.sigema.SecurityConfig;
 import com.example.sigema.models.Usuario;
 import com.example.sigema.models.Unidad;
 import com.example.sigema.models.Grado;

@@ -1,5 +1,6 @@
-package com.example.sigema.configurations;
+package com.example.sigema;
 
+import com.example.sigema.configurations.CustomAccessDeniedHandler;
 import com.example.sigema.utilidades.CustomUserDetailsService;
 import com.example.sigema.utilidades.JwtAuthenticationFilter;
 import com.example.sigema.utilidades.JwtUtils;
@@ -27,10 +28,12 @@ public class SecurityConfig {
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(JwtUtils jwtUtils, CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(JwtUtils jwtUtils, CustomUserDetailsService userDetailsService, CustomAccessDeniedHandler accessDeniedHandler) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -86,6 +89,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())

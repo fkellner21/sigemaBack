@@ -5,6 +5,7 @@ import com.example.sigema.services.ITiposEquiposService;
 import com.example.sigema.utilidades.SigemaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class TiposEquiposController {
         this.tiposEquiposService = tiposEquiposService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/activos/{soloActivos}")
     public ResponseEntity<?> obtenerTodos(@PathVariable boolean soloActivos) {
         try {
@@ -34,6 +36,7 @@ public class TiposEquiposController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
@@ -52,6 +55,7 @@ public class TiposEquiposController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping("/")
     public ResponseEntity<?> crear(@RequestBody TipoEquipo tipoEquipo) {
         try {
@@ -66,6 +70,7 @@ public class TiposEquiposController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody TipoEquipo tipoEquipo) {
         try {

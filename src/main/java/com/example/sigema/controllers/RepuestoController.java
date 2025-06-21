@@ -7,6 +7,7 @@ import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ public class RepuestoController {
         this.repuestosService = repuestoService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Repuesto repuesto) {
         try {
@@ -36,6 +38,7 @@ public class RepuestoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
@@ -50,6 +53,7 @@ public class RepuestoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try {
@@ -64,7 +68,7 @@ public class RepuestoController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Repuesto repuesto) {
         try {

@@ -1,7 +1,8 @@
 package com.example.sigema.models.enums;
 
 public enum Rol {
-    Administrador,
-    Brigada,
-    Unidad
+    ADMINISTRADOR,
+    BRIGADA,
+    UNIDAD,
+    ADMINISTRADOR_UNIDAD
 }

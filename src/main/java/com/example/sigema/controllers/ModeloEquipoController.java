@@ -16,6 +16,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,6 +48,7 @@ public class ModeloEquipoController {
         this.equipoService = equipoService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}/repuestos/tipoRepuesto/{tipoRepuesto}")
     public ResponseEntity<?> obtenerTodos(@PathVariable Long id, @PathVariable TipoRepuesto tipoRepuesto) {
         try {
@@ -61,6 +63,7 @@ public class ModeloEquipoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
         try {
@@ -74,6 +77,7 @@ public class ModeloEquipoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo) {
         try {
@@ -88,6 +92,7 @@ public class ModeloEquipoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerModeloEquipo(@PathVariable Long id) {
         try {
@@ -102,6 +107,7 @@ public class ModeloEquipoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo) {
         try {
@@ -116,6 +122,7 @@ public class ModeloEquipoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping("/{id}/documentos")
     public ResponseEntity<Map<String, String>>  subirDocumento(
             @PathVariable Long id,
@@ -146,7 +153,7 @@ public class ModeloEquipoController {
         }
     }
 
-    
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/documentos/{id}/descargar")
     public ResponseEntity<Resource> descargar(@PathVariable Long id) throws Exception {
         DocumentoModeloEquipo doc = documentoService.findById(id)
@@ -159,6 +166,8 @@ public class ModeloEquipoController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getNombreArchivo() + "\"")
                 .body(resource);
     }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}/documentos")
     public ResponseEntity<?> listarDocumentos(@PathVariable Long id) {
         try {
@@ -173,6 +182,7 @@ public class ModeloEquipoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @DeleteMapping("/documentos/{id}")
     public ResponseEntity<?> eliminarDocumento(@PathVariable Long id) {
         try {
@@ -197,6 +207,8 @@ public class ModeloEquipoController {
                     .body(Map.of("error", "No se pudo eliminar el documento: " + e.getMessage()));
         }
     }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}/equipos")
     public ResponseEntity<?> obtenerEquiposPorModelo(@PathVariable Long id) {
         try {
@@ -207,5 +219,4 @@ public class ModeloEquipoController {
                     .body("Error al obtener los equipos del modelo: " + e.getMessage());
         }
     }
-//PONGO PARA VER SI ME DEJA MERGEAR
 }

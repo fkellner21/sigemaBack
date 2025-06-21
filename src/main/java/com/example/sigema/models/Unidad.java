@@ -20,6 +20,20 @@ public class Unidad implements Serializable {
     @Column(nullable = false, unique = true)
     private String nombre;
 
+    @Column(nullable = false)
+    private double latitud;
+
+    @Column(nullable = false)
+    private double longitud;
+
+    public double getLatitud() {return latitud;}
+
+    public void setLatitud(double latitud) {this.latitud = latitud;}
+
+    public double getLongitud() {return longitud;}
+
+    public void setLongitud(double longitud) {this.longitud = longitud;}
+
     public Long getId() {
         return id;
     }

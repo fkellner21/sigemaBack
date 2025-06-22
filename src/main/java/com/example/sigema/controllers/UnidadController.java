@@ -97,5 +97,4 @@ public class UnidadController {
             return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
-
 }

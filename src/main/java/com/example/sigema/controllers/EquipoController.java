@@ -109,7 +109,7 @@ public class EquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA','UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Equipo equipo) {
         try {

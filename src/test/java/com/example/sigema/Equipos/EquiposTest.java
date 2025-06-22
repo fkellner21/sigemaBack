@@ -94,7 +94,7 @@ public class EquiposTest
     @Test
     void testObtenerTodos() throws Exception {
         when(equipoRepository.findAll()).thenReturn(List.of(new Equipo(), new Equipo()));
-        List<Equipo> lista = equipoService.obtenerTodos();
+        List<Equipo> lista = equipoService.obtenerTodos(null);
         assertEquals(2, lista.size());
     }
 

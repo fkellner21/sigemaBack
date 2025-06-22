@@ -21,8 +21,9 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    // Crear usuario
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    //Si es admin, crea a todos
+    //Si es brigada, solo crea a los usuarios de las unidades
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Usuario usuario) {
         try {
@@ -33,6 +34,9 @@ public class UsuarioController {
         }
     }
 
+    //Si es admin, edita a todos
+    //Si es brigada, solo puede editarse el y a los usuarios de las unidades
+    //Si es unidad solo se edita el mismo
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) {
@@ -44,7 +48,9 @@ public class UsuarioController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    //Si es admin, elimina a todos
+    //Si es brigada, solo puede eliminar a los usuarios de las unidades
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {

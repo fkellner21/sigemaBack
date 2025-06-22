@@ -9,7 +9,9 @@ import com.example.sigema.services.IDocumentoModeloEquipoService;
 import com.example.sigema.services.IEquipoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IRepuestoService;
+import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -34,17 +36,33 @@ public class ModeloEquipoController {
     private final IModeloEquipoService modeloEquipoService;
     private final IDocumentoModeloEquipoService documentoService;
     private final IRepuestoService repuestoService;
+    private final JwtUtils jwtUtils;
+
     @Autowired
     private IEquipoService equipoService;
+
+    @Autowired
+    private HttpServletRequest request;
+
+    public String getToken() {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        throw new RuntimeException("No se encontró el token en el header");
+    }
 
     private final String carpetaUploads = "uploads/documentos-modelo/";
 
     @Autowired
     public ModeloEquipoController(IModeloEquipoService modelEquipoService, IDocumentoModeloEquipoService documentoService,
-                                  IRepuestoService repuestoService, IEquipoService equipoService) {
+                                  IRepuestoService repuestoService, JwtUtils jwtUtils, IEquipoService equipoService) {
         this.modeloEquipoService = modelEquipoService;
         this.documentoService = documentoService;
         this.repuestoService = repuestoService;
+        this.jwtUtils = jwtUtils;
         this.equipoService = equipoService;
     }
 
@@ -77,7 +95,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody ModeloEquipo modeloEquipo) {
         try {
@@ -107,7 +125,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody ModeloEquipo modeloEquipo) {
         try {
@@ -122,7 +140,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping("/{id}/documentos")
     public ResponseEntity<Map<String, String>>  subirDocumento(
             @PathVariable Long id,
@@ -182,7 +200,7 @@ public class ModeloEquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'ADMINISTRADOR_UNIDAD')")
     @DeleteMapping("/documentos/{id}")
     public ResponseEntity<?> eliminarDocumento(@PathVariable Long id) {
         try {
@@ -212,7 +230,16 @@ public class ModeloEquipoController {
     @GetMapping("/{id}/equipos")
     public ResponseEntity<?> obtenerEquiposPorModelo(@PathVariable Long id) {
         try {
-            List<Equipo> equipos = equipoService.obtenerEquiposPorIdModelo(id);
+//            Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+//            String rol = jwtUtils.extractRol(getToken());
+//
+//            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+//                idUnidad = null;
+//            }
+
+            Long idUnidad = null;
+
+            List<Equipo> equipos = equipoService.obtenerEquiposPorIdModelo(id, idUnidad);
             return ResponseEntity.ok(equipos);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

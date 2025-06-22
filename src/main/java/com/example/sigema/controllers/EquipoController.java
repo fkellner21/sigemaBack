@@ -1,14 +1,18 @@
 package com.example.sigema.controllers;
 
 import com.example.sigema.models.Equipo;
+import com.example.sigema.models.enums.Rol;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/equipos")
@@ -16,17 +20,39 @@ import java.util.List;
 public class EquipoController {
 
     private final IEquipoService equiposService;
+    private final JwtUtils jwtUtils;
 
     @Autowired
-    public EquipoController(IEquipoService equiposService) {
+    private HttpServletRequest request;
+
+    @Autowired
+    public EquipoController(IEquipoService equiposService, JwtUtils jwtUtils) {
         this.equiposService = equiposService;
+        this.jwtUtils = jwtUtils;
+    }
+
+    public String getToken() {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        throw new RuntimeException("No se encontró el token en el header");
     }
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
         try {
-            List<Equipo> equipos = equiposService.obtenerTodos();
+            Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+            String rol = jwtUtils.extractRol(getToken());
+
+            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+                idUnidad = null;
+            }
+
+            List<Equipo> equipos = equiposService.obtenerTodos(idUnidad);
 
             return ResponseEntity.ok().body(equipos);
         } catch(SigemaException e){
@@ -37,7 +63,8 @@ public class EquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try {

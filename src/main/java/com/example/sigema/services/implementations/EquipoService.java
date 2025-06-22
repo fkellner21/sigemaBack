@@ -32,8 +32,12 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public List<Equipo> obtenerTodos() throws Exception {
-        return equipoRepository.findAll();
+    public List<Equipo> obtenerTodos(Long idUnidad) throws Exception {
+        if(idUnidad == null || idUnidad == 0){
+            return equipoRepository.findAll();
+        }else{
+            return equipoRepository.findByUnidad_Id(idUnidad);
+        }
     }
 
     @Override
@@ -97,8 +101,12 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public List<Equipo> obtenerEquiposPorIdModelo(Long idModelo) {
-        return equipoRepository.findByModeloEquipoId(idModelo);
+    public List<Equipo> obtenerEquiposPorIdModelo(Long idModelo, Long idUnidad) {
+        if(idUnidad == null || idUnidad == 0){
+            return equipoRepository.findByModeloEquipoId(idModelo);
+        }else{
+            return equipoRepository.findByModeloEquipoIdAndUnidad_Id(idModelo, idUnidad);
+        }
     }
 }
 

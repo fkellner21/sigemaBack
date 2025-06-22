@@ -35,6 +35,6 @@ public class LoginController {
 
         String token = jwtUtils.generateToken(userDetails);
 
-        return ResponseEntity.ok(new JWTResponse(token, "ROLE_" + userDetails.getRol().name()));
+        return ResponseEntity.ok(new JWTResponse(token,"ROLE_" + userDetails.getRol().name(), userDetails.getIdUnidad(), userDetails.getIdUsuario()));
     }
 }

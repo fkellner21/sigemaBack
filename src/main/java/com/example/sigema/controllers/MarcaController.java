@@ -37,7 +37,7 @@ public class MarcaController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Marca marca) {
         try {
@@ -67,7 +67,7 @@ public class MarcaController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Marca marca) {
         try {

@@ -21,18 +21,26 @@ public class Unidad implements Serializable {
     private String nombre;
 
     @Column(nullable = false)
-    private double latitud;
+    private float latitud;
 
     @Column(nullable = false)
-    private double longitud;
+    private float longitud;
 
-    public double getLatitud() {return latitud;}
+    public float getLatitud() {
+        return latitud;
+    }
 
-    public void setLatitud(double latitud) {this.latitud = latitud;}
+    public void setLatitud(float latitud) {
+        this.latitud = latitud;
+    }
 
-    public double getLongitud() {return longitud;}
+    public float getLongitud() {
+        return longitud;
+    }
 
-    public void setLongitud(double longitud) {this.longitud = longitud;}
+    public void setLongitud(float longitud) {
+        this.longitud = longitud;
+    }
 
     public Long getId() {
         return id;

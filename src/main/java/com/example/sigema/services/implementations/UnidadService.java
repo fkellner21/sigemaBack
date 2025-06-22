@@ -47,6 +47,8 @@ public class UnidadService implements IUnidadService {
         unidad.validar();
         Unidad unidadEditar = ObtenerPorId(id).orElseThrow(() -> new SigemaException("Unidad no encontrada"));
         unidadEditar.setNombre(unidad.getNombre());
+        unidadEditar.setLatitud(unidad.getLatitud());
+        unidadEditar.setLongitud(unidad.getLongitud());
         return unidadRepository.save(unidadEditar);
     }
 }

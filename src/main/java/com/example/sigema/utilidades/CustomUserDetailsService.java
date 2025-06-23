@@ -21,11 +21,18 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String cedula) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepository.findByCedula(cedula).orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        Long idUnidad = null;
+
+        if(usuario.getUnidad() != null){
+            idUnidad = usuario.getUnidad().getId();
+        }
 
         return new CustomUserDetails(
                 usuario.getCedula(),
                 usuario.getPassword(),
                 usuario.getRol(),
+                idUnidad,
+                usuario.getId(),
                 List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()))
         );
     }

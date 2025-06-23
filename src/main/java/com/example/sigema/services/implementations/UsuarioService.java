@@ -37,14 +37,19 @@ public class UsuarioService implements IUsuarioService {
     public Usuario Crear(Usuario usuario) throws Exception {
         usuario.validar();
 
-        Unidad unidad = unidadService.ObtenerPorId(usuario.getIdUnidad()).orElse(null);
+        if(usuario.getIdUnidad() != null) {
+            Unidad unidad = unidadService.ObtenerPorId(usuario.getIdUnidad()).orElse(null);
+            usuario.setUnidad(unidad);
+        }else{
+            usuario.setUnidad(null);
+        }
+
         Grado grado = gradoService.ObtenerPorId(usuario.getIdGrado());
 
         if(usuario.getPassword() == null || usuario.getPassword().isEmpty()){
             throw new SigemaException("Debe ingresar una contraseña");
         }
 
-        usuario.setUnidad(unidad);
         usuario.setGrado(grado);
         usuario.setPassword(securityConfig.passwordEncoder().encode(usuario.getPassword()));
 
@@ -75,10 +80,15 @@ public class UsuarioService implements IUsuarioService {
             throw new Exception("No existe el usuario con el id " + id);
         }
 
-        Unidad unidad = unidadService.ObtenerPorId(usuario.getIdUnidad()).orElse(null);
+        if(usuario.getIdUnidad() != null) {
+            Unidad unidad = unidadService.ObtenerPorId(usuario.getIdUnidad()).orElse(null);
+            usuarioAModificar.setUnidad(unidad);
+        }else{
+            usuarioAModificar.setUnidad(null);
+        }
+
         Grado grado = gradoService.ObtenerPorId(usuario.getIdGrado());
 
-        usuarioAModificar.setUnidad(unidad);
         usuarioAModificar.setGrado(grado);
         usuarioAModificar.setNombreCompleto(usuario.getNombreCompleto());
         usuarioAModificar.setRol(usuario.getRol());

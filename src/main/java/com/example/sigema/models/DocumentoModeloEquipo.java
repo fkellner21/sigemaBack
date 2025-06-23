@@ -20,8 +20,10 @@ public class DocumentoModeloEquipo implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "TEXT")
     private String nombreArchivo;
 
+    @Column(columnDefinition = "TEXT")
     private String rutaArchivo;
 
     public Long getId() {

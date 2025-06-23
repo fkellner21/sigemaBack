@@ -27,11 +27,11 @@ public class Usuario implements Serializable {
     private String password;
 
     @ManyToOne
-    @JoinColumn(name = "grado_id")
+    @JoinColumn(name = "grado_id", nullable = true)
     private Grado grado;
 
     @ManyToOne
-    @JoinColumn(name = "unidad_id")
+    @JoinColumn(name = "unidad_id", nullable = true)
     private Unidad unidad;
 
     public Grado getGrado() {
@@ -50,8 +50,10 @@ public class Usuario implements Serializable {
         this.unidad = unidad;
     }
 
+    @Transient
     private Long idGrado;
 
+    @Transient
     private Long idUnidad;
 
     @Column(nullable = true)

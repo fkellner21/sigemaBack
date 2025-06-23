@@ -1,5 +1,6 @@
 package com.example.sigema.utilidades;
 
+import com.example.sigema.models.CustomUserDetails;
 import io.jsonwebtoken.io.Decoders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -18,10 +19,14 @@ public class JwtUtils {
 
     public String generateToken(UserDetails userDetails) {
         String rol = userDetails.getAuthorities().iterator().next().getAuthority();
+        Long idUnidad = ((CustomUserDetails) userDetails).getIdUnidad();
+        Long idUsuario = ((CustomUserDetails) userDetails).getIdUsuario();
 
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim("rol", rol)
+                .claim("idUnidad", idUnidad)
+                .claim("idUsuario", idUsuario)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                 .signWith(key)
@@ -60,5 +65,23 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("rol", String.class);
+    }
+
+    public Long extractIdUnidad(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("idUnidad", Long.class);
+    }
+
+    public Long extractIdUsuario(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("idUsuario", Long.class);
     }
 }

@@ -57,6 +57,14 @@ public class Equipo implements Serializable {
     @Transient
     private Long idUnidad;
 
+    public Date getFechaUltimaPosicion() {
+        return fechaUltimaPosicion;
+    }
+
+    public void setFechaUltimaPosicion(Date fechaUltimaPosicion) {
+        this.fechaUltimaPosicion = fechaUltimaPosicion;
+    }
+
     public double getLatitud() {return latitud;}
 
     public void setLatitud(double latitud) {this.latitud = latitud;}

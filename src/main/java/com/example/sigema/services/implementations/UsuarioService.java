@@ -75,7 +75,7 @@ public class UsuarioService implements IUsuarioService {
     public Usuario Editar(Long id, Usuario usuario) throws Exception {
         usuario.validar();
 
-        Usuario usuarioAModificar = repositorio.findById(id).get();
+        Usuario usuarioAModificar = repositorio.findById(id).orElse(null);
         if (usuarioAModificar == null) {
             throw new Exception("No existe el usuario con el id " + id);
         }

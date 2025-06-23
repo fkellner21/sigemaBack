@@ -1,6 +1,7 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.Rol;
+import com.example.sigema.utilidades.SigemaException;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -141,6 +142,15 @@ public class Usuario implements Serializable {
     private Rol rol;
 
 
-    public void validar() {
+    public void validar() throws SigemaException {
+        if (!verificarFormatoCI(this.cedula)) throw new SigemaException("Cedula inválida");
+    }
+
+    private boolean verificarFormatoCI(String input) {
+        // Elimina puntos, barras y guiones
+        String limpio = input.replaceAll("[./-]", "");
+
+        // Verifica si quedan exactamente 8 dígitos
+        return limpio.matches("\\d{8}");
     }
 }

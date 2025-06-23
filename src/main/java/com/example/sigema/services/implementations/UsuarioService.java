@@ -36,6 +36,7 @@ public class UsuarioService implements IUsuarioService {
     @Override
     public Usuario Crear(Usuario usuario) throws Exception {
         usuario.validar();
+        usuario.setCedula(usuario.getCedula().replaceAll("[./-]", ""));
 
         if(usuario.getIdUnidad() != null) {
             Unidad unidad = unidadService.ObtenerPorId(usuario.getIdUnidad()).orElse(null);
@@ -74,6 +75,7 @@ public class UsuarioService implements IUsuarioService {
     @Override
     public Usuario Editar(Long id, Usuario usuario) throws Exception {
         usuario.validar();
+        usuario.setCedula(usuario.getCedula().replaceAll("[./-]", ""));
 
         Usuario usuarioAModificar = repositorio.findById(id).get();
         if (usuarioAModificar == null) {
@@ -92,6 +94,7 @@ public class UsuarioService implements IUsuarioService {
         usuarioAModificar.setGrado(grado);
         usuarioAModificar.setNombreCompleto(usuario.getNombreCompleto());
         usuarioAModificar.setRol(usuario.getRol());
+        usuarioAModificar.setCedula(usuario.getCedula());
 
         if(usuario.getPassword() != null && !usuario.getPassword().isEmpty()){
             usuarioAModificar.setPassword(securityConfig.passwordEncoder().encode(usuario.getPassword()));

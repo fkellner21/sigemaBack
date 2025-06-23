@@ -77,7 +77,7 @@ public class UsuarioService implements IUsuarioService {
         usuario.validar();
         usuario.setCedula(usuario.getCedula().replaceAll("[./-]", ""));
 
-        Usuario usuarioAModificar = repositorio.findById(id).get();
+        Usuario usuarioAModificar = repositorio.findById(id).orElse(null);
         if (usuarioAModificar == null) {
             throw new Exception("No existe el usuario con el id " + id);
         }

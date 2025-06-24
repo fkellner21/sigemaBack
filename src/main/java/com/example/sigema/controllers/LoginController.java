@@ -29,7 +29,7 @@ public class LoginController {
     @PostMapping
     public ResponseEntity<?> login(@Valid @RequestBody LoginDTO request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.getUsername().replaceAll("[./-]", ""), request.getPassword()));
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 

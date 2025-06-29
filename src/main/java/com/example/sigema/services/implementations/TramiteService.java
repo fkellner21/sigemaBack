@@ -7,12 +7,14 @@ import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.repositories.ITramitesRepository;
 import com.example.sigema.services.*;
 import com.example.sigema.utilidades.SigemaException;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class TramiteService implements ITramitesService {
 
     private final ITramitesRepository tramitesRepository;
@@ -43,11 +45,9 @@ public class TramiteService implements ITramitesService {
     }
 
     @Override
-    public Tramite Crear(TramiteDTO t) throws Exception {
+    public Tramite Crear(TramiteDTO t, Long idUsuario) throws Exception {
         Tramite tramite = new Tramite();
-        tramite = mapearTramiteDesdeDTO(t, tramite, true);
-
-        tramite = tramitesRepository.save(tramite);
+        tramite = mapearTramiteDesdeDTO(t,idUsuario, tramite, true);
 
         EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
         nuevoEstado.setEstado(tramite.getEstado());
@@ -62,20 +62,22 @@ public class TramiteService implements ITramitesService {
     }
 
     @Override
-    public Optional<Tramite> ObtenerPorId(Long id) throws Exception {
-        return tramitesRepository.findById(id);
+    public Optional<Tramite> ObtenerPorId(Long id) {
+        return tramitesRepository.findWithActuacionesById(id);
     }
 
+
     @Override
-    public Tramite Editar(Long id, TramiteDTO t) throws Exception {
+    public Tramite Editar(Long id, TramiteDTO t, Long idUsuario) throws Exception {
         Tramite tramite = ObtenerPorId(id).orElse(null);
 
         if(tramite == null){
-            throw new SigemaException("El tramite no fue encontrado");
+            throw new SigemaException("El trámite no fue encontrado");
         }
-
-        tramite.setId(id);
-        tramite = mapearTramiteDesdeDTO(t, tramite, false);
+        if (tramite.getEstado()!=EstadoTramite.Iniciado){
+            throw new SigemaException("Su trámite ya fue procesado y no se puede editar");
+        }
+        tramite = mapearTramiteDesdeDTO(t,idUsuario, tramite, false);
 
         tramite = tramitesRepository.save(tramite);
 
@@ -96,6 +98,10 @@ public class TramiteService implements ITramitesService {
     @Override
     public Actuacion CrearActuacion(Long idTramite, Actuacion actuacion, Long idUsuario) throws Exception {
         Tramite tramite = ObtenerPorId(idTramite).orElse(null);
+
+        if(tramite.getEstado()==EstadoTramite.Resuelto){
+            throw new SigemaException("Nos se puede crear la actuación porque el trámite ya está resuelto");
+        }
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -158,22 +164,18 @@ public class TramiteService implements ITramitesService {
         return tramite;
     }
 
-    private Tramite mapearTramiteDesdeDTO(TramiteDTO t, Tramite tramite, boolean esCreacion) throws Exception {
+    private Tramite mapearTramiteDesdeDTO(TramiteDTO t,Long idUsuario, Tramite tramite, boolean esCreacion) throws Exception {
         if (esCreacion) {
             tramite.setFechaInicio(Date.from(Instant.now()));
-            tramite.setEstado(EstadoTramite.EnTramite);
+            tramite.setEstado(EstadoTramite.Iniciado);
         }
 
         tramite.setTipo(t.getTipo());
 
-        if (t.getIdUsuario() == null || t.getIdUsuario() <= 0) {
-            throw new SigemaException("Debe ingresar un usuario");
-        }
-        Usuario usuario = usuarioService.ObtenerPorId(t.getIdUsuario());
+        Usuario usuario = usuarioService.ObtenerPorId(idUsuario);
         if (usuario == null) {
             throw new SigemaException("El usuario no fue encontrado");
         }
-
         tramite.setUsuario(usuario);
 
         if (t.getIdUnidadOrigen() == null || t.getIdUnidadOrigen() <= 0) {

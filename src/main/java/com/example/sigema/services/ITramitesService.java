@@ -11,11 +11,11 @@ import java.util.Optional;
 public interface ITramitesService {
     public List<Tramite> ObtenerTodos(Long idUnidad) throws Exception;
 
-    public Tramite Crear(TramiteDTO t) throws Exception;
+    public Tramite Crear(TramiteDTO t, Long idUsuario) throws Exception;
 
     public Optional<Tramite> ObtenerPorId(Long id) throws Exception;
 
-    public Tramite Editar(Long id, TramiteDTO t) throws Exception;
+    public Tramite Editar(Long id, TramiteDTO t, Long idUsuario) throws Exception;
     public void Eliminar(Long id) throws Exception;
     public Actuacion CrearActuacion(Long idTramite, Actuacion actuacion, Long idUsuario) throws Exception;
 

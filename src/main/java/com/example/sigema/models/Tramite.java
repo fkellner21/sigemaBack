@@ -27,7 +27,7 @@ public class Tramite implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoTramite estado = EstadoTramite.EnTramite;
+    private EstadoTramite estado = EstadoTramite.Iniciado;
 
     @Column(nullable = false)
     private Date fechaInicio;
@@ -135,7 +135,7 @@ public class Tramite implements Serializable {
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EstadosHistoricoTramite> historico = new ArrayList<>();
 
-    @OneToMany(mappedBy = "actuacion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Actuacion> actuaciones = new ArrayList<>();
 
     public List<Actuacion> getActuaciones() {

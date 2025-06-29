@@ -54,13 +54,4 @@ public class TramiteDTO {
         this.idRepuesto = idRepuesto;
     }
 
-    public Long getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(Long idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
-    private Long idUsuario;
 }

@@ -17,18 +17,57 @@ public class Actuacion implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long idTramite;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idTramite")
+    private Tramite tramite;
 
-    @Column(nullable = false)
-    private Long idUsuario;
+    public Long getId() {
+        return id;
+    }
 
-    @Column(nullable = false)
-    private Long idUnidadDestino;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Tramite getTramite() {
+        return tramite;
+    }
+
+    public void setTramite(Tramite tramite) {
+        this.tramite = tramite;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public Date getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(Date fecha) {
+        this.fecha = fecha;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idUsuario")
+    private Usuario usuario;
 
     @Column(nullable = false)
     private String descripcion;
 
-    @Column(nullable = false)
+    @Column
     private Date fecha;
 }

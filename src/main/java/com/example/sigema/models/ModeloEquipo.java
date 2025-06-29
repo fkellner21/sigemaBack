@@ -68,6 +68,19 @@ public class ModeloEquipo implements Serializable {
     @JsonIgnore
     private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
 
+    public List<Tramite> getTramites() {
+        return tramites;
+    }
+
+    public void setTramites(List<Tramite> tramites) {
+        this.tramites = tramites;
+    }
+
+    @OneToMany(mappedBy = "modeloEquipo")
+    @JsonManagedReference
+    @JsonIgnore
+    private List<Tramite> tramites = new ArrayList<>();
+
     public UnidadMedida getUnidadMedida() {
         return unidadMedida;
     }

@@ -38,8 +38,8 @@ public class TramiteService implements ITramitesService {
             return tramitesRepository.findAll();
         }
 
-        List<Tramite> tramites = tramitesRepository.findByIdUnidadOrigen(idUnidad);
-        tramites.addAll(tramitesRepository.findByIdUnidadDestino(idUnidad));
+        List<Tramite> tramites = tramitesRepository.findByUnidadOrigen_Id(idUnidad);
+        tramites.addAll(tramitesRepository.findByUnidadDestino_Id(idUnidad));
 
         return tramites.stream().distinct().toList();
     }

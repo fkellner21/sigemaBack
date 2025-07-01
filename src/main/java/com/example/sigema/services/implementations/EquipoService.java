@@ -44,6 +44,11 @@ public class EquipoService implements IEquipoService {
     public Equipo Crear(Equipo equipo) throws Exception {
         equipo.validar();
 
+        Equipo equipoExistente = equipoRepository.findByMatricula(equipo.getMatricula().toUpperCase());
+        if(equipoExistente != null){
+            throw new SigemaException("Ya existe un equipo con esa matricula");
+        }
+
         ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(equipo.getIdModeloEquipo()).orElse(null);
 
         if(modeloEquipo == null){
@@ -58,6 +63,7 @@ public class EquipoService implements IEquipoService {
 
         equipo.setModeloEquipo(modeloEquipo);
         equipo.setUnidad(unidad);
+        equipo.setMatricula(equipo.getMatricula().toUpperCase());
         equipo.setLatitud(unidad.getLatitud());
         equipo.setLongitud(unidad.getLongitud());
         equipo.setFechaUltimaPosicion(new Date());
@@ -92,7 +98,7 @@ public class EquipoService implements IEquipoService {
 
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
-        equipoEditar.setMatricula(equipo.getMatricula());
+        equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
         equipoEditar.setIdUnidad(equipo.getIdUnidad());
         equipoEditar.setIdModeloEquipo(equipo.getIdModeloEquipo());
         equipoEditar.setObservaciones(equipo.getObservaciones());

@@ -32,6 +32,9 @@ public class Tramite implements Serializable {
     @Column(nullable = false)
     private Date fechaInicio;
 
+    @Column
+    private String texto;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "unidad_origen_id", referencedColumnName = "id")
     private Unidad unidadOrigen;
@@ -43,6 +46,27 @@ public class Tramite implements Serializable {
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
+    @ManyToOne
+    @JoinColumn(name = "repuesto_id", referencedColumnName = "id")
+    private Repuesto repuesto;
+
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EstadosHistoricoTramite> historico = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Actuacion> actuaciones = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "equipo_id", referencedColumnName = "id")
+    private Equipo equipo;
+
+    public String getTexto() {
+        return texto;
+    }
+
+    public void setTexto(String texto) {
+        this.texto = texto;
+    }
 
     public Long getId() {
         return id;
@@ -116,10 +140,6 @@ public class Tramite implements Serializable {
         this.historico = historico;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "equipo_id", referencedColumnName = "id")
-    private Equipo equipo;
-
     public Equipo getEquipo() {
         return equipo;
     }
@@ -127,16 +147,6 @@ public class Tramite implements Serializable {
     public void setEquipo(Equipo equipo) {
         this.equipo = equipo;
     }
-
-    @ManyToOne
-    @JoinColumn(name = "repuesto_id", referencedColumnName = "id")
-    private Repuesto repuesto;
-
-    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<EstadosHistoricoTramite> historico = new ArrayList<>();
-
-    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Actuacion> actuaciones = new ArrayList<>();
 
     public List<Actuacion> getActuaciones() {
         return actuaciones;

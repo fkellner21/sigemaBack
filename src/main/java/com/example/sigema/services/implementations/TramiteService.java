@@ -55,6 +55,7 @@ public class TramiteService implements ITramitesService {
         nuevoEstado.setFecha(tramite.getFechaInicio());
         nuevoEstado.setUsuario(tramite.getUsuario());
 
+
         tramite.getHistorico().add(nuevoEstado);
         tramite = tramitesRepository.save(tramite);
 
@@ -63,7 +64,8 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public Optional<Tramite> ObtenerPorId(Long id) {
-        return tramitesRepository.findWithActuacionesById(id);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
+        return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 
 
@@ -170,8 +172,8 @@ public class TramiteService implements ITramitesService {
             tramite.setEstado(EstadoTramite.Iniciado);
         }
 
-        tramite.setTipo(t.getTipo());
-
+        tramite.setTipo(t.getTipoTramite());
+        tramite.setTexto(t.getTexto());
         Usuario usuario = usuarioService.ObtenerPorId(idUsuario);
         if (usuario == null) {
             throw new SigemaException("El usuario no fue encontrado");

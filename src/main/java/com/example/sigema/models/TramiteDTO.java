@@ -4,7 +4,7 @@ import com.example.sigema.models.enums.TipoTramite;
 
 public class TramiteDTO {
 
-    private TipoTramite tipo;
+    private TipoTramite tipoTramite;
 
     private Long idUnidadOrigen;
 
@@ -24,12 +24,12 @@ public class TramiteDTO {
         this.texto = texto;
     }
 
-    public TipoTramite getTipo() {
-        return tipo;
+    public TipoTramite getTipoTramite() {
+        return tipoTramite;
     }
 
-    public void setTipo(TipoTramite tipo) {
-        this.tipo = tipo;
+    public void setTipoTramite(TipoTramite tipoTramite) {
+        this.tipoTramite = tipoTramite;
     }
 
     public Long getIdUnidadOrigen() {

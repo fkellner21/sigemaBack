@@ -2,6 +2,7 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.TipoTramite;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,9 +52,11 @@ public class Tramite implements Serializable {
     private Repuesto repuesto;
 
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<EstadosHistoricoTramite> historico = new ArrayList<>();
 
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Actuacion> actuaciones = new ArrayList<>();
 
     @ManyToOne

@@ -1,5 +1,7 @@
 package com.example.sigema.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,12 +20,23 @@ public class Actuacion implements Serializable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idTramite")
+    @JoinColumn(name = "tramite_id", referencedColumnName = "id")
+    @JsonIgnore
     private Tramite tramite;
 
     public Long getId() {
         return id;
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    private Usuario usuario;
+
+    @Column(nullable = false)
+    private String descripcion;
+
+    @Column
+    private Date fecha;
 
     public void setId(Long id) {
         this.id = id;
@@ -61,13 +74,4 @@ public class Actuacion implements Serializable {
         this.fecha = fecha;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idUsuario")
-    private Usuario usuario;
-
-    @Column(nullable = false)
-    private String descripcion;
-
-    @Column
-    private Date fecha;
 }

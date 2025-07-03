@@ -21,7 +21,7 @@ public class EstadosHistoricoTramite implements Serializable {
     private Long id;
 
     // Relación con Tramite: se usa para persistencia
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "tramite_id", referencedColumnName = "id")
     @JsonIgnore // evita que se envíe el objeto completo al frontend
     private Tramite tramite;

@@ -22,13 +22,18 @@ public class Tramite implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoTramite tipoTramite;
 
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private final EstadoTramite estado = EstadoTramite.Iniciado;
+    private EstadoTramite estado = EstadoTramite.Iniciado;
 
     @Column(nullable = false)
     private Date fechaInicio;
@@ -62,4 +67,5 @@ public class Tramite implements Serializable {
     @ManyToOne
     @JoinColumn(name = "equipo_id", referencedColumnName = "id")
     private Equipo equipo;
+
 }

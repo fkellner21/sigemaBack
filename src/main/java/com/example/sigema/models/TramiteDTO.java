@@ -1,7 +1,11 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.TipoTramite;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class TramiteDTO {
 
     private TipoTramite tipoTramite;

@@ -19,7 +19,7 @@ public class Actuacion implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "tramite_id", referencedColumnName = "id")
     @JsonIgnore
     private Tramite tramite;
@@ -28,7 +28,7 @@ public class Actuacion implements Serializable {
         return id;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
 

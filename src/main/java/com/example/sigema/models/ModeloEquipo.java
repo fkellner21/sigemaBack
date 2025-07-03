@@ -52,21 +52,23 @@ public class ModeloEquipo implements Serializable {
     @OneToMany(mappedBy = "modeloEquipo")
     @JsonManagedReference
     @JsonIgnore
-    private final List<Equipo> equipos = new ArrayList<>();
+    private List<Equipo> equipos = new ArrayList<>();
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
     @JsonManagedReference
     @JsonIgnore
-    private final List<Repuesto> repuestos = new ArrayList<>();
+    private List<Repuesto> repuestos = new ArrayList<>();
 
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private final UnidadMedida unidadMedida=UnidadMedida.HT;
+    private UnidadMedida unidadMedida=UnidadMedida.HT;
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
     @JsonManagedReference
     @JsonIgnore
-    private final List<DocumentoModeloEquipo> documentos = new ArrayList<>();
+    private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
 
     public void validar() throws SigemaException{
         if(anio < 1900){

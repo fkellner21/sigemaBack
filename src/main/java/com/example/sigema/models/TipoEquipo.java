@@ -28,7 +28,7 @@ public class TipoEquipo implements Serializable {
     private String nombre;
 
     @Column(nullable = false)
-    private final boolean activo = false;
+    private boolean activo = false;
 
     @Column(nullable = false)
     private TareaEquipo tarea;

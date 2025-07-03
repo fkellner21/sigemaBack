@@ -14,7 +14,7 @@ import java.util.List;
 public class UsuarioController {
 
 
-    private IUsuarioService usuarioService;
+    private final IUsuarioService usuarioService;
 
     @Autowired
     public UsuarioController(IUsuarioService usuarioService) {

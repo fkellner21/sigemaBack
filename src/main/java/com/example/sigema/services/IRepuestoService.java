@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IRepuestoService {
-    public List<Repuesto> ObtenerTodos(Long idModelo, TipoRepuesto tipoRepuesto) throws Exception;
+    List<Repuesto> ObtenerTodos(Long idModelo, TipoRepuesto tipoRepuesto) throws Exception;
 
-    public Repuesto Crear(Repuesto r) throws Exception;
+    Repuesto Crear(Repuesto r) throws Exception;
 
-    public Optional<Repuesto> ObtenerPorId(Long id) throws Exception;
+    Optional<Repuesto> ObtenerPorId(Long id) throws Exception;
 
-    public Repuesto Editar(Long id, Repuesto r) throws Exception;
+    Repuesto Editar(Long id, Repuesto r) throws Exception;
 }

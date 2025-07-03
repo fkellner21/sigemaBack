@@ -172,7 +172,7 @@ public class TramiteService implements ITramitesService {
             tramite.setEstado(EstadoTramite.Iniciado);
         }
 
-        tramite.setTipo(t.getTipoTramite());
+        tramite.setTipoTramite(t.getTipoTramite());
         tramite.setTexto(t.getTexto());
         Usuario usuario = usuarioService.ObtenerPorId(idUsuario);
         if (usuario == null) {
@@ -195,9 +195,11 @@ public class TramiteService implements ITramitesService {
                 throw new SigemaException("La unidad de destino no fue encontrada");
             }
             tramite.setUnidadDestino(unidadDestino);
+        }else{
+            tramite.setUnidadDestino(null);
         }
 
-        if (tramite.getTipo() == TipoTramite.BajaEquipo || tramite.getTipo() == TipoTramite.SolicitudRepuesto) {
+        if (tramite.getTipoTramite() == TipoTramite.BajaEquipo || tramite.getTipoTramite() == TipoTramite.SolicitudRepuesto) {
             if (t.getIdEquipo() == null || t.getIdEquipo() <= 0) {
                 throw new SigemaException("Debe ingresar un modelo de equipo");
             }
@@ -209,7 +211,7 @@ public class TramiteService implements ITramitesService {
 
             tramite.setEquipo(equipo);
 
-            if (tramite.getTipo() == TipoTramite.SolicitudRepuesto) {
+            if (tramite.getTipoTramite() == TipoTramite.SolicitudRepuesto) {
                 if (t.getIdRepuesto() == null || t.getIdRepuesto() <= 0) {
                     throw new SigemaException("Debe ingresar un repuesto");
                 }

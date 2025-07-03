@@ -16,10 +16,10 @@ import java.util.List;
 @Service
 public class UsuarioService implements IUsuarioService {
 
-    private IRepositoryUsuario repositorio;
-    private IUnidadService unidadService;
-    private IGradoService gradoService;
-    private SecurityConfig securityConfig;
+    private final IRepositoryUsuario repositorio;
+    private final IUnidadService unidadService;
+    private final IGradoService gradoService;
+    private final SecurityConfig securityConfig;
 
     public UsuarioService(IRepositoryUsuario repositorio, IGradoService gradoService, IUnidadService unidadService, SecurityConfig securityConfig) {
         this.repositorio = repositorio;

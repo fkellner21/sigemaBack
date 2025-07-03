@@ -24,11 +24,11 @@ public class Tramite implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TipoTramite tipo;
+    private TipoTramite tipoTramite;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoTramite estado = EstadoTramite.Iniciado;
+    private final EstadoTramite estado = EstadoTramite.Iniciado;
 
     @Column(nullable = false)
     private Date fechaInicio;
@@ -40,7 +40,7 @@ public class Tramite implements Serializable {
     @JoinColumn(name = "unidad_origen_id", referencedColumnName = "id")
     private Unidad unidadOrigen;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "unidad_destino_id", referencedColumnName = "id")
     private Unidad unidadDestino;
 
@@ -53,109 +53,13 @@ public class Tramite implements Serializable {
 
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<EstadosHistoricoTramite> historico = new ArrayList<>();
+    private final List<EstadosHistoricoTramite> historico = new ArrayList<>();
 
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Actuacion> actuaciones = new ArrayList<>();
+    private final List<Actuacion> actuaciones = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "equipo_id", referencedColumnName = "id")
     private Equipo equipo;
-
-    public String getTexto() {
-        return texto;
-    }
-
-    public void setTexto(String texto) {
-        this.texto = texto;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public TipoTramite getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(TipoTramite tipo) {
-        this.tipo = tipo;
-    }
-
-    public EstadoTramite getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoTramite estado) {
-        this.estado = estado;
-    }
-
-    public Date getFechaInicio() {
-        return fechaInicio;
-    }
-
-    public void setFechaInicio(Date fechaInicio) {
-        this.fechaInicio = fechaInicio;
-    }
-
-    public Unidad getUnidadOrigen() {
-        return unidadOrigen;
-    }
-
-    public void setUnidadOrigen(Unidad unidadOrigen) {
-        this.unidadOrigen = unidadOrigen;
-    }
-
-    public Unidad getUnidadDestino() {
-        return unidadDestino;
-    }
-
-    public void setUnidadDestino(Unidad unidadDestino) {
-        this.unidadDestino = unidadDestino;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public Repuesto getRepuesto() {
-        return repuesto;
-    }
-
-    public void setRepuesto(Repuesto repuesto) {
-        this.repuesto = repuesto;
-    }
-
-    public List<EstadosHistoricoTramite> getHistorico() {
-        return historico;
-    }
-
-    public void setHistorico(List<EstadosHistoricoTramite> historico) {
-        this.historico = historico;
-    }
-
-    public Equipo getEquipo() {
-        return equipo;
-    }
-
-    public void setEquipo(Equipo equipo) {
-        this.equipo = equipo;
-    }
-
-    public List<Actuacion> getActuaciones() {
-        return actuaciones;
-    }
-
-    public void setActuaciones(List<Actuacion> actuaciones) {
-        this.actuaciones = actuaciones;
-    }
 }

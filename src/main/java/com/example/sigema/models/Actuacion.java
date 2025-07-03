@@ -32,46 +32,10 @@ public class Actuacion implements Serializable {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String descripcion;
 
     @Column
     private Date fecha;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Tramite getTramite() {
-        return tramite;
-    }
-
-    public void setTramite(Tramite tramite) {
-        this.tramite = tramite;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
-
 }

@@ -43,39 +43,4 @@ public class EstadosHistoricoTramite implements Serializable {
         return tramite != null ? tramite.getId() : null;
     }
 
-    // Getters y setters restantes...
-
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public EstadoTramite getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoTramite estado) {
-        this.estado = estado;
-    }
-
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
 }

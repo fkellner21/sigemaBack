@@ -52,109 +52,21 @@ public class ModeloEquipo implements Serializable {
     @OneToMany(mappedBy = "modeloEquipo")
     @JsonManagedReference
     @JsonIgnore
-    private List<Equipo> equipos = new ArrayList<>();
+    private final List<Equipo> equipos = new ArrayList<>();
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
     @JsonManagedReference
     @JsonIgnore
-    private List<Repuesto> repuestos = new ArrayList<>();
+    private final List<Repuesto> repuestos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UnidadMedida unidadMedida=UnidadMedida.HT;
+    private final UnidadMedida unidadMedida=UnidadMedida.HT;
 
     @OneToMany(mappedBy = "modeloEquipo", cascade = CascadeType.ALL)
     @JsonManagedReference
     @JsonIgnore
-    private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
-
-    public UnidadMedida getUnidadMedida() {
-        return unidadMedida;
-    }
-
-    public void setUnidadMedida(UnidadMedida unidadMedida) {
-        this.unidadMedida = unidadMedida;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public int getAnio() {
-        return anio;
-    }
-
-    public void setAnio(int anio) {
-        this.anio = anio;
-    }
-
-    public String getModelo() {
-        return modelo;
-    }
-
-    public void setModelo(String modelo) {
-        this.modelo = modelo;
-    }
-
-    public double getCapacidad() {
-        return capacidad;
-    }
-
-    public void setCapacidad(double capacidad) {
-        this.capacidad = capacidad;
-    }
-
-    public Marca getMarca() {
-        return marca;
-    }
-
-    public void setMarca(Marca marca) {
-        this.marca = marca;
-    }
-
-    public Long getIdTipoEquipo() {
-        return idTipoEquipo;
-    }
-
-    public void setIdTipoEquipo(Long idTipoEquipo) {
-        this.idTipoEquipo = idTipoEquipo;
-    }
-
-    public TipoEquipo getTipoEquipo() {
-        return tipoEquipo;
-    }
-
-    public void setTipoEquipo(TipoEquipo tipoEquipo) {
-        this.tipoEquipo = tipoEquipo;
-    }
-
-    public List<Repuesto> getRepuestos() {
-        return repuestos;
-    }
-
-    public void setRepuestos(List<Repuesto> repuestos) {
-        this.repuestos = repuestos;
-    }
-
-    public List<Equipo> getEquipos() {
-        return equipos;
-    }
-
-    public void setEquipos(List<Equipo> equipos) {
-        this.equipos = equipos;
-    }
-
-    public Long getIdMarca() {
-        return idMarca;
-    }
-
-    public void setIdMarca(Long idMarca) {
-        this.idMarca = idMarca;
-    }
+    private final List<DocumentoModeloEquipo> documentos = new ArrayList<>();
 
     public void validar() throws SigemaException{
         if(anio < 1900){
@@ -180,13 +92,5 @@ public class ModeloEquipo implements Serializable {
         if(idTipoEquipo == 0 && tipoEquipo.getId() == 0){
             throw new SigemaException("Debe ingresar un tipo de equipo");
         }
-    }
-
-    public List<DocumentoModeloEquipo> getDocumentos() {
-        return documentos;
-    }
-
-    public void setDocumentos(List<DocumentoModeloEquipo> documentos) {
-        this.documentos = documentos;
     }
 }

@@ -97,10 +97,10 @@ public class TramitesController {
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA','UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@PathVariable Long idTramite, @RequestBody TramiteDTO tramite) {
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody TramiteDTO tramite) {
         try {
             Long idUsuario= jwtUtils.extractIdUsuario(getToken());
-            Tramite editado=tramitesService.Editar(idTramite,tramite,idUsuario);
+            Tramite editado=tramitesService.Editar(id,tramite,idUsuario);
             return ResponseEntity.ok().body(editado);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());

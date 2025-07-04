@@ -40,6 +40,7 @@ public class TramiteService implements ITramitesService {
 
         List<Tramite> tramites = tramitesRepository.findByUnidadOrigen_Id(idUnidad);
         tramites.addAll(tramitesRepository.findByUnidadDestino_Id(idUnidad));
+        tramites.addAll(tramitesRepository.findByUnidadDestino_Id(null));
 
         return tramites.stream().distinct().toList();
     }
@@ -54,7 +55,6 @@ public class TramiteService implements ITramitesService {
         nuevoEstado.setTramite(tramite);
         nuevoEstado.setFecha(tramite.getFechaInicio());
         nuevoEstado.setUsuario(tramite.getUsuario());
-
 
         tramite.getHistorico().add(nuevoEstado);
         tramite = tramitesRepository.save(tramite);

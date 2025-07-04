@@ -68,4 +68,17 @@ public class Tramite implements Serializable {
     @JoinColumn(name = "equipo_id", referencedColumnName = "id")
     private Equipo equipo;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tramite tramite = (Tramite) o;
+        return id != null && id.equals(tramite.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
 }

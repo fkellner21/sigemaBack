@@ -31,5 +31,5 @@ public class DocumentoModeloEquipo implements Serializable {
     @JsonBackReference
     private ModeloEquipo modeloEquipo;
 
-    private final LocalDate fechaSubida = LocalDate.now();
+    private LocalDate fechaSubida = LocalDate.now();
 }

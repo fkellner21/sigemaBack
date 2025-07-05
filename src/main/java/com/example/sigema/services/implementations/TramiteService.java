@@ -47,8 +47,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public Tramite Crear(TramiteDTO t, Long idUsuario) throws Exception {
-        Tramite tramite = new Tramite();
-        tramite = mapearTramiteDesdeDTO(t,idUsuario, tramite, true);
+        Tramite tramite = mapearTramiteDesdeDTO(t,idUsuario, new Tramite(), true);
 
         EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
         nuevoEstado.setEstado(tramite.getEstado());
@@ -79,7 +78,8 @@ public class TramiteService implements ITramitesService {
         if (tramite.getEstado()!=EstadoTramite.Iniciado){
             throw new SigemaException("Su trámite ya fue procesado y no se puede editar");
         }
-        tramite = mapearTramiteDesdeDTO(t,idUsuario, tramite, false);
+
+        mapearTramiteDesdeDTO(t,idUsuario, tramite, false);
 
         tramite = tramitesRepository.save(tramite);
 
@@ -101,12 +101,12 @@ public class TramiteService implements ITramitesService {
     public Actuacion CrearActuacion(Long idTramite, Actuacion actuacion, Long idUsuario) throws Exception {
         Tramite tramite = ObtenerPorId(idTramite).orElse(null);
 
-        if(tramite.getEstado()==EstadoTramite.Resuelto){
-            throw new SigemaException("Nos se puede crear la actuación porque el trámite ya está resuelto");
-        }
-
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
+        }
+
+        if(tramite.getEstado()==EstadoTramite.Resuelto){
+            throw new SigemaException("Nos se puede crear la actuación porque el trámite ya está resuelto");
         }
 
         Usuario usuario = usuarioService.ObtenerPorId(idUsuario);

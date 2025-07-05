@@ -15,8 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-@Service // mejor que @Repository para servicios
+@Service
 @Transactional
 public class EquipoService implements IEquipoService {
 
@@ -34,19 +35,20 @@ public class EquipoService implements IEquipoService {
     @Override
     public List<Equipo> obtenerTodos(Long idUnidad) throws Exception {
         if(idUnidad == null || idUnidad == 0){
-            return equipoRepository.findAll();
+            return equipoRepository.findByActivoTrue();
         }else{
-            return equipoRepository.findByUnidad_Id(idUnidad);
+            return equipoRepository.findByUnidad_IdAndActivoTrue(idUnidad);
         }
     }
 
     @Override
     public Equipo Crear(Equipo equipo) throws Exception {
         equipo.validar();
+        equipo.setActivo(true);
 
         Equipo equipoExistente = equipoRepository.findByMatricula(equipo.getMatricula().toUpperCase());
         if(equipoExistente != null){
-            throw new SigemaException("Ya existe un equipo con esa matricula");
+            throw new SigemaException("Ya existe un equipo con esa matrícula");
         }
 
         ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(equipo.getIdModeloEquipo()).orElse(null);
@@ -73,7 +75,9 @@ public class EquipoService implements IEquipoService {
 
     @Override
     public void Eliminar(Long id) throws Exception {
-        equipoRepository.deleteById(id);
+        Equipo equipo = ObtenerPorId(id);
+        equipo.setActivo(false);
+        Editar(id, equipo);
     }
 
     @Override
@@ -102,6 +106,7 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setIdUnidad(equipo.getIdUnidad());
         equipoEditar.setIdModeloEquipo(equipo.getIdModeloEquipo());
         equipoEditar.setObservaciones(equipo.getObservaciones());
+        equipoEditar.setActivo(equipo.isActivo());
 
         return equipoRepository.save(equipoEditar);
     }

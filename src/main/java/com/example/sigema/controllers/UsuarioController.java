@@ -57,7 +57,7 @@ public class UsuarioController {
             usuarioService.Eliminar(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

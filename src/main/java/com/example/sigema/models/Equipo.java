@@ -57,6 +57,9 @@ public class Equipo implements Serializable {
     @Transient
     private Long idUnidad;
 
+    @Column(nullable = false)
+    private boolean activo = false;
+
     public void validar() throws SigemaException {
 
         if (cantidadUnidadMedida < 0) {

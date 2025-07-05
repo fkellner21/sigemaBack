@@ -20,18 +20,19 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String cedulaAdmin = "admin";
+        String cedulaAdmin = "12345678";
 
         boolean exists = usuarioRepository.findByCedula(cedulaAdmin).isPresent();
 
         if (!exists) {
             Usuario admin = new Usuario();
             admin.setCedula(cedulaAdmin);
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setPassword(passwordEncoder.encode("123"));
             admin.setNombreCompleto("Admin");
             admin.setRol(Rol.ADMINISTRADOR);
+            admin.setActivo(true);
             usuarioRepository.save(admin);
-            System.out.println("Usuario administrador creado con cédula 'admin' y contraseña 'admin123'");
+            System.out.println("Usuario administrador creado con cédula '12345678' y contraseña '123'");
         }
     }
 }

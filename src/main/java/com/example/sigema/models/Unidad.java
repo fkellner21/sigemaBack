@@ -26,6 +26,9 @@ public class Unidad implements Serializable {
     @Column(nullable = false)
     private float longitud;
 
+    @Column(nullable = false)
+    private boolean esGranUnidad;
+
     public void validar() throws SigemaException {
         if(nombre.isEmpty()){
             throw new SigemaException("Debes ingresar un nombre");

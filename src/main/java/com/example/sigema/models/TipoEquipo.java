@@ -13,9 +13,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class TipoEquipo implements Serializable {
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

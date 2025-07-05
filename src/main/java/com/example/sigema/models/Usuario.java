@@ -47,6 +47,9 @@ public class Usuario implements Serializable {
     @Column(nullable = false, unique = true)
     private String cedula;
 
+    @Column(nullable = false)
+    private boolean activo = false;
+
     public Usuario(String cedula, String password, Rol rol) {
         this.cedula = cedula;
         this.password = password;

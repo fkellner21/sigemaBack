@@ -17,5 +17,4 @@ public interface IUnidadService {
     Optional<Unidad> ObtenerPorId(Long id) throws Exception;
 
     Unidad Editar(Long id, Unidad unidad) throws Exception;
-
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.sigema.utilidades.SigemaException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -29,6 +30,13 @@ public class UnidadService implements IUnidadService {
     @Override
     public Unidad Crear(Unidad unidad) throws Exception {
         unidad.validar();
+
+        List<Unidad> unidades = unidadRepository.findByEsGranUnidad(true);
+
+        if(unidades != null && !unidades.isEmpty() && unidad.isEsGranUnidad()){
+            throw new SigemaException("Ya existe una unidad del tipo gran unidad, solamente puede haber una");
+        }
+
         return unidadRepository.save(unidad);
     }
 
@@ -46,9 +54,18 @@ public class UnidadService implements IUnidadService {
     public Unidad Editar(Long id, Unidad unidad) throws Exception {
         unidad.validar();
         Unidad unidadEditar = ObtenerPorId(id).orElseThrow(() -> new SigemaException("Unidad no encontrada"));
+
+        List<Unidad> unidades = unidadRepository.findByEsGranUnidad(true);
+
+        if(unidades != null && !unidades.isEmpty() && unidad.isEsGranUnidad() && !Objects.equals(id, unidades.getFirst().getId())){
+            throw new SigemaException("Ya existe una unidad del tipo gran unidad, solamente puede haber una");
+        }
+
         unidadEditar.setNombre(unidad.getNombre());
         unidadEditar.setLatitud(unidad.getLatitud());
         unidadEditar.setLongitud(unidad.getLongitud());
+        unidadEditar.setEsGranUnidad(unidad.isEsGranUnidad());
+
         return unidadRepository.save(unidadEditar);
     }
 }

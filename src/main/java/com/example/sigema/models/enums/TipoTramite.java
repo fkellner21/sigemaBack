@@ -2,8 +2,10 @@ package com.example.sigema.models.enums;
 
 public enum TipoTramite {
     BajaEquipo,
+    AltaEquipo,
     SolicitudRepuesto,
-    SolicitudUsuario,
+    AltaUsuario,
+    BajaUsuario,
     PedidoInformacion,
     Otros
 }

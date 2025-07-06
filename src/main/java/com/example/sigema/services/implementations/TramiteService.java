@@ -105,7 +105,7 @@ public class TramiteService implements ITramitesService {
             throw new SigemaException("El tramite no fue encontrado");
         }
 
-        if(tramite.getEstado()==EstadoTramite.Resuelto){
+        if(tramite.getEstado()==EstadoTramite.Aprobado || tramite.getEstado()==EstadoTramite.Rechazado){
             throw new SigemaException("Nos se puede crear la actuación porque el trámite ya está resuelto");
         }
 
@@ -146,7 +146,7 @@ public class TramiteService implements ITramitesService {
             throw new SigemaException("El usuario no fue encontrado");
         }
 
-        if(tramite.getEstado() == EstadoTramite.Resuelto && estado == EstadoTramite.EnTramite){
+        if((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
             if(usuario.getRol() != Rol.ADMINISTRADOR && usuario.getRol() != Rol.BRIGADA){
                 throw new SigemaException("No tienes permisos para re abrir un tramite");
             }
@@ -162,6 +162,10 @@ public class TramiteService implements ITramitesService {
         tramite.setEstado(estado);
 
         tramite = tramitesRepository.save(tramite);
+
+        if(tramite.getEstado() == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
+            equipoService.Eliminar(tramite.getEquipo().getId());
+        }
 
         return tramite;
     }

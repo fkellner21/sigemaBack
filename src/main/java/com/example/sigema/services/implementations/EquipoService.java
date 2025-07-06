@@ -121,14 +121,16 @@ public class EquipoService implements IEquipoService {
 
         Long idUnidad = equipo.getIdUnidad();
 
-        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0){
+        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0 && (equipo.getIdUnidad() == null || equipo.getIdUnidad() == 0)){
             idUnidad = equipo.getUnidad().getId();
         }
+
+        Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
 
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
         equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
-        equipoEditar.setIdUnidad(idUnidad);
+        equipoEditar.setUnidad(unidad);
         equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(equipo.isActivo());

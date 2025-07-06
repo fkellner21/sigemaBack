@@ -3,14 +3,11 @@ package com.example.sigema.controllers;
 import com.example.sigema.models.Equipo;
 import com.example.sigema.models.Tramite;
 import com.example.sigema.models.TramiteDTO;
-import com.example.sigema.models.Unidad;
 import com.example.sigema.models.enums.EstadoTramite;
-import com.example.sigema.models.enums.Rol;
 import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.services.IEquipoService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.services.implementations.TramiteService;
-import com.example.sigema.services.implementations.UnidadService;
 import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -85,14 +81,16 @@ public class EquipoController {
             TramiteDTO tramite= new TramiteDTO();
             tramite.setIdEquipo(creado.getId());
             tramite.setTexto("Tramite creado automaticamente al recibir un equipo como alta.");
-            tramite.setTipoTramite(TipoTramite.BajaEquipo);
+            tramite.setTipoTramite(TipoTramite.AltaEquipo);
             tramite.setIdUnidadDestino(creado.getUnidad().getId());
 
             Long idUnidad = jwtUtils.extractIdUnidad(getToken());
             if(idUnidad!=null){
-            tramite.setIdUnidadOrigen(idUnidad);
-            }else idUnidad = unidadService.obtenerGranUnidad().getId();
-            tramite.setIdUnidadOrigen(idUnidad);
+                tramite.setIdUnidadOrigen(idUnidad);
+            }else {
+                idUnidad = unidadService.obtenerGranUnidad().getId();
+                tramite.setIdUnidadOrigen(idUnidad);
+            }
 
             Long idUsuario = jwtUtils.extractIdUsuario(getToken());
 
@@ -107,11 +105,42 @@ public class EquipoController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'ADMINISTRADOR_UNIDAD')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
-            equiposService.Eliminar(id);
+            Equipo equipo = equiposService.ObtenerPorId(id);
+            Long idUnidadDestino = 0L;
+            String rol = jwtUtils.extractRol(getToken());
+            EstadoTramite estadoTramite = EstadoTramite.Iniciado;
+
+            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+                idUnidadDestino = equipo.getUnidad().getId();
+                estadoTramite = EstadoTramite.Aprobado;
+            }else{
+                idUnidadDestino = unidadService.obtenerGranUnidad().getId();
+            }
+
+            TramiteDTO tramiteBaja = new TramiteDTO();
+            tramiteBaja.setIdEquipo(equipo.getId());
+            tramiteBaja.setTexto("Tramite creado automaticamente para dar de baja un equipo.");
+            tramiteBaja.setTipoTramite(TipoTramite.BajaEquipo);
+            tramiteBaja.setIdUnidadDestino(idUnidadDestino);
+
+            Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+            if(idUnidad!=null){
+                tramiteBaja.setIdUnidadOrigen(idUnidad);
+            }else {
+                idUnidad = unidadService.obtenerGranUnidad().getId();
+                tramiteBaja.setIdUnidadOrigen(idUnidad);
+            }
+
+            Long idUsuario = jwtUtils.extractIdUsuario(getToken());
+            Tramite tramite = tramiteService.Crear(tramiteBaja, idUsuario);
+
+            if(estadoTramite == EstadoTramite.Aprobado) {
+                tramiteService.CambiarEstado(tramite.getId(), estadoTramite, idUsuario);
+            }
 
             return ResponseEntity.ok().body("Se ha eliminado con exito");
         } catch(SigemaException e){
@@ -141,6 +170,41 @@ public class EquipoController {
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Equipo equipo) {
         try {
+            Equipo equipoOriginal = equiposService.ObtenerPorId(id);
+
+            if(equipoOriginal == null){
+                return ResponseEntity.notFound().build();
+            }
+
+            Long idUnidadOriginal = equipoOriginal.getUnidad().getId();
+
+            if(!Objects.equals(idUnidadOriginal, equipo.getIdUnidad())){
+                TramiteDTO tramiteBaja = new TramiteDTO();
+                tramiteBaja.setIdEquipo(equipo.getId());
+                tramiteBaja.setTexto("Tramite creado automaticamente al transferir de unidad el equipo.");
+                tramiteBaja.setTipoTramite(TipoTramite.BajaEquipo);
+                tramiteBaja.setIdUnidadDestino(idUnidadOriginal);
+
+                Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+                if(idUnidad!=null){
+                    tramiteBaja.setIdUnidadOrigen(idUnidad);
+                }else {
+                    idUnidad = unidadService.obtenerGranUnidad().getId();
+                    tramiteBaja.setIdUnidadOrigen(idUnidad);
+                }
+
+                TramiteDTO tramiteAlta = new TramiteDTO();
+                tramiteAlta.setIdEquipo(equipo.getId());
+                tramiteAlta.setTexto("Tramite creado automaticamente al transferir de unidad el equipo.");
+                tramiteAlta.setTipoTramite(TipoTramite.AltaEquipo);
+                tramiteAlta.setIdUnidadDestino(equipo.getIdUnidad());
+                tramiteAlta.setIdUnidadOrigen(idUnidad);
+
+                Long idUsuario = jwtUtils.extractIdUsuario(getToken());
+                tramiteService.Crear(tramiteBaja, idUsuario);
+                tramiteService.Crear(tramiteAlta, idUsuario);
+            }
+
             Equipo editado = equiposService.Editar(id, equipo);
 
             return ResponseEntity.ok().body(editado);

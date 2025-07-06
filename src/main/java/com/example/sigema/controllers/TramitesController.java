@@ -1,9 +1,6 @@
 package com.example.sigema.controllers;
 
-import com.example.sigema.models.Actuacion;
-import com.example.sigema.models.Equipo;
-import com.example.sigema.models.Tramite;
-import com.example.sigema.models.TramiteDTO;
+import com.example.sigema.models.*;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.services.ITramitesService;
 import com.example.sigema.utilidades.JwtUtils;
@@ -142,10 +139,10 @@ public class TramitesController {
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA','UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping("/{id}/estado")
-    public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody EstadoTramite estadoTramite) {
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody EstadoTramiteRequest estadoTramite) {
         try {
             Long idUsuario= jwtUtils.extractIdUsuario(getToken());
-            Tramite tramite = tramitesService.CambiarEstado(id,estadoTramite,idUsuario);
+            Tramite tramite = tramitesService.CambiarEstado(id,estadoTramite.getEstadoTramite(),idUsuario);
             return ResponseEntity.ok().body(tramite);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());

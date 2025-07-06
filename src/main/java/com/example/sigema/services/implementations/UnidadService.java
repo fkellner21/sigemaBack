@@ -28,6 +28,13 @@ public class UnidadService implements IUnidadService {
     }
 
     @Override
+    public Unidad obtenerGranUnidad() throws SigemaException{
+        List<Unidad> unidades = unidadRepository.findByEsGranUnidad(true);
+        if (unidades.isEmpty()) throw new SigemaException("No existe en el sistema una Gran Unidad");
+        return unidades.get(0);
+    }
+
+    @Override
     public Unidad Crear(Unidad unidad) throws Exception {
         unidad.validar();
 

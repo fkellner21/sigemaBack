@@ -1,8 +1,16 @@
 package com.example.sigema.controllers;
 
 import com.example.sigema.models.Equipo;
+import com.example.sigema.models.Tramite;
+import com.example.sigema.models.TramiteDTO;
+import com.example.sigema.models.Unidad;
+import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.Rol;
+import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.services.IUnidadService;
+import com.example.sigema.services.implementations.TramiteService;
+import com.example.sigema.services.implementations.UnidadService;
 import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,6 +33,10 @@ public class EquipoController {
 
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private IUnidadService unidadService;
+    @Autowired
+    private TramiteService tramiteService;
 
     @Autowired
     public EquipoController(IEquipoService equiposService, JwtUtils jwtUtils) {
@@ -69,6 +82,21 @@ public class EquipoController {
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try {
             Equipo creado = equiposService.Crear(equipo);
+            TramiteDTO tramite= new TramiteDTO();
+            tramite.setIdEquipo(creado.getId());
+            tramite.setTexto("Tramite creado automaticamente al recibir un equipo como alta.");
+            tramite.setTipoTramite(TipoTramite.BajaEquipo);
+            tramite.setIdUnidadDestino(creado.getUnidad().getId());
+
+            Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+            if(idUnidad!=null){
+            tramite.setIdUnidadOrigen(idUnidad);
+            }else idUnidad = unidadService.obtenerGranUnidad().getId();
+            tramite.setIdUnidadOrigen(idUnidad);
+
+            Long idUsuario = jwtUtils.extractIdUsuario(getToken());
+
+            Tramite nuevo = tramiteService.Crear(tramite, idUsuario);
 
             return ResponseEntity.ok().body(creado);
         } catch(SigemaException e){

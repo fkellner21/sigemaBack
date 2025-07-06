@@ -2,6 +2,7 @@ package com.example.sigema.services;
 
 import com.example.sigema.models.Equipo;
 import com.example.sigema.models.Unidad;
+import com.example.sigema.utilidades.SigemaException;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +18,6 @@ public interface IUnidadService {
     Optional<Unidad> ObtenerPorId(Long id) throws Exception;
 
     Unidad Editar(Long id, Unidad unidad) throws Exception;
+
+    Unidad obtenerGranUnidad() throws SigemaException;
 }

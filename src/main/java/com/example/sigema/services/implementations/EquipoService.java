@@ -57,7 +57,13 @@ public class EquipoService implements IEquipoService {
             throw new SigemaException("El modelo de equipo ingresado no existe");
         }
 
-        Unidad unidad = unidadService.ObtenerPorId(equipo.getIdUnidad()).orElse(null);
+        Long idUnidad = equipo.getIdUnidad();
+
+        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0){
+            idUnidad = equipo.getUnidad().getId();
+        }
+
+        Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
 
         if(unidad == null){
             throw new SigemaException("La unidad ingresada no existe");
@@ -89,7 +95,20 @@ public class EquipoService implements IEquipoService {
     public Equipo Editar(Long id, Equipo equipo) throws Exception {
         equipo.validar();
 
-        ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(equipo.getIdModeloEquipo()).orElse(null);
+        Long idModelo = equipo.getIdModeloEquipo();
+
+        if (idModelo == null || idModelo == 0) {
+            ModeloEquipo me = equipo.getModeloEquipo();
+            idModelo = (me != null) ? me.getId() : null;
+        }
+
+        if (idModelo == null || idModelo == 0) {
+            throw new SigemaException("Debe asociar un modelo válido al equipo");
+        }
+
+        ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(idModelo)
+                .orElseThrow(() -> new SigemaException("Modelo de equipo no encontrado"));
+
         Equipo equipoEditar = ObtenerPorId(id);
 
         if(modeloEquipo == null){
@@ -100,11 +119,17 @@ public class EquipoService implements IEquipoService {
             throw new SigemaException("El equipo no existe");
         }
 
+        Long idUnidad = equipo.getIdUnidad();
+
+        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0){
+            idUnidad = equipo.getUnidad().getId();
+        }
+
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
         equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
-        equipoEditar.setIdUnidad(equipo.getIdUnidad());
-        equipoEditar.setIdModeloEquipo(equipo.getIdModeloEquipo());
+        equipoEditar.setIdUnidad(idUnidad);
+        equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(equipo.isActivo());
 

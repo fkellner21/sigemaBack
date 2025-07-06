@@ -78,7 +78,7 @@ public class Equipo implements Serializable {
             throw new SigemaException("El estado debe ser Verde, Amarillo, Rojo o Negro");
         }
 
-        if (idUnidad == null || idUnidad == 0) {
+        if ((idUnidad == null || idUnidad == 0) && (unidad == null || unidad.getId() == null || unidad.getId() == 0)) {
             throw new SigemaException("Debe asociar una unidad válida al equipo");
         }
     }

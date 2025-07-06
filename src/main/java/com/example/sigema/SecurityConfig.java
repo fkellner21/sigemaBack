@@ -45,6 +45,7 @@ public class SecurityConfig {
                 registry.addMapping("/**")
                         .allowedOriginPatterns(
                                 "http://localhost:4200",
+                                "http://127.0.0.1:4200",
                                 "http://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")

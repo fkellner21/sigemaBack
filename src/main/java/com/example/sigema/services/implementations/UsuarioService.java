@@ -12,14 +12,15 @@ import com.example.sigema.utilidades.SigemaException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UsuarioService implements IUsuarioService {
 
-    private IRepositoryUsuario repositorio;
-    private IUnidadService unidadService;
-    private IGradoService gradoService;
-    private SecurityConfig securityConfig;
+    private final IRepositoryUsuario repositorio;
+    private final IUnidadService unidadService;
+    private final IGradoService gradoService;
+    private final SecurityConfig securityConfig;
 
     public UsuarioService(IRepositoryUsuario repositorio, IGradoService gradoService, IUnidadService unidadService, SecurityConfig securityConfig) {
         this.repositorio = repositorio;
@@ -30,13 +31,14 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public List<Usuario> obtenerTodos() throws Exception {
-        return repositorio.findAll();
+        return repositorio.findAllByActivoTrue();
     }
 
     @Override
     public Usuario Crear(Usuario usuario) throws Exception {
         usuario.validar();
         usuario.setCedula(usuario.getCedula().replaceAll("[./-]", ""));
+        usuario.setActivo(true);
 
         if(usuario.getIdUnidad() != null) {
             Unidad unidad = unidadService.ObtenerPorId(usuario.getIdUnidad()).orElse(null);
@@ -59,12 +61,23 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public void Eliminar(Long id) throws Exception {
-        repositorio.deleteById(id);
+        Usuario usuario = ObtenerPorId(id);
+
+        if(usuario.getGrado() != null){
+            usuario.setIdGrado(usuario.getGrado().getId());
+        }
+
+        if(usuario.getUnidad() != null){
+            usuario.setIdUnidad(usuario.getUnidad().getId());
+        }
+
+        usuario.setActivo(false);
+        Editar(id, usuario);
     }
 
     @Override
     public Usuario ObtenerPorId(Long id) throws Exception {
-        Usuario usuario = repositorio.findById(id).get();
+        Usuario usuario = repositorio.findById(id).orElse(null);
         if (usuario == null) {
             throw new Exception("No existe el usuario con el id " + id);
         }
@@ -95,6 +108,11 @@ public class UsuarioService implements IUsuarioService {
         usuarioAModificar.setNombreCompleto(usuario.getNombreCompleto());
         usuarioAModificar.setRol(usuario.getRol());
         usuarioAModificar.setCedula(usuario.getCedula());
+        usuarioAModificar.setActivo(usuario.isActivo());
+
+        if(!usuarioAModificar.isActivo()){
+            usuarioAModificar.setCedula(UUID.randomUUID().toString());
+        }
 
         if(usuario.getPassword() != null && !usuario.getPassword().isEmpty()){
             usuarioAModificar.setPassword(securityConfig.passwordEncoder().encode(usuario.getPassword()));

@@ -7,15 +7,15 @@ import java.util.Optional;
 
 public interface IEquipoService {
 
-    public List<Equipo> obtenerTodos(Long idUnidad) throws Exception;
+    List<Equipo> obtenerTodos(Long idUnidad) throws Exception;
 
-    public Equipo Crear(Equipo equipo) throws Exception;
+    Equipo Crear(Equipo equipo) throws Exception;
 
-    public void Eliminar(Long id) throws Exception;
+    void Eliminar(Long id) throws Exception;
 
-    public Equipo ObtenerPorId(Long id) throws Exception;
+    Equipo ObtenerPorId(Long id) throws Exception;
 
-    public Equipo Editar(Long id, Equipo equipo) throws Exception;
+    Equipo Editar(Long id, Equipo equipo) throws Exception;
 
-    public List<Equipo> obtenerEquiposPorIdModelo(Long idModelo, Long idUnidad);
+    List<Equipo> obtenerEquiposPorIdModelo(Long idModelo, Long idUnidad);
 }

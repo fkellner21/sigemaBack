@@ -20,7 +20,7 @@ public class ReglaAlerta implements Serializable {
     private String nombre;
 
     @Column(nullable = false)
-    private int intervaloMeses = 6;
+    private final int intervaloMeses = 6;
 
     @Column(nullable = false)
     private int cantidadUnidadMedida;

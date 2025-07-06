@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ReporteService implements IReporteService {
-    private IEquipoService equipoService;
+    private final IEquipoService equipoService;
 
     public ReporteService(IEquipoService equipoService) {
         this.equipoService = equipoService;

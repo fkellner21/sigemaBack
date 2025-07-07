@@ -3,6 +3,7 @@ package com.example.sigema.controllers;
 import com.example.sigema.models.*;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.services.ITramitesService;
+import com.example.sigema.services.implementations.UsuarioService;
 import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,8 @@ public class TramitesController {
 
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private UsuarioService usuarioService;
 
 
     public TramitesController(ITramitesService tramitesService,  JwtUtils jwtUtils){
@@ -79,10 +82,15 @@ public class TramitesController {
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id){
         try{
-        Tramite tramite = tramitesService.ObtenerPorId(id).orElse(null);
+
+        Long idUsuario= jwtUtils.extractIdUsuario(getToken());
+        Usuario usuario=usuarioService.ObtenerPorId(idUsuario);
+        Tramite tramite = tramitesService.ObtenerPorId(id, usuario).orElse(null);
+
         if(tramite==null){
             throw new SigemaException("Tramite no encontrado");
         }
+
         return ResponseEntity.ok().body(tramite);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -94,10 +102,10 @@ public class TramitesController {
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA','UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody TramiteDTO tramite) {
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody TramiteDTO tramiteDTO) {
         try {
             Long idUsuario= jwtUtils.extractIdUsuario(getToken());
-            Tramite editado=tramitesService.Editar(id,tramite,idUsuario);
+            Tramite editado=tramitesService.Editar(id,tramiteDTO,idUsuario);
             return ResponseEntity.ok().body(editado);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());

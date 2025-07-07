@@ -6,6 +6,7 @@ import com.example.sigema.models.TramiteDTO;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.services.ITramitesService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.services.implementations.TramiteService;
 import com.example.sigema.utilidades.JwtUtils;
@@ -32,7 +33,7 @@ public class EquipoController {
     @Autowired
     private IUnidadService unidadService;
     @Autowired
-    private TramiteService tramiteService;
+    private ITramitesService tramiteService;
 
     @Autowired
     public EquipoController(IEquipoService equiposService, JwtUtils jwtUtils) {
@@ -113,12 +114,16 @@ public class EquipoController {
             Long idUnidadDestino = 0L;
             String rol = jwtUtils.extractRol(getToken());
             EstadoTramite estadoTramite = EstadoTramite.Iniciado;
+            String respuesta="";
 
             if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
                 idUnidadDestino = equipo.getUnidad().getId();
                 estadoTramite = EstadoTramite.Aprobado;
+                equiposService.Eliminar(id);
+                respuesta="Equipo eliminado con éxito.";
             }else{
                 idUnidadDestino = unidadService.obtenerGranUnidad().getId();
+                respuesta="Tramite para dar de baja el equipo creado con éxito.";
             }
 
             TramiteDTO tramiteBaja = new TramiteDTO();
@@ -142,7 +147,7 @@ public class EquipoController {
                 tramiteService.CambiarEstado(tramite.getId(), estadoTramite, idUsuario);
             }
 
-            return ResponseEntity.ok().body("Se ha eliminado con exito");
+            return ResponseEntity.ok().body(respuesta);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

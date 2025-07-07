@@ -62,15 +62,16 @@ public class TramiteService implements ITramitesService {
     }
 
     @Override
-    public Optional<Tramite> ObtenerPorId(Long id) {
+    public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
+        if(tramite!=null && quienAbre != null) tramite.actualizarEstado(quienAbre);
         return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 
 
     @Override
     public Tramite Editar(Long id, TramiteDTO t, Long idUsuario) throws Exception {
-        Tramite tramite = ObtenerPorId(id).orElse(null);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El trámite no fue encontrado");
@@ -88,7 +89,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public void Eliminar(Long id) throws Exception{
-        Tramite tramite = ObtenerPorId(id).orElse(null);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -99,7 +100,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public Actuacion CrearActuacion(Long idTramite, Actuacion actuacion, Long idUsuario) throws Exception {
-        Tramite tramite = ObtenerPorId(idTramite).orElse(null);
+        Tramite tramite = tramitesRepository.findById(idTramite).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -126,7 +127,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public Tramite CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception {
-        Tramite tramite = ObtenerPorId(id).orElse(null);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -147,9 +148,9 @@ public class TramiteService implements ITramitesService {
         }
 
         if((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
-            if(usuario.getRol() != Rol.ADMINISTRADOR && usuario.getRol() != Rol.BRIGADA){
-                throw new SigemaException("No tienes permisos para re abrir un tramite");
-            }
+    //        if(usuario.getRol() != Rol.ADMINISTRADOR && usuario.getRol() != Rol.BRIGADA){
+                throw new SigemaException("No se puede re abrir un trámite");
+     //       }
         }
 
         EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
@@ -165,6 +166,24 @@ public class TramiteService implements ITramitesService {
 
         if(tramite.getEstado() == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
             equipoService.Eliminar(tramite.getEquipo().getId());
+        }
+
+        if(tramite.getEstado()==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
+            usuarioService.Eliminar(tramite.getIdUsuarioBajaSolicitada());
+        }
+
+        if(tramite.getEstado()==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
+
+            Usuario nuevo = new Usuario();
+            nuevo.setNombreCompleto(tramite.getNombreCompletoUsuarioSolicitado());
+            nuevo.setPassword("123");
+            nuevo.setCedula(tramite.getCedulaUsuarioSolicitado());
+            nuevo.setIdGrado(tramite.getIdGradoUsuarioSolicitado());
+            nuevo.setIdUnidad(tramite.getUnidadOrigen().getId());
+            nuevo.setTelefono(tramite.getTelefonoUsuarioSolicitado());
+            nuevo.setRol(Rol.UNIDAD);
+
+            usuarioService.Crear(nuevo);
         }
 
         return tramite;
@@ -227,6 +246,15 @@ public class TramiteService implements ITramitesService {
 
                 tramite.setRepuesto(repuesto);
             }
+        }
+        if(tramite.getTipoTramite()==TipoTramite.AltaUsuario){
+            tramite.setCedulaUsuarioSolicitado(t.getCedulaUsuarioSolicitado());
+            tramite.setIdGradoUsuarioSolicitado(t.getIdGradoUsuarioSolicitado());
+            tramite.setNombreCompletoUsuarioSolicitado(t.getNombreCompletoUsuarioSolicitado());
+            tramite.setTelefonoUsuarioSolicitado(t.getTelefonoUsuarioSolicitado());
+        }
+        if(tramite.getTipoTramite()==TipoTramite.BajaUsuario){
+            tramite.setIdUsuarioBajaSolicitada(t.getIdUsuarioBaja());
         }
 
         return tramite;

@@ -49,9 +49,25 @@ public class Tramite implements Serializable {
     @JoinColumn(name = "unidad_destino_id", referencedColumnName = "id")
     private Unidad unidadDestino;
 
+    @Column
+    private Long idGradoUsuarioSolicitado;
+
+    @Column
+    private String nombreCompletoUsuarioSolicitado;
+
+    @Column
+    private String cedulaUsuarioSolicitado;
+
+    @Column
+    private Long telefonoUsuarioSolicitado;
+
+    @Column
+    private Long idUsuarioBajaSolicitada;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
+
     @ManyToOne
     @JoinColumn(name = "repuesto_id", referencedColumnName = "id")
     private Repuesto repuesto;
@@ -81,4 +97,10 @@ public class Tramite implements Serializable {
         return id != null ? id.hashCode() : 0;
     }
 
+    public void actualizarEstado(Usuario quienAbre){
+        //siempre que alguien de la unidad destino abra un tramite iniciado
+        if(estado == EstadoTramite.Iniciado && unidadDestino.equals(quienAbre.getUnidad())){
+            estado=EstadoTramite.EnTramite;
+        }
+    }
 }

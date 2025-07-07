@@ -3,6 +3,7 @@ package com.example.sigema.services;
 import com.example.sigema.models.Actuacion;
 import com.example.sigema.models.Tramite;
 import com.example.sigema.models.TramiteDTO;
+import com.example.sigema.models.Usuario;
 import com.example.sigema.models.enums.EstadoTramite;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public interface ITramitesService {
 
     Tramite Crear(TramiteDTO t, Long idUsuario) throws Exception;
 
-    Optional<Tramite> ObtenerPorId(Long id) throws Exception;
+    Optional<Tramite> ObtenerPorId(Long id, Usuario usuario) throws Exception;
 
     Tramite Editar(Long id, TramiteDTO t, Long idUsuario) throws Exception;
     void Eliminar(Long id) throws Exception;

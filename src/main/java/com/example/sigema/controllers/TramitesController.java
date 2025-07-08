@@ -151,7 +151,7 @@ public class TramitesController {
         try {
             Long idUsuario= jwtUtils.extractIdUsuario(getToken());
             Tramite tramite = tramitesService.CambiarEstado(id,estadoTramite.getEstadoTramite(),idUsuario);
-            return ResponseEntity.ok().body(tramite);
+            return ResponseEntity.ok().build();
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

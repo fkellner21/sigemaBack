@@ -64,7 +64,10 @@ public class TramiteService implements ITramitesService {
     @Override
     public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
-        if(tramite!=null && quienAbre != null) tramite.actualizarEstado(quienAbre);
+        if(tramite!=null && quienAbre != null && tramite.getEstado()==EstadoTramite.Iniciado){
+            tramite.actualizarEstado(quienAbre);
+            tramite = tramitesRepository.save(tramite);
+        }
         return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 

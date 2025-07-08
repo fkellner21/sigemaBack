@@ -64,7 +64,7 @@ public class UsuarioController {
             }else{
                 idUnidadDestino = unidadService.obtenerGranUnidad().getId();
                 respuesta="Tramite para dar de alta el usuario creado con éxito.";
-                if(!Objects.equals(usuario.getUnidad().getId(), idUnidadUsuarioCreador)){
+                if(!Objects.equals(usuario.getIdUnidad(), idUnidadUsuarioCreador)){
                     throw new SigemaException("Solo puede crear usuarios de su Unidad.");
                 }
             }
@@ -92,7 +92,7 @@ public class UsuarioController {
             if(estadoTramite == EstadoTramite.Aprobado) {
                 tramiteService.CambiarEstado(tramite.getId(),estadoTramite,idUsuario);
             }
-            return ResponseEntity.ok(respuesta);
+            return ResponseEntity.ok().build();
         } catch(SigemaException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -175,7 +175,7 @@ public class UsuarioController {
                 tramiteService.CambiarEstado(tramite.getId(), estadoTramite, idUsuario);
             }
 
-            return ResponseEntity.ok().body(respuesta);
+            return ResponseEntity.ok().build();
 
         } catch(SigemaException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

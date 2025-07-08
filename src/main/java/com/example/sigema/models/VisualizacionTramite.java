@@ -11,19 +11,18 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.Date;
 @Entity
-@Table(name = "EstadosHistoricoTramite")
+@Table(name = "VisualizacionesTramite")
 @Getter
 @Setter
-public class EstadosHistoricoTramite implements Serializable {
+public class VisualizacionTramite implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relación con Tramite: se usa para persistencia
     @ManyToOne
     @JoinColumn(name = "tramite_id", referencedColumnName = "id")
-    @JsonIgnore // evita que se envíe el objeto completo al frontend
+    @JsonIgnore
     private Tramite tramite;
 
     @ManyToOne(optional = false)
@@ -31,12 +30,8 @@ public class EstadosHistoricoTramite implements Serializable {
     private Usuario usuario;
 
     @Column
-    private EstadoTramite estado;
-
-    @Column
     private Date fecha;
 
-    // Exponer solo el id del tramite en JSON
     @Transient
     @JsonProperty("tramiteId")
     public Long getTramiteId() {

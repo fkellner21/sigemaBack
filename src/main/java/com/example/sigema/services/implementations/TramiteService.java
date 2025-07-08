@@ -64,10 +64,32 @@ public class TramiteService implements ITramitesService {
     @Override
     public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
+
         if(tramite!=null && quienAbre != null && tramite.getEstado()==EstadoTramite.Iniciado){
             tramite.actualizarEstado(quienAbre);
             tramite = tramitesRepository.save(tramite);
         }
+
+        if(tramite != null && quienAbre != null) {
+            VisualizacionTramite visualizacionExistente = tramite.getVisualizaciones().stream()
+                    .filter(x -> x.getUsuario().getId().equals(quienAbre.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if(visualizacionExistente == null){
+                visualizacionExistente = new VisualizacionTramite();
+                visualizacionExistente.setTramite(tramite);
+                visualizacionExistente.setUsuario(quienAbre);
+                visualizacionExistente.setFecha(Date.from(Instant.now()));
+
+                tramite.getVisualizaciones().add(visualizacionExistente);
+            }else {
+                visualizacionExistente.setFecha(Date.from(Instant.now()));
+            }
+
+            tramitesRepository.save(tramite);
+        }
+
         return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 

@@ -80,6 +80,10 @@ public class Tramite implements Serializable {
     @JsonManagedReference
     private final List<Actuacion> actuaciones = new ArrayList<>();
 
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private final List<VisualizacionTramite> visualizaciones = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "equipo_id", referencedColumnName = "id")
     private Equipo equipo;

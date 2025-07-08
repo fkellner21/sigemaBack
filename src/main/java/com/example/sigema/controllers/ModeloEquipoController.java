@@ -39,7 +39,7 @@ public class ModeloEquipoController {
     private final JwtUtils jwtUtils;
 
     @Autowired
-    private IEquipoService equipoService;
+    private final IEquipoService equipoService;
 
     @Autowired
     private HttpServletRequest request;
@@ -147,7 +147,7 @@ public class ModeloEquipoController {
             @RequestParam("archivo") MultipartFile archivo) {
 
         try {
-            ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(id).orElseThrow(() -> new SigemaException("Modelo no encontrado"));;
+            ModeloEquipo modelo = modeloEquipoService.ObtenerPorId(id).orElseThrow(() -> new SigemaException("Modelo no encontrado"));
 
             String nombreArchivo = UUID.randomUUID() + "_" + archivo.getOriginalFilename();
             Path ruta = Paths.get(carpetaUploads+modelo.getId()+ '/' + nombreArchivo);

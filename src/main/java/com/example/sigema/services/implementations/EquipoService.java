@@ -15,8 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-@Service // mejor que @Repository para servicios
+@Service
 @Transactional
 public class EquipoService implements IEquipoService {
 
@@ -34,15 +35,21 @@ public class EquipoService implements IEquipoService {
     @Override
     public List<Equipo> obtenerTodos(Long idUnidad) throws Exception {
         if(idUnidad == null || idUnidad == 0){
-            return equipoRepository.findAll();
+            return equipoRepository.findByActivoTrue();
         }else{
-            return equipoRepository.findByUnidad_Id(idUnidad);
+            return equipoRepository.findByUnidad_IdAndActivoTrue(idUnidad);
         }
     }
 
     @Override
     public Equipo Crear(Equipo equipo) throws Exception {
         equipo.validar();
+        equipo.setActivo(true);
+
+        Equipo equipoExistente = equipoRepository.findByMatricula(equipo.getMatricula().toUpperCase());
+        if(equipoExistente != null){
+            throw new SigemaException("Ya existe un equipo con esa matrícula");
+        }
 
         ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(equipo.getIdModeloEquipo()).orElse(null);
 
@@ -50,7 +57,13 @@ public class EquipoService implements IEquipoService {
             throw new SigemaException("El modelo de equipo ingresado no existe");
         }
 
-        Unidad unidad = unidadService.ObtenerPorId(equipo.getIdUnidad()).orElse(null);
+        Long idUnidad = equipo.getIdUnidad();
+
+        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0){
+            idUnidad = equipo.getUnidad().getId();
+        }
+
+        Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
 
         if(unidad == null){
             throw new SigemaException("La unidad ingresada no existe");
@@ -58,6 +71,7 @@ public class EquipoService implements IEquipoService {
 
         equipo.setModeloEquipo(modeloEquipo);
         equipo.setUnidad(unidad);
+        equipo.setMatricula(equipo.getMatricula().toUpperCase());
         equipo.setLatitud(unidad.getLatitud());
         equipo.setLongitud(unidad.getLongitud());
         equipo.setFechaUltimaPosicion(new Date());
@@ -67,7 +81,9 @@ public class EquipoService implements IEquipoService {
 
     @Override
     public void Eliminar(Long id) throws Exception {
-        equipoRepository.deleteById(id);
+        Equipo equipo = ObtenerPorId(id);
+        equipo.setActivo(false);
+        Editar(id, equipo);
     }
 
     @Override
@@ -79,7 +95,20 @@ public class EquipoService implements IEquipoService {
     public Equipo Editar(Long id, Equipo equipo) throws Exception {
         equipo.validar();
 
-        ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(equipo.getIdModeloEquipo()).orElse(null);
+        Long idModelo = equipo.getIdModeloEquipo();
+
+        if (idModelo == null || idModelo == 0) {
+            ModeloEquipo me = equipo.getModeloEquipo();
+            idModelo = (me != null) ? me.getId() : null;
+        }
+
+        if (idModelo == null || idModelo == 0) {
+            throw new SigemaException("Debe asociar un modelo válido al equipo");
+        }
+
+        ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(idModelo)
+                .orElseThrow(() -> new SigemaException("Modelo de equipo no encontrado"));
+
         Equipo equipoEditar = ObtenerPorId(id);
 
         if(modeloEquipo == null){
@@ -90,12 +119,21 @@ public class EquipoService implements IEquipoService {
             throw new SigemaException("El equipo no existe");
         }
 
+        Long idUnidad = equipo.getIdUnidad();
+
+        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0 && (equipo.getIdUnidad() == null || equipo.getIdUnidad() == 0)){
+            idUnidad = equipo.getUnidad().getId();
+        }
+
+        Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
+
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
-        equipoEditar.setMatricula(equipo.getMatricula());
-        equipoEditar.setIdUnidad(equipo.getIdUnidad());
-        equipoEditar.setIdModeloEquipo(equipo.getIdModeloEquipo());
+        equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
+        equipoEditar.setUnidad(unidad);
+        equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
+        equipoEditar.setActivo(equipo.isActivo());
 
         return equipoRepository.save(equipoEditar);
     }

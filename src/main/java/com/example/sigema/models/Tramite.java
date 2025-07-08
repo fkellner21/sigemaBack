@@ -2,12 +2,15 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.TipoTramite;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "Tramites")
@@ -19,10 +22,15 @@ public class Tramite implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TipoTramite tipo;
+    private TipoTramite tipoTramite;
 
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoTramite estado = EstadoTramite.Iniciado;
@@ -30,18 +38,47 @@ public class Tramite implements Serializable {
     @Column(nullable = false)
     private Date fechaInicio;
 
-    @Column(nullable = false)
-    private Long idUnidadOrigen;
-
-    @Column(nullable = false)
-    private Long idUnidadDestino;
-
     @Column
-    private Long idEquipo;
+    private String texto;
 
-    @Column
-    private Long idRepuesto;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "unidad_origen_id", referencedColumnName = "id")
+    private Unidad unidadOrigen;
 
-    @Column(nullable = false)
-    private Long idUsuario;
+    @ManyToOne
+    @JoinColumn(name = "unidad_destino_id", referencedColumnName = "id")
+    private Unidad unidadDestino;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    private Usuario usuario;
+    @ManyToOne
+    @JoinColumn(name = "repuesto_id", referencedColumnName = "id")
+    private Repuesto repuesto;
+
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private final List<EstadosHistoricoTramite> historico = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private final List<Actuacion> actuaciones = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "equipo_id", referencedColumnName = "id")
+    private Equipo equipo;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tramite tramite = (Tramite) o;
+        return id != null && id.equals(tramite.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
 }

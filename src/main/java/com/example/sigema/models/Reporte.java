@@ -36,61 +36,6 @@ public class Reporte implements Serializable {
     @Column(nullable = false)
     private double kilometros;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getIdEquipo() {
-        return idEquipo;
-    }
-
-    public void setIdEquipo(Long idEquipo) {
-        this.idEquipo = idEquipo;
-    }
-
-    public double getLatitud() {
-        return latitud;
-    }
-
-    public void setLatitud(double latitud) {
-        this.latitud = latitud;
-    }
-
-    public double getLongitud() {
-        return longitud;
-    }
-
-    public void setLongitud(double longitud) {
-        this.longitud = longitud;
-    }
-
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
-
-    public double getHorasDeTrabajo() {
-        return horasDeTrabajo;
-    }
-
-    public void setHorasDeTrabajo(double horasDeTrabajo) {
-        this.horasDeTrabajo = horasDeTrabajo;
-    }
-
-    public double getKilometros() {
-        return kilometros;
-    }
-
-    public void setKilometros(double kilometros) {
-        this.kilometros = kilometros;
-    }
     public void validar() throws SigemaException {
         if(this.fecha==null||this.fecha.after(new Date())){
             throw new SigemaException("La fecha del reporte llega incorrecta");

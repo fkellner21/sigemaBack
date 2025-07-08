@@ -106,7 +106,7 @@ public class EquiposTest
         when(equipoRepository.findById(1L)).thenReturn(Optional.of(equipo));
         Equipo resultado = equipoService.ObtenerPorId(1L);
 
-        assertTrue(resultado != null);
+        assertNotNull(resultado);
         assertEquals(1L, resultado.getId());
     }
 

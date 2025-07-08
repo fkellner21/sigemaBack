@@ -57,93 +57,8 @@ public class Equipo implements Serializable {
     @Transient
     private Long idUnidad;
 
-    public Date getFechaUltimaPosicion() {
-        return fechaUltimaPosicion;
-    }
-
-    public void setFechaUltimaPosicion(Date fechaUltimaPosicion) {
-        this.fechaUltimaPosicion = fechaUltimaPosicion;
-    }
-
-    public double getLatitud() {return latitud;}
-
-    public void setLatitud(double latitud) {this.latitud = latitud;}
-
-    public double getLongitud() {return longitud;}
-
-    public void setLongitud(double longitud) {this.longitud = longitud;}
-
-    public Long getIdUnidad() {
-        return idUnidad;
-    }
-
-    public void setIdUnidad(Long idUnidad) {
-        this.idUnidad = idUnidad;
-    }
-
-    public ModeloEquipo getModeloEquipo() {
-        return modeloEquipo;
-    }
-
-    public void setModeloEquipo(ModeloEquipo modeloEquipo) {
-        this.modeloEquipo = modeloEquipo;
-    }
-
-    public Long getIdModeloEquipo() {
-        return idModeloEquipo;
-    }
-
-    public void setIdModeloEquipo(Long idModeloEquipo) {
-        this.idModeloEquipo = idModeloEquipo;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getMatricula() {
-        return matricula;
-    }
-
-    public void setMatricula(String matricula) {
-        this.matricula = matricula;
-    }
-
-    public String getObservaciones() {
-        return observaciones;
-    }
-
-    public void setObservaciones(String observaciones) {
-        this.observaciones = observaciones;
-    }
-
-    public double getCantidadUnidadMedida() {
-        return cantidadUnidadMedida;
-    }
-
-    public void setCantidadUnidadMedida(double cantidadUnidadMedida) {
-        this.cantidadUnidadMedida = cantidadUnidadMedida;
-    }
-
-    public EstadoEquipo getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoEquipo estado) {
-        this.estado = estado;
-    }
-
-    public Unidad getUnidad() {
-        return unidad;
-    }
-
-    public void setUnidad(Unidad unidad) {
-        this.unidad = unidad;
-    }
+    @Column(nullable = false)
+    private boolean activo = false;
 
     public void validar() throws SigemaException {
 
@@ -163,7 +78,7 @@ public class Equipo implements Serializable {
             throw new SigemaException("El estado debe ser Verde, Amarillo, Rojo o Negro");
         }
 
-        if (idUnidad == null || idUnidad == 0) {
+        if ((idUnidad == null || idUnidad == 0) && (unidad == null || unidad.getId() == null || unidad.getId() == 0)) {
             throw new SigemaException("Debe asociar una unidad válida al equipo");
         }
     }

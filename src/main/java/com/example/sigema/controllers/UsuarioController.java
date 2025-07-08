@@ -14,7 +14,7 @@ import java.util.List;
 public class UsuarioController {
 
 
-    private IUsuarioService usuarioService;
+    private final IUsuarioService usuarioService;
 
     @Autowired
     public UsuarioController(IUsuarioService usuarioService) {
@@ -57,7 +57,7 @@ public class UsuarioController {
             usuarioService.Eliminar(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

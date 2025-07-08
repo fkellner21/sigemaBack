@@ -26,46 +26,6 @@ public class DocumentoModeloEquipo implements Serializable {
     @Column(columnDefinition = "TEXT")
     private String rutaArchivo;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombreArchivo() {
-        return nombreArchivo;
-    }
-
-    public void setNombreArchivo(String nombreArchivo) {
-        this.nombreArchivo = nombreArchivo;
-    }
-
-    public String getRutaArchivo() {
-        return rutaArchivo;
-    }
-
-    public void setRutaArchivo(String rutaArchivo) {
-        this.rutaArchivo = rutaArchivo;
-    }
-
-    public ModeloEquipo getModeloEquipo() {
-        return modeloEquipo;
-    }
-
-    public void setModeloEquipo(ModeloEquipo modeloEquipo) {
-        this.modeloEquipo = modeloEquipo;
-    }
-
-    public LocalDate getFechaSubida() {
-        return fechaSubida;
-    }
-
-    public void setFechaSubida(LocalDate fechaSubida) {
-        this.fechaSubida = fechaSubida;
-    }
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "modelo_equipo_id")
     @JsonBackReference

@@ -35,22 +35,6 @@ public class Usuario implements Serializable {
     @JoinColumn(name = "unidad_id", nullable = true)
     private Unidad unidad;
 
-    public Grado getGrado() {
-        return grado;
-    }
-
-    public void setGrado(Grado grado) {
-        this.grado = grado;
-    }
-
-    public Unidad getUnidad() {
-        return unidad;
-    }
-
-    public void setUnidad(Unidad unidad) {
-        this.unidad = unidad;
-    }
-
     @Transient
     private Long idGrado;
 
@@ -63,6 +47,9 @@ public class Usuario implements Serializable {
     @Column(nullable = false, unique = true)
     private String cedula;
 
+    @Column(nullable = false)
+    private boolean activo = false;
+
     public Usuario(String cedula, String password, Rol rol) {
         this.cedula = cedula;
         this.password = password;
@@ -71,70 +58,6 @@ public class Usuario implements Serializable {
 
     public Usuario() {
 
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombreCompleto() {
-        return nombreCompleto;
-    }
-
-    public void setNombreCompleto(String nombreCompleto) {
-        this.nombreCompleto = nombreCompleto;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Long getIdGrado() {
-        return idGrado;
-    }
-
-    public void setIdGrado(Long idGrado) {
-        this.idGrado = idGrado;
-    }
-
-    public Long getIdUnidad() {
-        return idUnidad;
-    }
-
-    public void setIdUnidad(Long idUnidad) {
-        this.idUnidad = idUnidad;
-    }
-
-    public Long getTelefono() {
-        return telefono;
-    }
-
-    public void setTelefono(Long telefono) {
-        this.telefono = telefono;
-    }
-
-    public String getCedula() {
-        return cedula;
-    }
-
-    public void setCedula(String cedula) {
-        this.cedula = cedula;
-    }
-
-    public Rol getRol() {
-        return rol;
-    }
-
-    public void setRol(Rol rol) {
-        this.rol = rol;
     }
 
     @Enumerated(EnumType.STRING)

@@ -1,8 +1,8 @@
 package com.example.sigema.models;
 
-import com.example.sigema.models.enums.Rol;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.example.sigema.models.enums.Rol;
 
 import java.util.Collection;
 
@@ -24,16 +24,16 @@ public class CustomUserDetails implements UserDetails {
         this.authorities = authorities;
     }
 
+    public Rol getRol() {
+        return rol;
+    }
+
     public Long getIdUsuario() {
         return idUsuario;
     }
 
     public Long getIdUnidad() {
         return idUnidad;
-    }
-
-    public Rol getRol() {
-        return rol;
     }
 
     @Override

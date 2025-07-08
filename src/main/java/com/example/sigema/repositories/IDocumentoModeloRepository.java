@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface IDocumentoModeloRepository extends JpaRepository<DocumentoModeloEquipo, Long> {
-    public List<DocumentoModeloEquipo> findByModeloEquipo(ModeloEquipo modeloEquipo);
+    List<DocumentoModeloEquipo> findByModeloEquipo(ModeloEquipo modeloEquipo);
 }

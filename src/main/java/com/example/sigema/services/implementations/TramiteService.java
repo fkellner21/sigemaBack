@@ -10,9 +10,7 @@ import com.example.sigema.utilidades.SigemaException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class TramiteService implements ITramitesService {
@@ -64,10 +62,12 @@ public class TramiteService implements ITramitesService {
     @Override
     public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
+        boolean pasoAenTramite = false;
 
         if(tramite!=null && quienAbre != null && tramite.getEstado()==EstadoTramite.Iniciado){
             tramite.actualizarEstado(quienAbre);
             tramite = tramitesRepository.save(tramite);
+            pasoAenTramite=true;
         }
 
         if(tramite != null && quienAbre != null) {
@@ -76,20 +76,30 @@ public class TramiteService implements ITramitesService {
                     .findFirst()
                     .orElse(null);
 
-            if(visualizacionExistente == null){
+            VisualizacionTramite visualizacionMasReciente = null;
+            if (!tramite.getVisualizaciones().isEmpty()) {
+                visualizacionMasReciente = tramite.getVisualizaciones().stream()
+                        .max(Comparator.comparing(VisualizacionTramite::getFecha))
+                        .orElse(null);
+            }
+            if(visualizacionExistente == null || //quien abre nunca habia abierto
+                    (visualizacionMasReciente!=null &&
+                            !Objects.equals(visualizacionMasReciente.getUsuario().getId(), quienAbre.getId()))){
                 visualizacionExistente = new VisualizacionTramite();
                 visualizacionExistente.setTramite(tramite);
                 visualizacionExistente.setUsuario(quienAbre);
                 visualizacionExistente.setFecha(Date.from(Instant.now()));
-
+                if(pasoAenTramite){
+                    visualizacionExistente.setDescripcion("Vista y cambio a En Tramite");
+                }else{
+                    visualizacionExistente.setDescripcion("Vista");
+                }
                 tramite.getVisualizaciones().add(visualizacionExistente);
-            }else {
-                visualizacionExistente.setFecha(Date.from(Instant.now()));
-            }
-
+            }//else {
+            //    visualizacionExistente.setFecha(Date.from(Instant.now()));
+           // }
             tramitesRepository.save(tramite);
         }
-
         return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 
@@ -173,28 +183,55 @@ public class TramiteService implements ITramitesService {
         }
 
         if((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
-    //        if(usuario.getRol() != Rol.ADMINISTRADOR && usuario.getRol() != Rol.BRIGADA){
                 throw new SigemaException("No se puede re abrir un trámite");
-     //       }
         }
 
-        EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
-        nuevoEstado.setTramite(tramite);
-        nuevoEstado.setEstado(estado);
-        nuevoEstado.setFecha(Date.from(Instant.now()));
-        nuevoEstado.setUsuario(usuario);
+//        EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
+//        nuevoEstado.setTramite(tramite);
+//        nuevoEstado.setEstado(estado);
+//        nuevoEstado.setFecha(Date.from(Instant.now()));
+//        nuevoEstado.setUsuario(usuario);
+//        tramite.getHistorico().add(nuevoEstado);
 
-        tramite.getHistorico().add(nuevoEstado);
         tramite.setEstado(estado);
-
         tramite = tramitesRepository.save(tramite);
 
         if(tramite.getEstado() == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
             equipoService.Eliminar(tramite.getEquipo().getId());
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Aprueba");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(tramite.getEstado() == EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Rechaza");
+            tramite.getVisualizaciones().add(nueva);
         }
 
         if(tramite.getEstado()==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
             usuarioService.Eliminar(tramite.getIdUsuarioBajaSolicitada());
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Aprueba");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(tramite.getEstado()==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Rechaza");
+            tramite.getVisualizaciones().add(nueva);
         }
 
         if(tramite.getEstado()==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
@@ -209,8 +246,44 @@ public class TramiteService implements ITramitesService {
             nuevo.setRol(Rol.UNIDAD);
 
             usuarioService.Crear(nuevo);
+
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Aprueba");
+            tramite.getVisualizaciones().add(nueva);
         }
 
+        if(tramite.getEstado()==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
+
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Rechaza");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(tramite.getTipoTramite()!=TipoTramite.AltaUsuario&&tramite.getTipoTramite()!=TipoTramite.BajaUsuario&&
+        tramite.getTipoTramite()!=TipoTramite.BajaEquipo){
+            if(tramite.getEstado()==EstadoTramite.Aprobado){
+                VisualizacionTramite nueva = new VisualizacionTramite();
+                nueva.setTramite(tramite);
+                nueva.setUsuario(usuario);
+                nueva.setFecha(Date.from(Instant.now()));
+                nueva.setDescripcion("Aprueba");
+                tramite.getVisualizaciones().add(nueva);
+            }
+            if(tramite.getEstado()==EstadoTramite.Rechazado){
+                VisualizacionTramite nueva = new VisualizacionTramite();
+                nueva.setTramite(tramite);
+                nueva.setUsuario(usuario);
+                nueva.setFecha(Date.from(Instant.now()));
+                nueva.setDescripcion("Rechaza");
+                tramite.getVisualizaciones().add(nueva);
+            }
+        }
         return tramite;
     }
 

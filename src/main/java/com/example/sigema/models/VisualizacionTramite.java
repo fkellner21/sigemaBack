@@ -32,6 +32,9 @@ public class VisualizacionTramite implements Serializable {
     @Column
     private Date fecha;
 
+    @Column
+    private String descripcion;
+
     @Transient
     @JsonProperty("tramiteId")
     public Long getTramiteId() {

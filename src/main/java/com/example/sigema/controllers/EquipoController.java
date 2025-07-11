@@ -95,7 +95,7 @@ public class EquipoController {
 
             Long idUsuario = jwtUtils.extractIdUsuario(getToken());
 
-            Tramite nuevo = tramiteService.Crear(tramite, idUsuario);
+            tramiteService.Crear(tramite, idUsuario);
 
             return ResponseEntity.ok().body(creado);
         } catch(SigemaException e){

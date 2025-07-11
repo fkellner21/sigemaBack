@@ -61,6 +61,7 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public void Eliminar(Long id) throws Exception {
+        try {
         Usuario usuario = ObtenerPorId(id);
 
         if(usuario.getGrado() != null){
@@ -73,6 +74,9 @@ public class UsuarioService implements IUsuarioService {
 
         usuario.setActivo(false);
         Editar(id, usuario);
+        } catch (Exception e) {
+            throw new SigemaException("Error al intentar eliminar el usuario");
+        }
     }
 
     @Override
@@ -83,6 +87,12 @@ public class UsuarioService implements IUsuarioService {
         }
 
         return usuario;
+    }
+
+    @Override
+    public boolean ExistePorCedula(String cedula) throws Exception {
+        Usuario usuario = repositorio.findByCedula(cedula).orElse(null);
+        return usuario != null;
     }
 
     @Override
@@ -109,6 +119,7 @@ public class UsuarioService implements IUsuarioService {
         usuarioAModificar.setRol(usuario.getRol());
         usuarioAModificar.setCedula(usuario.getCedula());
         usuarioAModificar.setActivo(usuario.isActivo());
+        usuarioAModificar.setTelefono(usuario.getTelefono());
 
         if(!usuarioAModificar.isActivo()){
             usuarioAModificar.setCedula(UUID.randomUUID().toString());

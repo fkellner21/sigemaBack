@@ -53,6 +53,11 @@ public class UsuarioController {
             EstadoTramite estadoTramite = EstadoTramite.Iniciado;
             String respuesta="";
             Long idUnidadUsuarioCreador = jwtUtils.extractIdUnidad(getToken());
+            Rol rolSolicitado = usuario.getRol();
+
+            if(usuarioService.ExistePorCedula(usuario.getCedula())){
+                throw new SigemaException("Ya existe usuario con esa CI");
+            }
 
             if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
                 if(Objects.equals(rol, "ROLE_BRIGADA")&&usuario.getRol()== Rol.ADMINISTRADOR){
@@ -67,16 +72,20 @@ public class UsuarioController {
                 if(!Objects.equals(usuario.getIdUnidad(), idUnidadUsuarioCreador)){
                     throw new SigemaException("Solo puede crear usuarios de su Unidad.");
                 }
+                rolSolicitado=Rol.UNIDAD;
             }
 
             TramiteDTO tramiteAlta = new TramiteDTO();
-            tramiteAlta.setTexto("Tramite creado automaticamente para dar de alta un usuario, contraseña 123.");
+            tramiteAlta.setTexto("Tramite creado automaticamente para dar de alta al usuario:" +
+                    "Nombre: "+usuario.getNombreCompleto()+", CI: "+usuario.getCedula()+" ,contraseña: 123.");
             tramiteAlta.setTipoTramite(TipoTramite.AltaUsuario);
             tramiteAlta.setIdUnidadDestino(idUnidadDestino);
             tramiteAlta.setCedulaUsuarioSolicitado(usuario.getCedula());
             tramiteAlta.setIdGradoUsuarioSolicitado(usuario.getIdGrado());
             tramiteAlta.setTelefonoUsuarioSolicitado(usuario.getTelefono());
             tramiteAlta.setNombreCompletoUsuarioSolicitado(usuario.getNombreCompleto());
+            tramiteAlta.setRolSolicitado(rolSolicitado);
+            tramiteAlta.setIdUnidadUsuarioSolicitado(usuario.getIdUnidad());
 
             Long idUnidad = jwtUtils.extractIdUnidad(getToken());
             if(idUnidad!=null){
@@ -89,7 +98,7 @@ public class UsuarioController {
             Long idUsuario = jwtUtils.extractIdUsuario(getToken());
             Tramite tramite = tramiteService.Crear(tramiteAlta, idUsuario);
 
-            if(estadoTramite == EstadoTramite.Aprobado) {
+            if(estadoTramite == EstadoTramite.Aprobado) { //se crea el usuario
                 tramiteService.CambiarEstado(tramite.getId(),estadoTramite,idUsuario);
             }
             return ResponseEntity.ok().build();
@@ -146,17 +155,20 @@ public class UsuarioController {
                 if(Objects.equals(rol, "ROLE_BRIGADA")&&usuario.getRol()== Rol.ADMINISTRADOR){
                     throw new SigemaException("No tiene permisos para eliminar un usuario Administrador.");
                 }
+                if(usuario.getUnidad()!=null){
                 idUnidadDestino = usuario.getUnidad().getId();
+                }
                 estadoTramite = EstadoTramite.Aprobado;
-                respuesta="Usuario eliminado con éxito.";
+
             }else{
                 idUnidadDestino = unidadService.obtenerGranUnidad().getId();
-                respuesta="Tramite para dar de baja el usuario creado con éxito.";
+
             }
 
             TramiteDTO tramiteBaja = new TramiteDTO();
             tramiteBaja.setIdUsuarioBaja(usuario.getId());
-            tramiteBaja.setTexto("Tramite creado automaticamente para dar de baja un usuario.");
+            tramiteBaja.setTexto("Tramite creado automaticamente para dar de baja al usuario:" +
+                    "Nombre: "+usuario.getNombreCompleto()+", CI: "+usuario.getCedula()+" ,contraseña: 123.");
             tramiteBaja.setTipoTramite(TipoTramite.BajaUsuario);
             tramiteBaja.setIdUnidadDestino(idUnidadDestino);
 

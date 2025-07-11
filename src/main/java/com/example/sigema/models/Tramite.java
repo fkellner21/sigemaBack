@@ -1,6 +1,7 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoTramite;
+import com.example.sigema.models.enums.Rol;
 import com.example.sigema.models.enums.TipoTramite;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -63,6 +64,12 @@ public class Tramite implements Serializable {
 
     @Column
     private Long idUsuarioBajaSolicitada;
+
+    @Column
+    private Rol rolSolicitado;
+
+    @Column
+    private Long idUnidadUsuarioSolicitado;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")

@@ -14,4 +14,6 @@ public interface IUsuarioService {
     Usuario ObtenerPorId(Long id) throws Exception;
 
     Usuario Editar(Long id, Usuario usuario) throws Exception;
+
+    boolean ExistePorCedula(String cedula) throws Exception;
 }

@@ -1,5 +1,6 @@
 package com.example.sigema.models;
 
+import com.example.sigema.models.enums.Rol;
 import com.example.sigema.models.enums.TipoTramite;
 import jakarta.persistence.Column;
 import lombok.Getter;
@@ -23,6 +24,8 @@ public class TramiteDTO {
 
     private Long idGradoUsuarioSolicitado;
 
+    private Long idUnidadUsuarioSolicitado;
+
     private String nombreCompletoUsuarioSolicitado;
 
     private String cedulaUsuarioSolicitado;
@@ -30,4 +33,6 @@ public class TramiteDTO {
     private Long telefonoUsuarioSolicitado;
 
     private String texto;
+
+    private Rol rolSolicitado;
 }

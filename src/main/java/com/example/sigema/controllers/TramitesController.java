@@ -8,13 +8,12 @@ import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/tramites")
@@ -47,22 +46,41 @@ public class TramitesController {
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping()
-    public ResponseEntity<?> obtenerTodos() {
+    public ResponseEntity<?> obtenerTodosConFechas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date hasta
+    ) {
         try {
             Long idUnidad = jwtUtils.extractIdUnidad(getToken());
             String rol = jwtUtils.extractRol(getToken());
 
-            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+            if (Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")) {
                 idUnidad = null;
             }
-            List<Tramite> tramites = tramitesService.ObtenerTodos(idUnidad);
+
+            // Podés manejar casos en que desde/hasta sean null y asignar valores por defecto
+            if(desde == null) {
+                // ejemplo: desde hace 1 semana
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.DAY_OF_MONTH, -7);
+                desde = cal.getTime();
+            }
+            if(hasta == null) {
+                hasta = new Date(); // hoy
+            }
+
+            List<Tramite> tramites = tramitesService.ObtenerTodosPorFechas(idUnidad, desde, hasta);
+
+            tramites.sort(Comparator.comparing(Tramite::getId).reversed()); // Más nuevo a más viejo
+
             return ResponseEntity.ok().body(tramites);
-        } catch(SigemaException e){
+        } catch (SigemaException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
     }
+
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping
@@ -150,7 +168,7 @@ public class TramitesController {
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody EstadoTramiteRequest estadoTramite) {
         try {
             Long idUsuario= jwtUtils.extractIdUsuario(getToken());
-            Tramite tramite = tramitesService.CambiarEstado(id,estadoTramite.getEstadoTramite(),idUsuario);
+            tramitesService.CambiarEstado(id,estadoTramite.getEstadoTramite(),idUsuario);
             return ResponseEntity.ok().build();
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -44,16 +44,49 @@ public class TramiteService implements ITramitesService {
     }
 
     @Override
+    public List<Tramite> ObtenerTodosPorFechas(Long idUnidad, Date desde, Date hasta) throws Exception {
+        List<Tramite> tramites;
+
+        if (idUnidad == null || idUnidad == 0) {
+            tramites = tramitesRepository.findByFechaInicioBetween(desde, hasta);
+        } else {
+            tramites = tramitesRepository.findByUnidadOrigen_IdAndFechaInicioBetween(idUnidad, desde, hasta);
+            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(idUnidad, desde, hasta));
+            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(null, desde, hasta));
+        }
+
+        // Eliminar duplicados
+        return tramites.stream().distinct().toList();
+    }
+
+    @Override
     public Tramite Crear(TramiteDTO t, Long idUsuario) throws Exception {
+
+        if(t.getTipoTramite()==TipoTramite.AltaUsuario||t.getTipoTramite()==TipoTramite.BajaUsuario){
+            List<Tramite> tramites = tramitesRepository.findAll();
+            boolean existen = tramites.stream()
+                    .anyMatch(tr -> (tr.getEstado() == EstadoTramite.Iniciado || tr.getEstado() == EstadoTramite.EnTramite)
+                            &&(
+                            (tr.getCedulaUsuarioSolicitado() != null&& t.getCedulaUsuarioSolicitado()!=null && t.getCedulaUsuarioSolicitado().equals(tr.getCedulaUsuarioSolicitado()))
+                                    ||
+                            (tr.getIdUsuarioBajaSolicitada()!=null && t.getIdUsuarioBaja()!=null && t.getIdUsuarioBaja().equals(tr.getIdUsuarioBajaSolicitada()))
+                            ));
+            if(existen){
+                throw new SigemaException("Hay tramites pendientes para el usuario solicitado");
+            }
+        }
+
         Tramite tramite = mapearTramiteDesdeDTO(t,idUsuario, new Tramite(), true);
 
-        EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
-        nuevoEstado.setEstado(tramite.getEstado());
-        nuevoEstado.setTramite(tramite);
-        nuevoEstado.setFecha(tramite.getFechaInicio());
-        nuevoEstado.setUsuario(tramite.getUsuario());
+        Usuario quienCrea = usuarioService.ObtenerPorId(idUsuario);
 
-        tramite.getHistorico().add(nuevoEstado);
+        VisualizacionTramite vista = new VisualizacionTramite();
+        vista.setDescripcion("Crea");
+        vista.setTramite(tramite);
+        vista.setFecha(Date.from(Instant.now()));
+        vista.setUsuario(quienCrea);
+        tramite.getVisualizaciones().add(vista);
+
         tramite = tramitesRepository.save(tramite);
 
         return tramite;
@@ -95,9 +128,7 @@ public class TramiteService implements ITramitesService {
                     visualizacionExistente.setDescripcion("Vista");
                 }
                 tramite.getVisualizaciones().add(visualizacionExistente);
-            }//else {
-            //    visualizacionExistente.setFecha(Date.from(Instant.now()));
-           // }
+            }
             tramitesRepository.save(tramite);
         }
         return tramite != null ? Optional.of(tramite) : Optional.empty();
@@ -182,21 +213,11 @@ public class TramiteService implements ITramitesService {
             throw new SigemaException("El usuario no fue encontrado");
         }
 
-        if((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
+        if((estado == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
                 throw new SigemaException("No se puede re abrir un trámite");
         }
 
-//        EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
-//        nuevoEstado.setTramite(tramite);
-//        nuevoEstado.setEstado(estado);
-//        nuevoEstado.setFecha(Date.from(Instant.now()));
-//        nuevoEstado.setUsuario(usuario);
-//        tramite.getHistorico().add(nuevoEstado);
-
-        tramite.setEstado(estado);
-        tramite = tramitesRepository.save(tramite);
-
-        if(tramite.getEstado() == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
+        if(estado == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
             equipoService.Eliminar(tramite.getEquipo().getId());
             VisualizacionTramite nueva = new VisualizacionTramite();
             nueva.setTramite(tramite);
@@ -206,7 +227,7 @@ public class TramiteService implements ITramitesService {
             tramite.getVisualizaciones().add(nueva);
         }
 
-        if(tramite.getEstado() == EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
+        if(estado == EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
             VisualizacionTramite nueva = new VisualizacionTramite();
             nueva.setTramite(tramite);
             nueva.setUsuario(usuario);
@@ -215,7 +236,7 @@ public class TramiteService implements ITramitesService {
             tramite.getVisualizaciones().add(nueva);
         }
 
-        if(tramite.getEstado()==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
+        if(estado==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
             usuarioService.Eliminar(tramite.getIdUsuarioBajaSolicitada());
             VisualizacionTramite nueva = new VisualizacionTramite();
             nueva.setTramite(tramite);
@@ -225,7 +246,7 @@ public class TramiteService implements ITramitesService {
             tramite.getVisualizaciones().add(nueva);
         }
 
-        if(tramite.getEstado()==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
+        if(estado==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
             VisualizacionTramite nueva = new VisualizacionTramite();
             nueva.setTramite(tramite);
             nueva.setUsuario(usuario);
@@ -234,16 +255,16 @@ public class TramiteService implements ITramitesService {
             tramite.getVisualizaciones().add(nueva);
         }
 
-        if(tramite.getEstado()==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
+        if(estado==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
 
             Usuario nuevo = new Usuario();
             nuevo.setNombreCompleto(tramite.getNombreCompletoUsuarioSolicitado());
             nuevo.setPassword("123");
             nuevo.setCedula(tramite.getCedulaUsuarioSolicitado());
             nuevo.setIdGrado(tramite.getIdGradoUsuarioSolicitado());
-            nuevo.setIdUnidad(tramite.getUnidadOrigen().getId());
+            nuevo.setIdUnidad(tramite.getIdUnidadUsuarioSolicitado());
             nuevo.setTelefono(tramite.getTelefonoUsuarioSolicitado());
-            nuevo.setRol(Rol.UNIDAD);
+            nuevo.setRol(tramite.getRolSolicitado());
 
             usuarioService.Crear(nuevo);
 
@@ -255,7 +276,7 @@ public class TramiteService implements ITramitesService {
             tramite.getVisualizaciones().add(nueva);
         }
 
-        if(tramite.getEstado()==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
+        if(estado==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
 
             VisualizacionTramite nueva = new VisualizacionTramite();
             nueva.setTramite(tramite);
@@ -267,7 +288,7 @@ public class TramiteService implements ITramitesService {
 
         if(tramite.getTipoTramite()!=TipoTramite.AltaUsuario&&tramite.getTipoTramite()!=TipoTramite.BajaUsuario&&
         tramite.getTipoTramite()!=TipoTramite.BajaEquipo){
-            if(tramite.getEstado()==EstadoTramite.Aprobado){
+            if(estado==EstadoTramite.Aprobado){
                 VisualizacionTramite nueva = new VisualizacionTramite();
                 nueva.setTramite(tramite);
                 nueva.setUsuario(usuario);
@@ -275,7 +296,7 @@ public class TramiteService implements ITramitesService {
                 nueva.setDescripcion("Aprueba");
                 tramite.getVisualizaciones().add(nueva);
             }
-            if(tramite.getEstado()==EstadoTramite.Rechazado){
+            if(estado==EstadoTramite.Rechazado){
                 VisualizacionTramite nueva = new VisualizacionTramite();
                 nueva.setTramite(tramite);
                 nueva.setUsuario(usuario);
@@ -284,6 +305,9 @@ public class TramiteService implements ITramitesService {
                 tramite.getVisualizaciones().add(nueva);
             }
         }
+
+        tramite.setEstado(estado);
+        tramite = tramitesRepository.save(tramite);
         return tramite;
     }
 
@@ -350,6 +374,8 @@ public class TramiteService implements ITramitesService {
             tramite.setIdGradoUsuarioSolicitado(t.getIdGradoUsuarioSolicitado());
             tramite.setNombreCompletoUsuarioSolicitado(t.getNombreCompletoUsuarioSolicitado());
             tramite.setTelefonoUsuarioSolicitado(t.getTelefonoUsuarioSolicitado());
+            tramite.setRolSolicitado(t.getRolSolicitado());
+            tramite.setIdUnidadUsuarioSolicitado(t.getIdUnidadUsuarioSolicitado());
         }
         if(tramite.getTipoTramite()==TipoTramite.BajaUsuario){
             tramite.setIdUsuarioBajaSolicitada(t.getIdUsuarioBaja());

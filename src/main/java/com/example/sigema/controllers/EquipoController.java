@@ -78,6 +78,7 @@ public class EquipoController {
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try {
+            String rol = jwtUtils.extractRol(getToken());
             Equipo creado = equiposService.Crear(equipo);
             TramiteDTO tramite= new TramiteDTO();
             tramite.setIdEquipo(creado.getId());
@@ -95,7 +96,11 @@ public class EquipoController {
 
             Long idUsuario = jwtUtils.extractIdUsuario(getToken());
 
-            tramiteService.Crear(tramite, idUsuario);
+            Tramite tramiteCreado = tramiteService.Crear(tramite, idUsuario);
+
+            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")) {
+                tramiteService.CambiarEstado(tramiteCreado.getId(), EstadoTramite.Aprobado, idUsuario);
+            }
 
             return ResponseEntity.ok().body(creado);
         } catch(SigemaException e){

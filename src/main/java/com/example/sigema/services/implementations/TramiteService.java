@@ -47,6 +47,22 @@ public class TramiteService implements ITramitesService {
     public List<Tramite> ObtenerTodosPorFechas(Long idUnidad, Date desde, Date hasta) throws Exception {
         List<Tramite> tramites;
 
+        Calendar calDesde = Calendar.getInstance();
+        calDesde.setTime(desde);
+        calDesde.set(Calendar.HOUR_OF_DAY, 0);
+        calDesde.set(Calendar.MINUTE, 0);
+        calDesde.set(Calendar.SECOND, 0);
+        calDesde.set(Calendar.MILLISECOND, 0);
+        desde = calDesde.getTime();
+
+        Calendar calHasta = Calendar.getInstance();
+        calHasta.setTime(hasta);
+        calHasta.set(Calendar.HOUR_OF_DAY, 23);
+        calHasta.set(Calendar.MINUTE, 59);
+        calHasta.set(Calendar.SECOND, 59);
+        calHasta.set(Calendar.MILLISECOND, 999);
+        hasta = calHasta.getTime();
+
         if (idUnidad == null || idUnidad == 0) {
             tramites = tramitesRepository.findByFechaInicioBetween(desde, hasta);
         } else {

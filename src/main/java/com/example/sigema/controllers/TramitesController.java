@@ -71,7 +71,18 @@ public class TramitesController {
 
             List<Tramite> tramites = tramitesService.ObtenerTodosPorFechas(idUnidad, desde, hasta);
 
-            tramites.sort(Comparator.comparing(Tramite::getId).reversed()); // Más nuevo a más viejo
+            if (tramites == null) {
+                tramites = new ArrayList<>();
+            } else {
+                tramites = new ArrayList<>(tramites); // Hacer mutable copia
+            }
+
+            tramites.sort((t1, t2) -> {
+                if (t1.getId() == null && t2.getId() == null) return 0;
+                if (t1.getId() == null) return 1;
+                if (t2.getId() == null) return -1;
+                return t2.getId().compareTo(t1.getId());
+            });
 
             return ResponseEntity.ok().body(tramites);
         } catch (SigemaException e) {

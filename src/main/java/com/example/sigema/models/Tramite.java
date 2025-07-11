@@ -79,9 +79,6 @@ public class Tramite implements Serializable {
     @JoinColumn(name = "repuesto_id", referencedColumnName = "id")
     private Repuesto repuesto;
 
-    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private final List<EstadosHistoricoTramite> historico = new ArrayList<>();
 
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

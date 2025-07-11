@@ -12,6 +12,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 
 import java.util.*;
 
@@ -58,18 +61,21 @@ public class TramitesController {
                 idUnidad = null;
             }
 
-            // Podés manejar casos en que desde/hasta sean null y asignar valores por defecto
-            if(desde == null) {
-                // ejemplo: desde hace 1 semana
-                Calendar cal = Calendar.getInstance();
-                cal.add(Calendar.DAY_OF_MONTH, -7);
-                desde = cal.getTime();
-            }
-            if(hasta == null) {
-                hasta = new Date(); // hoy
-            }
+            ZoneId zone = ZoneId.of("America/Montevideo");
 
-            List<Tramite> tramites = tramitesService.ObtenerTodosPorFechas(idUnidad, desde, hasta);
+            // Si no viene fecha → asignar por defecto
+            LocalDate localDesde = desde != null
+                    ? desde.toInstant().atZone(zone).toLocalDate()
+                    : LocalDate.now(zone).minusDays(7);
+            LocalDate localHasta = hasta != null
+                    ? hasta.toInstant().atZone(zone).toLocalDate()
+                    : LocalDate.now(zone);
+
+            // Crear Date con hora mínima y máxima
+            Date fechaDesde = Date.from(localDesde.atStartOfDay(zone).toInstant());
+            Date fechaHasta = Date.from(localHasta.atTime(LocalTime.MAX).atZone(zone).toInstant());
+
+            List<Tramite> tramites = tramitesService.ObtenerTodosPorFechas(idUnidad, fechaDesde, fechaHasta);
 
             if (tramites == null) {
                 tramites = new ArrayList<>();

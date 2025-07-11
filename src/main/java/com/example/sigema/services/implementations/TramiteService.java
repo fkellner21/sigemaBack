@@ -10,6 +10,9 @@ import com.example.sigema.utilidades.SigemaException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -45,33 +48,24 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public List<Tramite> ObtenerTodosPorFechas(Long idUnidad, Date desde, Date hasta) throws Exception {
+        ZoneId zone = ZoneId.of("America/Montevideo");
+
+        // Pasar Date → LocalDate → Date para ignorar la hora
+        LocalDate localDesde = desde.toInstant().atZone(zone).toLocalDate();
+        LocalDate localHasta = hasta.toInstant().atZone(zone).toLocalDate();
+
+        Date fechaDesde = Date.from(localDesde.atStartOfDay(zone).toInstant());
+        Date fechaHasta = Date.from(localHasta.atTime(LocalTime.MAX).atZone(zone).toInstant());
+
         List<Tramite> tramites;
-
-        Calendar calDesde = Calendar.getInstance();
-        calDesde.setTime(desde);
-        calDesde.set(Calendar.HOUR_OF_DAY, 0);
-        calDesde.set(Calendar.MINUTE, 0);
-        calDesde.set(Calendar.SECOND, 0);
-        calDesde.set(Calendar.MILLISECOND, 0);
-        desde = calDesde.getTime();
-
-        Calendar calHasta = Calendar.getInstance();
-        calHasta.setTime(hasta);
-        calHasta.set(Calendar.HOUR_OF_DAY, 23);
-        calHasta.set(Calendar.MINUTE, 59);
-        calHasta.set(Calendar.SECOND, 59);
-        calHasta.set(Calendar.MILLISECOND, 999);
-        hasta = calHasta.getTime();
-
         if (idUnidad == null || idUnidad == 0) {
-            tramites = tramitesRepository.findByFechaInicioBetween(desde, hasta);
+            tramites = tramitesRepository.findByFechaInicioBetween(fechaDesde, fechaHasta);
         } else {
-            tramites = tramitesRepository.findByUnidadOrigen_IdAndFechaInicioBetween(idUnidad, desde, hasta);
-            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(idUnidad, desde, hasta));
-            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(null, desde, hasta));
+            tramites = tramitesRepository.findByUnidadOrigen_IdAndFechaInicioBetween(idUnidad, fechaDesde, fechaHasta);
+            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(idUnidad, fechaDesde, fechaHasta));
+            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(null, fechaDesde, fechaHasta));
         }
 
-        // Eliminar duplicados
         return tramites.stream().distinct().toList();
     }
 
@@ -93,6 +87,7 @@ public class TramiteService implements ITramitesService {
         }
 
         Tramite tramite = mapearTramiteDesdeDTO(t,idUsuario, new Tramite(), true);
+
 
         Usuario quienCrea = usuarioService.ObtenerPorId(idUsuario);
 
@@ -360,9 +355,9 @@ public class TramiteService implements ITramitesService {
             tramite.setUnidadDestino(null);
         }
 
-        if (tramite.getTipoTramite() == TipoTramite.BajaEquipo || tramite.getTipoTramite() == TipoTramite.SolicitudRepuesto) {
+        if (tramite.getTipoTramite() == TipoTramite.BajaEquipo||tramite.getTipoTramite()==TipoTramite.AltaEquipo || tramite.getTipoTramite() == TipoTramite.SolicitudRepuesto) {
             if (t.getIdEquipo() == null || t.getIdEquipo() <= 0) {
-                throw new SigemaException("Debe ingresar un modelo de equipo");
+                throw new SigemaException("Debe ingresar un equipo / modelo de equipo");
             }
 
             Equipo equipo = equipoService.ObtenerPorId(t.getIdEquipo());

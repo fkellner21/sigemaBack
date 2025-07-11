@@ -82,6 +82,7 @@ public class EquipoController {
             Equipo creado = equiposService.Crear(equipo);
             TramiteDTO tramite= new TramiteDTO();
             tramite.setIdEquipo(creado.getId());
+
             tramite.setTexto("Tramite creado automaticamente al recibir un equipo como alta.");
             tramite.setTipoTramite(TipoTramite.AltaEquipo);
             tramite.setIdUnidadDestino(creado.getUnidad().getId());

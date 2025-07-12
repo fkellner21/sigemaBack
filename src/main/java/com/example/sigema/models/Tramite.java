@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Tramites")
@@ -107,7 +108,7 @@ public class Tramite implements Serializable {
 
     public void actualizarEstado(Usuario quienAbre){
         //siempre que alguien de la unidad destino abra un tramite iniciado
-        if(estado == EstadoTramite.Iniciado && unidadDestino.equals(quienAbre.getUnidad())){
+        if(estado == EstadoTramite.Iniciado && unidadDestino.equals(quienAbre.getUnidad()) && !Objects.equals(usuario.getId(), quienAbre.getId())){
             estado=EstadoTramite.EnTramite;
         }
     }

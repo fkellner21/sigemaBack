@@ -50,8 +50,8 @@ public class TramitesController {
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping()
     public ResponseEntity<?> obtenerTodosConFechas(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date desde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date hasta
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate  desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate  hasta
     ) {
         try {
             Long idUnidad = jwtUtils.extractIdUnidad(getToken());
@@ -64,14 +64,9 @@ public class TramitesController {
             ZoneId zone = ZoneId.of("America/Montevideo");
 
             // Si no viene fecha → asignar por defecto
-            LocalDate localDesde = desde != null
-                    ? desde.toInstant().atZone(zone).toLocalDate()
-                    : LocalDate.now(zone).minusDays(7);
-            LocalDate localHasta = hasta != null
-                    ? hasta.toInstant().atZone(zone).toLocalDate()
-                    : LocalDate.now(zone);
+            LocalDate localDesde = desde != null ? desde : LocalDate.now(zone).minusDays(7);
+            LocalDate localHasta = hasta != null ? hasta : LocalDate.now(zone);
 
-            // Crear Date con hora mínima y máxima
             Date fechaDesde = Date.from(localDesde.atStartOfDay(zone).toInstant());
             Date fechaHasta = Date.from(localHasta.atTime(LocalTime.MAX).atZone(zone).toInstant());
 

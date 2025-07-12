@@ -190,6 +190,13 @@ public class EquipoController {
             Long idUnidadOriginal = equipoOriginal.getUnidad().getId();
 
             if(!Objects.equals(idUnidadOriginal, equipo.getIdUnidad())){
+
+                String rol = jwtUtils.extractRol(getToken());
+
+                if(!Objects.equals(rol, "ROLE_ADMINISTRADOR") && !Objects.equals(rol, "ROLE_BRIGADA")){
+                    throw new SigemaException("No tiene permiso para editar la unidad a la que pertence el equipo");
+                }
+
                 TramiteDTO tramiteBaja = new TramiteDTO();
                 tramiteBaja.setIdEquipo(equipo.getId());
                 tramiteBaja.setTexto("Tramite creado automaticamente al transferir de unidad el equipo.");
@@ -212,8 +219,10 @@ public class EquipoController {
                 tramiteAlta.setIdUnidadOrigen(idUnidad);
 
                 Long idUsuario = jwtUtils.extractIdUsuario(getToken());
-                tramiteService.Crear(tramiteBaja, idUsuario);
-                tramiteService.Crear(tramiteAlta, idUsuario);
+                Tramite tramiteBajaCreado = tramiteService.Crear(tramiteBaja, idUsuario);
+                Tramite tramiteAltaCreado =tramiteService.Crear(tramiteAlta, idUsuario);
+                tramiteService.CambiarEstado(tramiteBajaCreado.getId(), EstadoTramite.Aprobado, idUsuario);
+                tramiteService.CambiarEstado(tramiteAltaCreado.getId(), EstadoTramite.Aprobado, idUsuario);
             }
 
             Equipo editado = equiposService.Editar(id, equipo);

@@ -19,20 +19,29 @@ public class ReporteService implements IReporteService {
 
     @Override
     public void newReporte(Reporte reporte) throws SigemaException {
-        try{
+        try {
             reporte.validar();
-            Equipo equipo=equipoService.ObtenerPorId(reporte.getIdEquipo());
+
+            Equipo equipo = equipoService.ObtenerPorId(reporte.getIdEquipo());
             equipo.setLatitud(reporte.getLatitud());
             equipo.setLongitud(reporte.getLongitud());
             equipo.setFechaUltimaPosicion(reporte.getFecha());
-            if (equipo.getModeloEquipo().getUnidadMedida()== UnidadMedida.HT){
-                equipo.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida()+reporte.getHorasDeTrabajo());
+
+            UnidadMedida unidad = equipo.getModeloEquipo().getUnidadMedida();
+
+            double nuevaCantidad = equipo.getCantidadUnidadMedida(); // lo que ya tenía
+
+            if (unidad == UnidadMedida.HT) {
+                nuevaCantidad += reporte.getHorasDeTrabajo();
+            } else if (unidad == UnidadMedida.KMs) {
+                nuevaCantidad += reporte.getKilometros();
             }
-            if (equipo.getModeloEquipo().getUnidadMedida()==UnidadMedida.KMs){
-                equipo.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida()+reporte.getKilometros());
-            }
+
+            equipo.setCantidadUnidadMedida(nuevaCantidad);
+
             equipoService.Editar(equipo.getId(), equipo);
-        }catch (Exception e){
+
+        } catch (Exception e) {
             throw new SigemaException(e.getMessage());
         }
     }

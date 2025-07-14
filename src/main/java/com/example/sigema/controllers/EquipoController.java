@@ -6,6 +6,7 @@ import com.example.sigema.models.TramiteDTO;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.services.ITramitesService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.services.implementations.TramiteService;
 import com.example.sigema.utilidades.JwtUtils;
@@ -32,7 +33,7 @@ public class EquipoController {
     @Autowired
     private IUnidadService unidadService;
     @Autowired
-    private TramiteService tramiteService;
+    private ITramitesService tramiteService;
 
     @Autowired
     public EquipoController(IEquipoService equiposService, JwtUtils jwtUtils) {
@@ -77,9 +78,11 @@ public class EquipoController {
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try {
+            String rol = jwtUtils.extractRol(getToken());
             Equipo creado = equiposService.Crear(equipo);
             TramiteDTO tramite= new TramiteDTO();
             tramite.setIdEquipo(creado.getId());
+
             tramite.setTexto("Tramite creado automaticamente al recibir un equipo como alta.");
             tramite.setTipoTramite(TipoTramite.AltaEquipo);
             tramite.setIdUnidadDestino(creado.getUnidad().getId());
@@ -94,7 +97,11 @@ public class EquipoController {
 
             Long idUsuario = jwtUtils.extractIdUsuario(getToken());
 
-            Tramite nuevo = tramiteService.Crear(tramite, idUsuario);
+            Tramite tramiteCreado = tramiteService.Crear(tramite, idUsuario);
+
+            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")) {
+                tramiteService.CambiarEstado(tramiteCreado.getId(), EstadoTramite.Aprobado, idUsuario);
+            }
 
             return ResponseEntity.ok().body(creado);
         } catch(SigemaException e){
@@ -113,12 +120,16 @@ public class EquipoController {
             Long idUnidadDestino = 0L;
             String rol = jwtUtils.extractRol(getToken());
             EstadoTramite estadoTramite = EstadoTramite.Iniciado;
+            String respuesta="";
 
             if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
                 idUnidadDestino = equipo.getUnidad().getId();
                 estadoTramite = EstadoTramite.Aprobado;
+                equiposService.Eliminar(id);
+                respuesta="Equipo eliminado con éxito.";
             }else{
                 idUnidadDestino = unidadService.obtenerGranUnidad().getId();
+                respuesta="Tramite para dar de baja el equipo creado con éxito.";
             }
 
             TramiteDTO tramiteBaja = new TramiteDTO();
@@ -142,7 +153,7 @@ public class EquipoController {
                 tramiteService.CambiarEstado(tramite.getId(), estadoTramite, idUsuario);
             }
 
-            return ResponseEntity.ok().body("Se ha eliminado con exito");
+            return ResponseEntity.ok().body(respuesta);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -179,6 +190,13 @@ public class EquipoController {
             Long idUnidadOriginal = equipoOriginal.getUnidad().getId();
 
             if(!Objects.equals(idUnidadOriginal, equipo.getIdUnidad())){
+
+                String rol = jwtUtils.extractRol(getToken());
+
+                if(!Objects.equals(rol, "ROLE_ADMINISTRADOR") && !Objects.equals(rol, "ROLE_BRIGADA")){
+                    throw new SigemaException("No tiene permiso para editar la unidad a la que pertence el equipo");
+                }
+
                 TramiteDTO tramiteBaja = new TramiteDTO();
                 tramiteBaja.setIdEquipo(equipo.getId());
                 tramiteBaja.setTexto("Tramite creado automaticamente al transferir de unidad el equipo.");
@@ -201,8 +219,10 @@ public class EquipoController {
                 tramiteAlta.setIdUnidadOrigen(idUnidad);
 
                 Long idUsuario = jwtUtils.extractIdUsuario(getToken());
-                tramiteService.Crear(tramiteBaja, idUsuario);
-                tramiteService.Crear(tramiteAlta, idUsuario);
+                Tramite tramiteBajaCreado = tramiteService.Crear(tramiteBaja, idUsuario);
+                Tramite tramiteAltaCreado =tramiteService.Crear(tramiteAlta, idUsuario);
+                tramiteService.CambiarEstado(tramiteBajaCreado.getId(), EstadoTramite.Aprobado, idUsuario);
+                tramiteService.CambiarEstado(tramiteAltaCreado.getId(), EstadoTramite.Aprobado, idUsuario);
             }
 
             Equipo editado = equiposService.Editar(id, equipo);

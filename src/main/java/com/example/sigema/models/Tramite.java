@@ -1,6 +1,7 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoTramite;
+import com.example.sigema.models.enums.Rol;
 import com.example.sigema.models.enums.TipoTramite;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "Tramites")
@@ -49,20 +51,43 @@ public class Tramite implements Serializable {
     @JoinColumn(name = "unidad_destino_id", referencedColumnName = "id")
     private Unidad unidadDestino;
 
+    @Column
+    private Long idGradoUsuarioSolicitado;
+
+    @Column
+    private String nombreCompletoUsuarioSolicitado;
+
+    @Column
+    private String cedulaUsuarioSolicitado;
+
+    @Column
+    private Long telefonoUsuarioSolicitado;
+
+    @Column
+    private Long idUsuarioBajaSolicitada;
+
+    @Column
+    private Rol rolSolicitado;
+
+    @Column
+    private Long idUnidadUsuarioSolicitado;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
+
     @ManyToOne
     @JoinColumn(name = "repuesto_id", referencedColumnName = "id")
     private Repuesto repuesto;
 
-    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private final List<EstadosHistoricoTramite> historico = new ArrayList<>();
 
     @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private final List<Actuacion> actuaciones = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private final List<VisualizacionTramite> visualizaciones = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "equipo_id", referencedColumnName = "id")
@@ -81,4 +106,10 @@ public class Tramite implements Serializable {
         return id != null ? id.hashCode() : 0;
     }
 
+    public void actualizarEstado(Usuario quienAbre){
+        //siempre que alguien de la unidad destino abra un tramite iniciado
+        if(estado == EstadoTramite.Iniciado && unidadDestino.equals(quienAbre.getUnidad()) && !Objects.equals(usuario.getId(), quienAbre.getId())){
+            estado=EstadoTramite.EnTramite;
+        }
+    }
 }

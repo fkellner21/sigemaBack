@@ -10,9 +10,10 @@ import com.example.sigema.utilidades.SigemaException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.*;
 
 @Service
 public class TramiteService implements ITramitesService {
@@ -46,31 +47,108 @@ public class TramiteService implements ITramitesService {
     }
 
     @Override
+    public List<Tramite> ObtenerTodosPorFechas(Long idUnidad, Date desde, Date hasta) throws Exception {
+        ZoneId zone = ZoneId.of("America/Montevideo");
+
+        // Pasar Date → LocalDate → Date para ignorar la hora
+        LocalDate localDesde = desde.toInstant().atZone(zone).toLocalDate();
+        LocalDate localHasta = hasta.toInstant().atZone(zone).toLocalDate();
+
+        Date fechaDesde = Date.from(localDesde.atStartOfDay(zone).toInstant());
+        Date fechaHasta = Date.from(localHasta.atTime(LocalTime.MAX).atZone(zone).toInstant());
+
+        List<Tramite> tramites;
+        if (idUnidad == null || idUnidad == 0) {
+            tramites = tramitesRepository.findByFechaInicioBetween(fechaDesde, fechaHasta);
+        } else {
+            tramites = tramitesRepository.findByUnidadOrigen_IdAndFechaInicioBetween(idUnidad, fechaDesde, fechaHasta);
+            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(idUnidad, fechaDesde, fechaHasta));
+            tramites.addAll(tramitesRepository.findByUnidadDestino_IdAndFechaInicioBetween(null, fechaDesde, fechaHasta));
+        }
+
+        return tramites.stream().distinct().toList();
+    }
+
+    @Override
     public Tramite Crear(TramiteDTO t, Long idUsuario) throws Exception {
+
+        if(t.getTipoTramite()==TipoTramite.AltaUsuario||t.getTipoTramite()==TipoTramite.BajaUsuario){
+            List<Tramite> tramites = tramitesRepository.findAll();
+            boolean existen = tramites.stream()
+                    .anyMatch(tr -> (tr.getEstado() == EstadoTramite.Iniciado || tr.getEstado() == EstadoTramite.EnTramite)
+                            &&(
+                            (tr.getCedulaUsuarioSolicitado() != null&& t.getCedulaUsuarioSolicitado()!=null && t.getCedulaUsuarioSolicitado().equals(tr.getCedulaUsuarioSolicitado()))
+                                    ||
+                            (tr.getIdUsuarioBajaSolicitada()!=null && t.getIdUsuarioBaja()!=null && t.getIdUsuarioBaja().equals(tr.getIdUsuarioBajaSolicitada()))
+                            ));
+            if(existen){
+                throw new SigemaException("Hay tramites pendientes para el usuario solicitado");
+            }
+        }
+
         Tramite tramite = mapearTramiteDesdeDTO(t,idUsuario, new Tramite(), true);
 
-        EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
-        nuevoEstado.setEstado(tramite.getEstado());
-        nuevoEstado.setTramite(tramite);
-        nuevoEstado.setFecha(tramite.getFechaInicio());
-        nuevoEstado.setUsuario(tramite.getUsuario());
 
-        tramite.getHistorico().add(nuevoEstado);
+        Usuario quienCrea = usuarioService.ObtenerPorId(idUsuario);
+
+        VisualizacionTramite vista = new VisualizacionTramite();
+        vista.setDescripcion("Crea");
+        vista.setTramite(tramite);
+        vista.setFecha(Date.from(Instant.now()));
+        vista.setUsuario(quienCrea);
+        tramite.getVisualizaciones().add(vista);
+
         tramite = tramitesRepository.save(tramite);
 
         return tramite;
     }
 
     @Override
-    public Optional<Tramite> ObtenerPorId(Long id) {
+    public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
+        boolean pasoAenTramite = false;
+
+        if(tramite!=null && quienAbre != null && tramite.getEstado()==EstadoTramite.Iniciado){
+            tramite.actualizarEstado(quienAbre);
+            tramite = tramitesRepository.save(tramite);
+            pasoAenTramite=true;
+        }
+
+        if(tramite != null && quienAbre != null) {
+            VisualizacionTramite visualizacionExistente = tramite.getVisualizaciones().stream()
+                    .filter(x -> x.getUsuario().getId().equals(quienAbre.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            VisualizacionTramite visualizacionMasReciente = null;
+            if (!tramite.getVisualizaciones().isEmpty()) {
+                visualizacionMasReciente = tramite.getVisualizaciones().stream()
+                        .max(Comparator.comparing(VisualizacionTramite::getFecha))
+                        .orElse(null);
+            }
+            if(visualizacionExistente == null || //quien abre nunca habia abierto
+                    (visualizacionMasReciente!=null &&
+                            !Objects.equals(visualizacionMasReciente.getUsuario().getId(), quienAbre.getId()))){
+                visualizacionExistente = new VisualizacionTramite();
+                visualizacionExistente.setTramite(tramite);
+                visualizacionExistente.setUsuario(quienAbre);
+                visualizacionExistente.setFecha(Date.from(Instant.now()));
+                if(pasoAenTramite){
+                    visualizacionExistente.setDescripcion("Vista y cambio a En Tramite");
+                }else{
+                    visualizacionExistente.setDescripcion("Vista");
+                }
+                tramite.getVisualizaciones().add(visualizacionExistente);
+            }
+            tramitesRepository.save(tramite);
+        }
         return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 
 
     @Override
     public Tramite Editar(Long id, TramiteDTO t, Long idUsuario) throws Exception {
-        Tramite tramite = ObtenerPorId(id).orElse(null);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El trámite no fue encontrado");
@@ -88,7 +166,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public void Eliminar(Long id) throws Exception{
-        Tramite tramite = ObtenerPorId(id).orElse(null);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -99,7 +177,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public Actuacion CrearActuacion(Long idTramite, Actuacion actuacion, Long idUsuario) throws Exception {
-        Tramite tramite = ObtenerPorId(idTramite).orElse(null);
+        Tramite tramite = tramitesRepository.findById(idTramite).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -126,7 +204,7 @@ public class TramiteService implements ITramitesService {
 
     @Override
     public Tramite CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception {
-        Tramite tramite = ObtenerPorId(id).orElse(null);
+        Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
@@ -146,27 +224,101 @@ public class TramiteService implements ITramitesService {
             throw new SigemaException("El usuario no fue encontrado");
         }
 
-        if((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
-            if(usuario.getRol() != Rol.ADMINISTRADOR && usuario.getRol() != Rol.BRIGADA){
-                throw new SigemaException("No tienes permisos para re abrir un tramite");
+        if((estado == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
+                throw new SigemaException("No se puede re abrir un trámite");
+        }
+
+        if(estado == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
+            equipoService.Eliminar(tramite.getEquipo().getId());
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Aprueba");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(estado == EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Rechaza");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(estado==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
+            usuarioService.Eliminar(tramite.getIdUsuarioBajaSolicitada());
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Aprueba");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(estado==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Rechaza");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(estado==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
+
+            Usuario nuevo = new Usuario();
+            nuevo.setNombreCompleto(tramite.getNombreCompletoUsuarioSolicitado());
+            nuevo.setPassword("123");
+            nuevo.setCedula(tramite.getCedulaUsuarioSolicitado());
+            nuevo.setIdGrado(tramite.getIdGradoUsuarioSolicitado());
+            nuevo.setIdUnidad(tramite.getIdUnidadUsuarioSolicitado());
+            nuevo.setTelefono(tramite.getTelefonoUsuarioSolicitado());
+            nuevo.setRol(tramite.getRolSolicitado());
+
+            usuarioService.Crear(nuevo);
+
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Aprueba");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(estado==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
+
+            VisualizacionTramite nueva = new VisualizacionTramite();
+            nueva.setTramite(tramite);
+            nueva.setUsuario(usuario);
+            nueva.setFecha(Date.from(Instant.now()));
+            nueva.setDescripcion("Rechaza");
+            tramite.getVisualizaciones().add(nueva);
+        }
+
+        if(tramite.getTipoTramite()!=TipoTramite.AltaUsuario&&tramite.getTipoTramite()!=TipoTramite.BajaUsuario&&
+        tramite.getTipoTramite()!=TipoTramite.BajaEquipo){
+            if(estado==EstadoTramite.Aprobado){
+                VisualizacionTramite nueva = new VisualizacionTramite();
+                nueva.setTramite(tramite);
+                nueva.setUsuario(usuario);
+                nueva.setFecha(Date.from(Instant.now()));
+                nueva.setDescripcion("Aprueba");
+                tramite.getVisualizaciones().add(nueva);
+            }
+            if(estado==EstadoTramite.Rechazado){
+                VisualizacionTramite nueva = new VisualizacionTramite();
+                nueva.setTramite(tramite);
+                nueva.setUsuario(usuario);
+                nueva.setFecha(Date.from(Instant.now()));
+                nueva.setDescripcion("Rechaza");
+                tramite.getVisualizaciones().add(nueva);
             }
         }
 
-        EstadosHistoricoTramite nuevoEstado = new EstadosHistoricoTramite();
-        nuevoEstado.setTramite(tramite);
-        nuevoEstado.setEstado(estado);
-        nuevoEstado.setFecha(Date.from(Instant.now()));
-        nuevoEstado.setUsuario(usuario);
-
-        tramite.getHistorico().add(nuevoEstado);
         tramite.setEstado(estado);
-
         tramite = tramitesRepository.save(tramite);
-
-        if(tramite.getEstado() == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
-            equipoService.Eliminar(tramite.getEquipo().getId());
-        }
-
         return tramite;
     }
 
@@ -203,9 +355,9 @@ public class TramiteService implements ITramitesService {
             tramite.setUnidadDestino(null);
         }
 
-        if (tramite.getTipoTramite() == TipoTramite.BajaEquipo || tramite.getTipoTramite() == TipoTramite.SolicitudRepuesto) {
+        if (tramite.getTipoTramite() == TipoTramite.BajaEquipo||tramite.getTipoTramite()==TipoTramite.AltaEquipo || tramite.getTipoTramite() == TipoTramite.SolicitudRepuesto) {
             if (t.getIdEquipo() == null || t.getIdEquipo() <= 0) {
-                throw new SigemaException("Debe ingresar un modelo de equipo");
+                throw new SigemaException("Debe ingresar un equipo / modelo de equipo");
             }
 
             Equipo equipo = equipoService.ObtenerPorId(t.getIdEquipo());
@@ -227,6 +379,17 @@ public class TramiteService implements ITramitesService {
 
                 tramite.setRepuesto(repuesto);
             }
+        }
+        if(tramite.getTipoTramite()==TipoTramite.AltaUsuario){
+            tramite.setCedulaUsuarioSolicitado(t.getCedulaUsuarioSolicitado());
+            tramite.setIdGradoUsuarioSolicitado(t.getIdGradoUsuarioSolicitado());
+            tramite.setNombreCompletoUsuarioSolicitado(t.getNombreCompletoUsuarioSolicitado());
+            tramite.setTelefonoUsuarioSolicitado(t.getTelefonoUsuarioSolicitado());
+            tramite.setRolSolicitado(t.getRolSolicitado());
+            tramite.setIdUnidadUsuarioSolicitado(t.getIdUnidadUsuarioSolicitado());
+        }
+        if(tramite.getTipoTramite()==TipoTramite.BajaUsuario){
+            tramite.setIdUsuarioBajaSolicitada(t.getIdUsuarioBaja());
         }
 
         return tramite;

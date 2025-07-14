@@ -34,4 +34,18 @@ public class Unidad implements Serializable {
             throw new SigemaException("Debes ingresar un nombre");
         }
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Unidad otra = (Unidad) obj;
+        return id != null && id.equals(otra.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
 }

@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface IRepositoryUsuario extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByCedula(String cedula);
+    List<Usuario> findAllByIdUnidad(Long idUnidad);
     List<Usuario> findAllByActivoTrue();
 }

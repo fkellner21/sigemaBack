@@ -3,6 +3,7 @@ package com.example.sigema.controllers;
 import com.example.sigema.models.*;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.services.ITramitesService;
+import com.example.sigema.services.implementations.NotificacionService;
 import com.example.sigema.services.implementations.UsuarioService;
 import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
@@ -30,7 +31,6 @@ public class TramitesController {
     private HttpServletRequest request;
     @Autowired
     private UsuarioService usuarioService;
-
 
     public TramitesController(ITramitesService tramitesService,  JwtUtils jwtUtils){
         this.tramitesService = tramitesService;

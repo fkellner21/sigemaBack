@@ -16,4 +16,5 @@ public interface IUsuarioService {
     Usuario Editar(Long id, Usuario usuario) throws Exception;
 
     boolean ExistePorCedula(String cedula) throws Exception;
+    List<Usuario> obtenerTodosPorIdUnidad(Long idUnidad);
 }

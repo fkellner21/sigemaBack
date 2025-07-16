@@ -44,8 +44,8 @@ public class NotificacionService implements INotificacionesService {
     }
 
     @Override
-    public Notificacion obtenerPorIdUsuarioAndIdTramite(Long idUsuario, Long idTramite) throws Exception {
-        return notificacionesRepository.findByIdUsuarioAndIdTramite(idUsuario, idTramite).orElse(null);
+    public List<Notificacion> obtenerPorIdUsuarioAndIdTramite(Long idUsuario, Long idTramite) throws Exception {
+        return notificacionesRepository.findByIdUsuarioAndIdTramite(idUsuario, idTramite).orElse(new ArrayList<>());
     }
 
     @Override

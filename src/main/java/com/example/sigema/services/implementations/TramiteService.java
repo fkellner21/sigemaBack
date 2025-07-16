@@ -147,10 +147,12 @@ public class TramiteService implements ITramitesService {
             tramitesRepository.save(tramite);
         }
 
-        Notificacion notificacion = notificacionesService.obtenerPorIdUsuarioAndIdTramite(quienAbre.getId(), tramite.getId());
+        List<Notificacion> notificaciones = notificacionesService.obtenerPorIdUsuarioAndIdTramite(quienAbre.getId(), tramite.getId());
 
-        if(notificacion != null){
-            notificacionesService.Eliminar(notificacion.getId());
+        if(notificaciones != null && !notificaciones.isEmpty()){
+            for(Notificacion notificacion : notificaciones) {
+                notificacionesService.Eliminar(notificacion.getId());
+            }
         }
 
         return tramite != null ? Optional.of(tramite) : Optional.empty();

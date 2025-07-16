@@ -43,9 +43,10 @@ public class NotificacionesController {
     }
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
-    @GetMapping("/{idUsuario}")
-    public ResponseEntity<?> obtenerPorIdUsuario(@PathVariable Long idUsuario) {
+    @GetMapping()
+    public ResponseEntity<?> obtenerTodas() {
         try {
+            Long idUsuario= jwtUtils.extractIdUsuario(getToken());
             List<Notificacion> notificaciones = notificacionesService.obtenerPorIdUsuario(idUsuario);
 
             return ResponseEntity.ok().body(notificaciones);

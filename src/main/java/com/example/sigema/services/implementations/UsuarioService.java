@@ -97,7 +97,7 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public List<Usuario> obtenerTodosPorIdUnidad(Long idUnidad) {
-        return repositorio.findAllByIdUnidad(idUnidad);
+        return repositorio.findAllByUnidad_Id(idUnidad);
     }
 
     @Override

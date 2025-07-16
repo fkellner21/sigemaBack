@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface INotificacionesRepository extends JpaRepository<Notificacion, Long> {
     Optional<List<Notificacion>> findAllByIdUsuario(Long idUsuario);
-    Optional<Notificacion> findByIdUsuarioAndIdTramite(Long idUsuario, Long idTramite);
+    Optional<List<Notificacion>> findByIdUsuarioAndIdTramite(Long idUsuario, Long idTramite);
 }

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "Repuestos")
@@ -45,6 +46,10 @@ public class Repuesto implements Serializable {
 
     @Column(unique = true)
     private String codigoSICE;
+
+    @OneToMany(mappedBy = "repuesto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RepuestoMantenimiento> repuestosMantenimiento;
+
 
     public void validar() throws SigemaException {
         if(idModelo == null){

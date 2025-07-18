@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
@@ -59,6 +60,10 @@ public class Equipo implements Serializable {
 
     @Column(nullable = false)
     private boolean activo = false;
+
+    @OneToMany(mappedBy = "equipo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Mantenimiento> mantenimientos;
+
 
     public void validar() throws SigemaException {
 

@@ -391,9 +391,7 @@ public class TramiteService implements ITramitesService {
 
         usuarios.remove(usuario);
 
-        Notificacion notificacion = new Notificacion();
-        notificacion.setIdTramite(tramite.getId());
-        notificacion.setFecha(Date.from(Instant.now()));
+
 
         String textoOrigen = "";
         String textoDestino = "";
@@ -414,17 +412,18 @@ public class TramiteService implements ITramitesService {
         }
 
         for(Usuario u : usuarios){
+            Notificacion notificacion = new Notificacion();
+            notificacion.setIdTramite(tramite.getId());
+            notificacion.setFecha(Date.from(Instant.now()));
+            notificacion.setIdUsuario(u.getId());
+
             if(Objects.equals(u.getUnidad().getId(), tramite.getUnidadOrigen().getId())){
                 notificacion.setTexto(textoOrigen + tramite.getUnidadDestino().getNombre());
             }else{
                 notificacion.setTexto(textoDestino + tramite.getUnidadOrigen().getNombre());
             }
 
-            notificacion.setIdUsuario(u.getId());
             notificacionesService.Crear(notificacion);
-
-            notificacion.setId(null);
-            notificacion.setIdUsuario(null);
         }
     }
 }

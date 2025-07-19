@@ -45,8 +45,6 @@ public class Mantenimiento implements Serializable {
     @Column(nullable = false)
     private double cantidadUnidadMedida;
 
-    @Column(nullable = false)
-    private int idTipoMantenimiento;
 
     @OneToMany(mappedBy = "mantenimiento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RepuestoMantenimiento> repuestosMantenimiento;

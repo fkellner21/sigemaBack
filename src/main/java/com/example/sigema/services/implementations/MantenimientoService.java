@@ -47,4 +47,9 @@ public class MantenimientoService implements IMantenimientoService {
         repo.deleteById(id);
     }
 
+    @Override
+    public List<Mantenimiento> obtenerPorEquipo(Long idEquipo) throws Exception {
+        return repo.findByEquipo_IdOrderByFechaMantenimientoDesc(idEquipo);
+    }
+
 }

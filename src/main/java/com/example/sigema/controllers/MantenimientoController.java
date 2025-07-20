@@ -39,6 +39,16 @@ public class MantenimientoController {
         }
     }
 
+    @GetMapping("/equipo/{idEquipo}")
+    public ResponseEntity<List<Mantenimiento>> obtenerPorEquipo(@PathVariable Long idEquipo) {
+        try {
+            List<Mantenimiento> mantenimientos = servicio.obtenerPorEquipo(idEquipo);
+            return ResponseEntity.ok(mantenimientos);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Mantenimiento> obtenerPorId(@PathVariable Long id) {
         try {

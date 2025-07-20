@@ -17,5 +17,7 @@ public interface IMantenimientoService {
     Mantenimiento editar(Long id, Mantenimiento r) throws Exception;
 
     void eliminar(Long id) throws Exception;
+
+    List<Mantenimiento> obtenerPorEquipo(Long idEquipo) throws Exception;
 }
 

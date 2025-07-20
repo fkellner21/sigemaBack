@@ -1,6 +1,7 @@
 package com.example.sigema.controllers;
 
 import com.example.sigema.models.Mantenimiento;
+import com.example.sigema.models.MantenimientoDTO;
 import com.example.sigema.services.IMantenimientoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class MantenimientoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Mantenimiento mantenimiento) {
+    public ResponseEntity<?> crear(@RequestBody MantenimientoDTO mantenimiento) {
         try {
             Mantenimiento nuevo = servicio.crear(mantenimiento);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
@@ -65,7 +66,7 @@ public class MantenimientoController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody Mantenimiento mantenimiento) {
+    public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody MantenimientoDTO mantenimiento) {
         try {
             Mantenimiento actualizado = servicio.editar(id, mantenimiento);
             return ResponseEntity.ok(actualizado);

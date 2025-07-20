@@ -1,6 +1,9 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.UnidadMedida;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,18 +27,21 @@ public class Mantenimiento implements Serializable {
     private String descripcion;
 
     @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date fechaMantenimiento;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false, updatable = false)
+    @Column(updatable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date fechaRegistro;
 
-    @Column(nullable = false, insertable = false, updatable = false)
+    @Transient
     private Long idEquipo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idEquipo", nullable = false)
+    @JoinColumn(name = "equipo")
+    @JsonBackReference
     private Equipo equipo;
 
     @Enumerated(EnumType.STRING)

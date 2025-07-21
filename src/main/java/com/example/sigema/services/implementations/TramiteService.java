@@ -112,6 +112,8 @@ public class TramiteService implements ITramitesService {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
         boolean pasoAenTramite = false;
 
+        if(tramite==null) throw new SigemaException("Trámite no encontrado");
+
         if(tramite!=null && quienAbre != null && tramite.getEstado()==EstadoTramite.Iniciado){
             tramite.actualizarEstado(quienAbre);
             tramite = tramitesRepository.save(tramite);
@@ -238,7 +240,7 @@ public class TramiteService implements ITramitesService {
             throw new SigemaException("El usuario no fue encontrado");
         }
 
-        if ((estado == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado)
+        if ((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado)
                 && estado == EstadoTramite.EnTramite) {
             throw new SigemaException("No se puede re abrir un trámite");
         }

@@ -16,9 +16,8 @@ public class RepuestoMantenimiento implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "mantenimiento_id", nullable = false)
-    private Mantenimiento mantenimiento;
+    @Transient
+    private Long IdRepuesto;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "repuesto_id", nullable = false)

@@ -3,6 +3,7 @@ package com.example.sigema.models;
 import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.utilidades.SigemaException;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,6 +49,7 @@ public class Repuesto implements Serializable {
     private String codigoSICE;
 
     @OneToMany(mappedBy = "repuesto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<RepuestoMantenimiento> repuestosMantenimiento;
 
 

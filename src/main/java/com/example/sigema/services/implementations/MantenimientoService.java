@@ -1,11 +1,10 @@
 package com.example.sigema.services.implementations;
-import com.example.sigema.models.Equipo;
-import com.example.sigema.models.Mantenimiento;
-import com.example.sigema.models.MantenimientoDTO;
-import com.example.sigema.models.Tramite;
+import com.example.sigema.models.*;
 import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.services.IEquipoService;
 import com.example.sigema.services.IMantenimientoService;
+import com.example.sigema.services.IModeloEquipoService;
+import com.example.sigema.services.IRepuestoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,11 +20,13 @@ public class MantenimientoService implements IMantenimientoService {
 
     private final IMantenimientoRepository repo;
     private final IEquipoService equipoService;
+    private final IRepuestoService repuestoService;
 
     @Autowired
-    public MantenimientoService(IMantenimientoRepository repo, IEquipoService equipoService){
+    public MantenimientoService(IMantenimientoRepository repo, IEquipoService equipoService, IRepuestoService repuestoService){
         this.repo = repo;
         this.equipoService = equipoService;
+        this.repuestoService = repuestoService;
     }
 
     @Override
@@ -61,6 +62,18 @@ public class MantenimientoService implements IMantenimientoService {
         nuevo.setUnidadMedida(mantenimiento.getUnidadMedida());
         nuevo.setCantidadUnidadMedida(mantenimiento.getCantidadUnidadMedida());
 
+        for(RepuestoMantenimiento r : mantenimiento.getRepuestosMantenimiento()){
+            Repuesto repuesto = repuestoService.ObtenerPorId(r.getIdRepuesto()).orElse(null);
+
+            if(repuesto == null){
+                throw new Exception("Repuesto no encontrado");
+            }
+
+            r.setRepuesto(repuesto);
+        }
+
+        nuevo.setRepuestosMantenimiento(mantenimiento.getRepuestosMantenimiento());
+
         return repo.save(nuevo);
     }
 
@@ -80,11 +93,26 @@ public class MantenimientoService implements IMantenimientoService {
             existente.setEquipo(equipo);
             existente.setDescripcion(mantenimientoActualizado.getDescripcion());
             existente.setFechaMantenimiento(fechaMantenimiento);
-            existente.getRepuestosMantenimiento().clear();
-            existente.getRepuestosMantenimiento().addAll(mantenimientoActualizado.getRepuestosMantenimiento());
             existente.setUnidadMedida(mantenimientoActualizado.getUnidadMedida());
             existente.setCantidadUnidadMedida(mantenimientoActualizado.getCantidadUnidadMedida());
             existente.setEsService(mantenimientoActualizado.isEsService());
+
+            List<RepuestoMantenimiento> actuales = existente.getRepuestosMantenimiento();
+            actuales.clear();
+
+            for (RepuestoMantenimiento r : mantenimientoActualizado.getRepuestosMantenimiento()) {
+                Long idRepuesto = r.getRepuesto() != null ? r.getRepuesto().getId() : r.getIdRepuesto();
+                Repuesto repuesto = repuestoService.ObtenerPorId(idRepuesto).orElse(null);
+
+                if(repuesto == null){
+                    throw new Exception("Repuesto no encontrado");
+                }
+
+                r.setRepuesto(repuesto);
+                actuales.add(r);
+            }
+
+            existente.setRepuestosMantenimiento(actuales);
 
             return repo.save(existente);
         }

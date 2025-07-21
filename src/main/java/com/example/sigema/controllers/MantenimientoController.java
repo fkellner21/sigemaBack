@@ -2,13 +2,24 @@ package com.example.sigema.controllers;
 
 import com.example.sigema.models.Mantenimiento;
 import com.example.sigema.models.MantenimientoDTO;
+import com.example.sigema.models.Tramite;
 import com.example.sigema.services.IMantenimientoService;
+import com.example.sigema.utilidades.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/mantenimientos")
@@ -17,6 +28,26 @@ public class MantenimientoController {
 
     @Autowired
     private IMantenimientoService servicio;
+    private final JwtUtils jwtUtils;
+
+    @Autowired
+    private HttpServletRequest request;
+
+    public MantenimientoController(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
+    }
+
+    public String getToken() {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        throw new RuntimeException("No se encontró el token en el header");
+    }
+
+
 
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
@@ -63,8 +94,6 @@ public class MantenimientoController {
     }
 
 
-
-
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody MantenimientoDTO mantenimiento) {
         try {
@@ -86,4 +115,51 @@ public class MantenimientoController {
                     .body("Error al eliminar el mantenimiento: " + e.getMessage());
         }
     }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @GetMapping("/filtrar")
+    public ResponseEntity<?> obtenerTodosConFechas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta
+    ) {
+        try {
+
+            Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+            String rol = jwtUtils.extractRol(getToken());
+            if (Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")) {
+                idUnidad = null;
+            }
+
+            ZoneId zone = ZoneId.of("America/Montevideo");
+
+            // Si no viene fecha → asignar por defecto
+            LocalDate localDesde = desde != null ? desde : LocalDate.now(zone).minusDays(7);
+            LocalDate localHasta = hasta != null ? hasta : LocalDate.now(zone);
+
+            Date fechaDesde = Date.from(localDesde.atStartOfDay(zone).toInstant());
+            Date fechaHasta = Date.from(localHasta.atTime(LocalTime.MAX).atZone(zone).toInstant());
+
+            List<Mantenimiento> mantenimientos = servicio.ObtenerTodosPorFechas(idUnidad, fechaDesde, fechaHasta);
+
+            if (mantenimientos == null) {
+                mantenimientos = new ArrayList<>();
+            } else {
+                mantenimientos = new ArrayList<>(mantenimientos);
+            }
+
+            mantenimientos.sort((t1, t2) -> {
+                if (t1.getId() == null && t2.getId() == null) return 0;
+                if (t1.getId() == null) return 1;
+                if (t2.getId() == null) return -1;
+                return t2.getId().compareTo(t1.getId());
+            });
+
+            return ResponseEntity.ok().body(mantenimientos);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
 }

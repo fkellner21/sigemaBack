@@ -70,6 +70,12 @@ public class ModeloEquipo implements Serializable {
     @JsonIgnore
     private List<DocumentoModeloEquipo> documentos = new ArrayList<>();
 
+    @Column(nullable = false)
+    private int frecuenciaUnidadMedida;
+
+    @Column(nullable = false)
+    private int frecuenciaTiempo;
+
     public void validar() throws SigemaException{
         if(anio < 1900){
             throw new SigemaException("El año debe ser mayor o igual a 1900");

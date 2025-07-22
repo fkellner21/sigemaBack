@@ -74,6 +74,8 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloExistenteOpt.setMarca(marca);
         modeloExistenteOpt.setTipoEquipo(tipoEquipo);
         modeloExistenteOpt.setUnidadMedida(modeloEquipo.getUnidadMedida());
+        modeloExistenteOpt.setFrecuenciaTiempo(modeloEquipo.getFrecuenciaTiempo());
+        modeloExistenteOpt.setFrecuenciaUnidadMedida(modeloEquipo.getFrecuenciaUnidadMedida());
 
         return modeloEquipoRepository.save(modeloExistenteOpt);
     }

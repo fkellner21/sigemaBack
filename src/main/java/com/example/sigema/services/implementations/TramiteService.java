@@ -3,6 +3,7 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.*;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.Rol;
+import com.example.sigema.models.enums.TipoNotificacion;
 import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.repositories.ITramitesRepository;
 import com.example.sigema.services.*;
@@ -23,14 +24,16 @@ public class TramiteService implements ITramitesService {
     private final IUsuarioService usuarioService;
     private final IEquipoService equipoService;
     private final IRepuestoService repuestoService;
+    private final INotificacionesService notificacionesService;
 
     public TramiteService (ITramitesRepository tramitesRepository, IUnidadService unidadService, IUsuarioService usuarioService,
-                           IEquipoService equipoService, IRepuestoService repuestoService){
+                           IEquipoService equipoService, IRepuestoService repuestoService, INotificacionesService notificacionesService){
         this.tramitesRepository = tramitesRepository;
         this.unidadService = unidadService;
         this.usuarioService = usuarioService;
         this.equipoService = equipoService;
         this.repuestoService = repuestoService;
+        this.notificacionesService = notificacionesService;
     }
 
     @Override
@@ -97,16 +100,19 @@ public class TramiteService implements ITramitesService {
         vista.setFecha(Date.from(Instant.now()));
         vista.setUsuario(quienCrea);
         tramite.getVisualizaciones().add(vista);
-
         tramite = tramitesRepository.save(tramite);
+
+        CrearNotificacion(tramite, quienCrea, TipoNotificacion.NuevoTramite);
 
         return tramite;
     }
 
     @Override
-    public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) {
+    public Optional<Tramite> ObtenerPorId(Long id, Usuario quienAbre) throws Exception {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
         boolean pasoAenTramite = false;
+
+        if(tramite==null) throw new SigemaException("Trámite no encontrado");
 
         if(tramite!=null && quienAbre != null && tramite.getEstado()==EstadoTramite.Iniciado){
             tramite.actualizarEstado(quienAbre);
@@ -142,6 +148,15 @@ public class TramiteService implements ITramitesService {
             }
             tramitesRepository.save(tramite);
         }
+
+        List<Notificacion> notificaciones = notificacionesService.obtenerPorIdUsuarioAndIdTramite(quienAbre.getId(), tramite.getId());
+
+        if(notificaciones != null && !notificaciones.isEmpty()){
+            for(Notificacion notificacion : notificaciones) {
+                notificacionesService.Eliminar(notificacion.getId());
+            }
+        }
+
         return tramite != null ? Optional.of(tramite) : Optional.empty();
     }
 
@@ -199,6 +214,8 @@ public class TramiteService implements ITramitesService {
         tramite.getActuaciones().add(actuacion);
         tramitesRepository.save(tramite);
 
+        CrearNotificacion(tramite, usuario, TipoNotificacion.NuevaActuacion);
+
         return actuacion;
     }
 
@@ -206,120 +223,89 @@ public class TramiteService implements ITramitesService {
     public Tramite CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
 
-        if(tramite == null){
+        if (tramite == null) {
             throw new SigemaException("El tramite no fue encontrado");
         }
 
-        if(tramite.getEstado() == estado){
+        if (tramite.getEstado() == estado) {
             throw new SigemaException("El tramite ya se encuentra en el estado seleccionado");
         }
 
-        if(idUsuario == null || idUsuario <= 0){
+        if (idUsuario == null || idUsuario <= 0) {
             throw new SigemaException("Debe ingresar un usuario");
         }
 
         Usuario usuario = usuarioService.ObtenerPorId(idUsuario);
-
-        if(usuario == null){
+        if (usuario == null) {
             throw new SigemaException("El usuario no fue encontrado");
         }
 
-        if((estado == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado) && estado == EstadoTramite.EnTramite){
-                throw new SigemaException("No se puede re abrir un trámite");
+        if ((tramite.getEstado() == EstadoTramite.Aprobado || tramite.getEstado() == EstadoTramite.Rechazado)
+                && estado == EstadoTramite.EnTramite) {
+            throw new SigemaException("No se puede re abrir un trámite");
         }
 
-        if(estado == EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
-            equipoService.Eliminar(tramite.getEquipo().getId());
-            VisualizacionTramite nueva = new VisualizacionTramite();
-            nueva.setTramite(tramite);
-            nueva.setUsuario(usuario);
-            nueva.setFecha(Date.from(Instant.now()));
-            nueva.setDescripcion("Aprueba");
-            tramite.getVisualizaciones().add(nueva);
-        }
+        if (estado == EstadoTramite.Aprobado) {
+            switch (tramite.getTipoTramite()) {
+                case BajaEquipo:
+                    equipoService.Eliminar(tramite.getEquipo().getId());
+                    agregarVisualizacion(tramite, usuario, "Aprueba");
+                    break;
 
-        if(estado == EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaEquipo){
-            VisualizacionTramite nueva = new VisualizacionTramite();
-            nueva.setTramite(tramite);
-            nueva.setUsuario(usuario);
-            nueva.setFecha(Date.from(Instant.now()));
-            nueva.setDescripcion("Rechaza");
-            tramite.getVisualizaciones().add(nueva);
-        }
+                case BajaUsuario:
+                    usuarioService.Eliminar(tramite.getIdUsuarioBajaSolicitada());
+                    agregarVisualizacion(tramite, usuario, "Aprueba");
+                    break;
 
-        if(estado==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
-            usuarioService.Eliminar(tramite.getIdUsuarioBajaSolicitada());
-            VisualizacionTramite nueva = new VisualizacionTramite();
-            nueva.setTramite(tramite);
-            nueva.setUsuario(usuario);
-            nueva.setFecha(Date.from(Instant.now()));
-            nueva.setDescripcion("Aprueba");
-            tramite.getVisualizaciones().add(nueva);
-        }
+                case AltaUsuario:
+                    Usuario nuevo = new Usuario();
+                    nuevo.setNombreCompleto(tramite.getNombreCompletoUsuarioSolicitado());
+                    nuevo.setPassword("123");
+                    nuevo.setCedula(tramite.getCedulaUsuarioSolicitado());
+                    nuevo.setIdGrado(tramite.getIdGradoUsuarioSolicitado());
+                    nuevo.setIdUnidad(tramite.getIdUnidadUsuarioSolicitado());
+                    nuevo.setTelefono(tramite.getTelefonoUsuarioSolicitado());
+                    nuevo.setRol(tramite.getRolSolicitado());
 
-        if(estado==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.BajaUsuario){
-            VisualizacionTramite nueva = new VisualizacionTramite();
-            nueva.setTramite(tramite);
-            nueva.setUsuario(usuario);
-            nueva.setFecha(Date.from(Instant.now()));
-            nueva.setDescripcion("Rechaza");
-            tramite.getVisualizaciones().add(nueva);
-        }
+                    usuarioService.Crear(nuevo);
+                    agregarVisualizacion(tramite, usuario, "Aprueba");
+                    break;
 
-        if(estado==EstadoTramite.Aprobado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
-
-            Usuario nuevo = new Usuario();
-            nuevo.setNombreCompleto(tramite.getNombreCompletoUsuarioSolicitado());
-            nuevo.setPassword("123");
-            nuevo.setCedula(tramite.getCedulaUsuarioSolicitado());
-            nuevo.setIdGrado(tramite.getIdGradoUsuarioSolicitado());
-            nuevo.setIdUnidad(tramite.getIdUnidadUsuarioSolicitado());
-            nuevo.setTelefono(tramite.getTelefonoUsuarioSolicitado());
-            nuevo.setRol(tramite.getRolSolicitado());
-
-            usuarioService.Crear(nuevo);
-
-            VisualizacionTramite nueva = new VisualizacionTramite();
-            nueva.setTramite(tramite);
-            nueva.setUsuario(usuario);
-            nueva.setFecha(Date.from(Instant.now()));
-            nueva.setDescripcion("Aprueba");
-            tramite.getVisualizaciones().add(nueva);
-        }
-
-        if(estado==EstadoTramite.Rechazado && tramite.getTipoTramite() == TipoTramite.AltaUsuario){
-
-            VisualizacionTramite nueva = new VisualizacionTramite();
-            nueva.setTramite(tramite);
-            nueva.setUsuario(usuario);
-            nueva.setFecha(Date.from(Instant.now()));
-            nueva.setDescripcion("Rechaza");
-            tramite.getVisualizaciones().add(nueva);
-        }
-
-        if(tramite.getTipoTramite()!=TipoTramite.AltaUsuario&&tramite.getTipoTramite()!=TipoTramite.BajaUsuario&&
-        tramite.getTipoTramite()!=TipoTramite.BajaEquipo){
-            if(estado==EstadoTramite.Aprobado){
-                VisualizacionTramite nueva = new VisualizacionTramite();
-                nueva.setTramite(tramite);
-                nueva.setUsuario(usuario);
-                nueva.setFecha(Date.from(Instant.now()));
-                nueva.setDescripcion("Aprueba");
-                tramite.getVisualizaciones().add(nueva);
+                default:
+                    agregarVisualizacion(tramite, usuario, "Aprueba");
+                    break;
             }
-            if(estado==EstadoTramite.Rechazado){
-                VisualizacionTramite nueva = new VisualizacionTramite();
-                nueva.setTramite(tramite);
-                nueva.setUsuario(usuario);
-                nueva.setFecha(Date.from(Instant.now()));
-                nueva.setDescripcion("Rechaza");
-                tramite.getVisualizaciones().add(nueva);
+        }
+
+        if (estado == EstadoTramite.Rechazado) {
+            switch (tramite.getTipoTramite()) {
+                case BajaEquipo:
+                case BajaUsuario:
+                case AltaUsuario:
+                    agregarVisualizacion(tramite, usuario, "Rechaza");
+                    break;
+
+                default:
+                    agregarVisualizacion(tramite, usuario, "Rechaza");
+                    break;
             }
         }
 
         tramite.setEstado(estado);
         tramite = tramitesRepository.save(tramite);
+
+        CrearNotificacion(tramite, usuario, TipoNotificacion.CambioEstadoTramite);
+
         return tramite;
+    }
+
+    private void agregarVisualizacion(Tramite tramite, Usuario usuario, String descripcion) {
+        VisualizacionTramite nueva = new VisualizacionTramite();
+        nueva.setTramite(tramite);
+        nueva.setUsuario(usuario);
+        nueva.setFecha(Date.from(Instant.now()));
+        nueva.setDescripcion(descripcion);
+        tramite.getVisualizaciones().add(nueva);
     }
 
     private Tramite mapearTramiteDesdeDTO(TramiteDTO t,Long idUsuario, Tramite tramite, boolean esCreacion) throws Exception {
@@ -393,5 +379,53 @@ public class TramiteService implements ITramitesService {
         }
 
         return tramite;
+    }
+
+    private void CrearNotificacion(Tramite tramite, Usuario usuario, TipoNotificacion tipoNotificacion) throws Exception {
+        List<Usuario> usuarios;
+
+        if(tramite.getUnidadDestino() == null){
+            usuarios = usuarioService.obtenerTodos();
+        }else{
+            usuarios = usuarioService.obtenerTodosPorIdUnidad(tramite.getUnidadOrigen().getId());
+            usuarios.addAll(usuarioService.obtenerTodosPorIdUnidad(tramite.getUnidadDestino().getId()));
+        }
+
+        usuarios.remove(usuario);
+
+
+
+        String textoOrigen = "";
+        String textoDestino = "";
+
+        switch (tipoNotificacion){
+            case TipoNotificacion.NuevoTramite:
+                textoOrigen = "Se ha un creado un nuevo trámite para ";
+                textoDestino = "Se ha recibido un nuevo trámite de ";
+                break;
+            case TipoNotificacion.CambioEstadoTramite:
+                textoOrigen = "Se ha cambiado el estado del trámite para ";
+                textoDestino = "Se ha cambiado el estado del trámite de ";
+                break;
+            case TipoNotificacion.NuevaActuacion:
+                textoOrigen = "Se ha creado una nueva actuación del trámite para ";
+                textoDestino = "Se ha creado una nueva actuación del trámite de ";
+                break;
+        }
+
+        for(Usuario u : usuarios){
+            Notificacion notificacion = new Notificacion();
+            notificacion.setIdTramite(tramite.getId());
+            notificacion.setFecha(Date.from(Instant.now()));
+            notificacion.setIdUsuario(u.getId());
+
+            if(Objects.equals(u.getUnidad().getId(), tramite.getUnidadOrigen().getId())){
+                notificacion.setTexto(textoOrigen + tramite.getUnidadDestino().getNombre());
+            }else{
+                notificacion.setTexto(textoDestino + tramite.getUnidadOrigen().getNombre());
+            }
+
+            notificacionesService.Crear(notificacion);
+        }
     }
 }

@@ -41,9 +41,8 @@ public class Mantenimiento implements Serializable {
     @Transient
     private Long idEquipo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "equipo")
-    @JsonBackReference
     private Equipo equipo;
 
     @Enumerated(EnumType.STRING)

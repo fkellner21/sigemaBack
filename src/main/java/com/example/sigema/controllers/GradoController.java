@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/grados")
+@CrossOrigin(origins = "*")
 public class GradoController {
 
     private final IGradoService gradoService;

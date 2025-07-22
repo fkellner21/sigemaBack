@@ -2,6 +2,7 @@ package com.example.sigema.models;
 
 import com.example.sigema.models.enums.EstadoEquipo;
 import com.example.sigema.utilidades.SigemaException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -62,8 +63,8 @@ public class Equipo implements Serializable {
     @Column(nullable = false)
     private boolean activo = false;
 
-    @OneToMany(mappedBy = "equipo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "equipo", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Mantenimiento> mantenimientos;
 
 

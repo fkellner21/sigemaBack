@@ -46,8 +46,8 @@ public class SecurityConfig {
                         .allowedOriginPatterns(
                                 "http://localhost:4200",
                                 "http://127.0.0.1:4200",
-                                "http://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net",
-                                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net")
+                                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
+                                "http://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(false);

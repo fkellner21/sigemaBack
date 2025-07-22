@@ -73,7 +73,7 @@ public class MantenimientoService implements IMantenimientoService {
         }
 
         nuevo.setRepuestosMantenimiento(mantenimiento.getRepuestosMantenimiento());
-
+        nuevo.validar();
         return repo.save(nuevo);
     }
 
@@ -113,7 +113,7 @@ public class MantenimientoService implements IMantenimientoService {
             }
 
             existente.setRepuestosMantenimiento(actuales);
-
+            existente.validar();
             return repo.save(existente);
         }
 

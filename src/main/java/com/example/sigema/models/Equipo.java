@@ -89,4 +89,10 @@ public class Equipo implements Serializable {
             throw new SigemaException("Debe asociar una unidad válida al equipo");
         }
     }
+
+    public boolean requiereAlerta() {
+        boolean requiere = false;
+        //todo la logica
+        return requiere;
+    }
 }

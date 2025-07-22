@@ -35,7 +35,7 @@ public class EquipoDashboardDTO {
         this.unidadMedida=equipo.getModeloEquipo().getUnidadMedida();
         this.capacidad=equipo.getModeloEquipo().getCapacidad();
         this.marca=equipo.getModeloEquipo().getMarca().getNombre();
-        this.tipoEquipo=equipo.getModeloEquipo().getTipoEquipo().getNombre();
+        this.tipoEquipo=equipo.getModeloEquipo().getTipoEquipo().getCodigo();
         this.tareaEquipo=equipo.getModeloEquipo().getTipoEquipo().getTarea();
         this.latitud=equipo.getLatitud();
         this.longitud=equipo.getLongitud();

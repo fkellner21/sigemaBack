@@ -40,6 +40,7 @@ public class ReporteService implements IReporteService {
             equipo.setCantidadUnidadMedida(nuevaCantidad);
 
             equipoService.Editar(equipo.getId(), equipo);
+            //boolean lanzarAlerta = equipo.requiereAlerta();
 
         } catch (Exception e) {
             throw new SigemaException(e.getMessage());

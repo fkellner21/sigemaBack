@@ -5,6 +5,7 @@ import com.example.sigema.models.MantenimientoDTO;
 import com.example.sigema.models.Tramite;
 import com.example.sigema.services.IMantenimientoService;
 import com.example.sigema.utilidades.JwtUtils;
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -48,29 +49,35 @@ public class MantenimientoController {
     }
 
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {
         try {
             List<Mantenimiento> lista = servicio.obtenerTodos();
             return ResponseEntity.ok(lista);
-        } catch (Exception e) {
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al obtener los mantenimientos: " + e.getMessage());
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody MantenimientoDTO mantenimiento) {
         try {
             Mantenimiento nuevo = servicio.crear(mantenimiento);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
-        } catch (Exception e) {
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al crear el mantenimiento: " + e.getMessage());
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/equipo/{idEquipo}")
     public ResponseEntity<List<Mantenimiento>> obtenerPorEquipo(@PathVariable Long idEquipo) {
         try {
@@ -81,6 +88,7 @@ public class MantenimientoController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/{id}")
     public ResponseEntity<Mantenimiento> obtenerPorId(@PathVariable Long id) {
         try {
@@ -93,28 +101,34 @@ public class MantenimientoController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @RequestBody MantenimientoDTO mantenimiento) {
         try {
             Mantenimiento actualizado = servicio.editar(id, mantenimiento);
             return ResponseEntity.ok(actualizado);
-        } catch (Exception e) {
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al actualizar el mantenimiento: " + e.getMessage());
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
             servicio.eliminar(id);
             return ResponseEntity.ok("Mantenimiento eliminado con éxito");
-        } catch (Exception e) {
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al eliminar el mantenimiento: " + e.getMessage());
         }
     }
+
 
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping("/filtrar")
@@ -156,7 +170,9 @@ public class MantenimientoController {
 
             return ResponseEntity.ok().body(mantenimientos);
 
-        } catch (Exception e) {
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (Exception e) {
             throw new RuntimeException(e);
         }
 

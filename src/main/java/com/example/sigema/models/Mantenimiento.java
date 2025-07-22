@@ -1,6 +1,7 @@
 package com.example.sigema.models;
 
 import com.example.sigema.models.enums.UnidadMedida;
+import com.example.sigema.utilidades.SigemaException;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,6 +11,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +36,7 @@ public class Mantenimiento implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(updatable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date fechaRegistro;
+    private Date fechaRegistro = Date.from(Instant.now());
 
     @Transient
     private Long idEquipo;
@@ -49,7 +51,7 @@ public class Mantenimiento implements Serializable {
     private UnidadMedida unidadMedida;
 
     @Column(nullable = false)
-    private double cantidadUnidadMedida;
+    private double cantidadUnidadMedida = 0;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "mantenimiento")
@@ -58,4 +60,9 @@ public class Mantenimiento implements Serializable {
     @Column(nullable = false)
     private boolean esService;
 
+    public void validar() {
+        if (equipo==null)   throw new SigemaException("Equipo no encontrado");
+        if (cantidadUnidadMedida>equipo.getCantidadUnidadMedida()) throw new SigemaException("HT/Km debe ser igual o inferior al actual");
+        if (fechaMantenimiento.after(fechaRegistro)) throw new SigemaException("No se puede registrar mantenimientos a futuro");
+    }
 }

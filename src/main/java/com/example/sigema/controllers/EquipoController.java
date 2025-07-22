@@ -1,6 +1,7 @@
 package com.example.sigema.controllers;
 
 import com.example.sigema.models.Equipo;
+import com.example.sigema.models.EquipoDashboardDTO;
 import com.example.sigema.models.Tramite;
 import com.example.sigema.models.TramiteDTO;
 import com.example.sigema.models.enums.EstadoTramite;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,6 +67,35 @@ public class EquipoController {
             List<Equipo> equipos = equiposService.obtenerTodos(idUnidad);
 
             return ResponseEntity.ok().body(equipos);
+        } catch(SigemaException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> obtenerTodosDashboard() {
+        try {
+            Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+            String rol = jwtUtils.extractRol(getToken());
+
+            if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+                idUnidad = null;
+            }
+
+            List<Equipo> equipos = equiposService.obtenerTodos(idUnidad);
+            List<EquipoDashboardDTO> equiposDashboard = new ArrayList<EquipoDashboardDTO>();
+
+            for (Equipo equipo : equipos) {
+                EquipoDashboardDTO equipoDto = new EquipoDashboardDTO();
+                equipoDto.fromEquipo(equipo);
+                equiposDashboard.add(equipoDto);
+            }
+
+            return ResponseEntity.ok().body(equiposDashboard);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

@@ -51,11 +51,11 @@ public class Mantenimiento implements Serializable {
     @Column(nullable = false)
     private double cantidadUnidadMedida;
 
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "mantenimiento")
     private List<RepuestoMantenimiento> repuestosMantenimiento;
 
     @Column(nullable = false)
     private boolean esService;
+
 }

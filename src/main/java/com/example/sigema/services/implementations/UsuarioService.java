@@ -96,6 +96,11 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
+    public List<Usuario> obtenerTodosPorIdUnidad(Long idUnidad) {
+        return repositorio.findAllByUnidad_Id(idUnidad);
+    }
+
+    @Override
     public Usuario Editar(Long id, Usuario usuario) throws Exception {
         usuario.validar();
         usuario.setCedula(usuario.getCedula().replaceAll("[./-]", ""));

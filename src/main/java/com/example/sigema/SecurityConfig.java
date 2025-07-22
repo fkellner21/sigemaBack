@@ -6,6 +6,7 @@ import com.example.sigema.utilidades.JwtAuthenticationFilter;
 import com.example.sigema.utilidades.JwtUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,9 +19,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
@@ -36,23 +41,28 @@ public class SecurityConfig {
         this.accessDeniedHandler = accessDeniedHandler;
     }
 
+    // Configuración CORS explícita para seguridad
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                "http://127.0.0.1:4200",
+                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
+                "https://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net"
+        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
     @Bean
     public WebMvcConfigurer webConfigurer() {
         return new WebMvcConfigurer() {
-
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins(
-                                "http://localhost:4200",
-                                "http://127.0.0.1:4200",
-                                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
-                                "https://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
                 registry.addResourceHandler("/uploads/**")
@@ -87,9 +97,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <--- Configuración CORS explícita
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // <--- Permitimos preflight
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(exception -> exception

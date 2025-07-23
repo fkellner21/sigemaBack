@@ -120,7 +120,7 @@ public class MantenimientoController {
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
             servicio.eliminar(id);
-            return ResponseEntity.ok("Mantenimiento eliminado con éxito");
+            return ResponseEntity.ok().build();
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }catch (Exception e) {

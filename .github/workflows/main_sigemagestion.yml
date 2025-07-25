@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  JAR_FILE: target/*.jar  # Aquí defines la variable que luego usas con ${{ env.JAR_FILE }}
+  JAR_FILE: app.jar
 
 jobs:
   build:
@@ -13,9 +13,10 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Java version
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -24,7 +25,14 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Upload artifact for deployment job
+      - name: Show generated JAR
+        run: ls -la target/
+
+      - name: Rename JAR
+        run: |
+          mv target/*.jar ${{ env.JAR_FILE }}
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: java-app
@@ -38,10 +46,13 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: java-app
+
+      - name: List files
+        run: ls -la
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -51,16 +62,15 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3C4CF806A9794F0190E85C821730D461 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'SIGEMAGESTION'
           slot-name: 'Production'
           package: ${{ env.JAR_FILE }}
 
-      - name: Configure startup command
+      - name: Configure startup command (Windows)
         uses: azure/cli@v1
         with:
           azcliversion: 2.45.0
           inlineScript: |
-            az webapp config set --name SIGEMAGESTION --resource-group SIGEMA --startup-file "java -jar app.jar"
+            az webapp config set --name SIGEMAGESTION --resource-group SIGEMA --startup-file "java -jar ${env:JAR_FILE}"

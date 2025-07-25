@@ -1,14 +1,11 @@
-name: Build and deploy JAR app to Azure Web App - SIGEMAGESTION
+name: Deploy to Azure Web App v2
 
 on:
   workflow_dispatch:
 
-env:
-  JAR_FILE: app.jar
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read
 
@@ -16,61 +13,48 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
           distribution: 'microsoft'
+          java-version: '21'
 
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: mvn clean install -DskipTests
 
-      - name: Show generated JAR
-        run: ls -la target/
-
-      - name: Rename JAR
-        run: |
-          mv target/*.jar ${{ env.JAR_FILE }}
-
-      - name: Upload artifact
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: ${{ env.JAR_FILE }}
+          path: '${{ github.workspace }}/target/*.jar'
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - name: Download artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
 
-      - name: List files
-        run: ls -la
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_3CE63E84F23F425C9041148CB0077931 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F98C5624E1A94C10B5C81D6AF984A084 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3C4CF806A9794F0190E85C821730D461 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_SIGEMAGESTION }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_SIGEMAGESTION }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_SIGEMAGESTION }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'SIGEMAGESTION'
+          app-name: 'sigemagestion'
           slot-name: 'Production'
-          package: ${{ env.JAR_FILE }}
-
-      - name: Configure startup command (Windows)
-        uses: azure/cli@v1
-        with:
-          azcliversion: 2.45.0
-          inlineScript: |
-            az webapp config set --name SIGEMAGESTION --resource-group SIGEMA --startup-file "java -jar ${env:JAR_FILE}"
+          package: '*.jar'

@@ -45,16 +45,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:4200",
-                "http://127.0.0.1:4200",
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
                 "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
                 "https://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net",
-                "https://black-sky-08a0d770f.2.azurestaticapps.net"
+                "https://black-sky-08a0d770f.2.azurestaticapps.net",
+                "https://*.azurestaticapps.net" // Para otros despliegues
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // Cache preflight por 1 hora
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

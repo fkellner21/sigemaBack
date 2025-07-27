@@ -23,7 +23,7 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven (skip tests)
-        run: mvn clean install -Dmaven.test.skip=true
+        run: mvn clean package -Dmaven.test.skip=true
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4

@@ -153,5 +153,10 @@ public class MantenimientoService implements IMantenimientoService {
         return mantenimientos;
     }
 
+    @Override
+    public Mantenimiento ObtenerUltimoMantenimientoPorIdEquipo(Long idEquipo) {
+        return repo.findTopByEquipo_IdOrderByFechaMantenimientoDesc(idEquipo).orElse(null);
+    }
+
 
 }

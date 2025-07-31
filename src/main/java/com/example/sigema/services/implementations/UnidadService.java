@@ -1,6 +1,7 @@
 package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.Unidad;
+import com.example.sigema.models.UnidadEmail;
 import com.example.sigema.repositories.IUnidadRepository;
 import com.example.sigema.services.IUnidadService;
 import jakarta.transaction.Transactional;
@@ -38,9 +39,20 @@ public class UnidadService implements IUnidadService {
     public Unidad Crear(Unidad unidad) throws Exception {
         unidad.validar();
 
-        List<Unidad> unidades = unidadRepository.findByEsGranUnidad(true);
 
-        if(unidades != null && !unidades.isEmpty() && unidad.isEsGranUnidad()){
+        if (unidad.getEmails() == null || unidad.getEmails().isEmpty()) {
+            throw new SigemaException("La unidad debe tener al menos un email");
+        }
+
+        for (UnidadEmail email : unidad.getEmails()) {
+            if (email.getEmail() == null || email.getEmail().isBlank()) {
+                throw new SigemaException("Todos los emails deben tener un valor válido");
+            }
+            email.setUnidad(unidad); // Asegurar la relación bidireccional
+        }
+
+        List<Unidad> unidades = unidadRepository.findByEsGranUnidad(true);
+        if (unidades != null && !unidades.isEmpty() && unidad.isEsGranUnidad()) {
             throw new SigemaException("Ya existe una unidad del tipo gran unidad, solamente puede haber una");
         }
 

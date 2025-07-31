@@ -13,6 +13,7 @@ import com.example.sigema.services.implementations.TramiteService;
 import com.example.sigema.utilidades.JwtUtils;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -265,5 +266,17 @@ public class EquipoController {
         catch (Exception e) {
             return ResponseEntity.internalServerError().body("Ha ocurrido un error, vuelva a intentarlo");
         }
+    }
+
+    @GetMapping("reporteIndicadoresGestion")
+    public void exportEquiposExcel(HttpServletResponse response) throws SigemaException {
+        Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+        String rol = jwtUtils.extractRol(getToken());
+
+        if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+            idUnidad = null;
+        }
+
+        equiposService.GenerarExcelIndicadoresGestion(response, idUnidad);
     }
 }

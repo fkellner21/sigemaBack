@@ -24,6 +24,7 @@ public class UnidadController {
         this.unidadService = uniService;
     }
 
+
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'BRIGADA', 'UNIDAD', 'ADMINISTRADOR_UNIDAD')")
     @GetMapping
     public ResponseEntity<?> obtenerTodos() {

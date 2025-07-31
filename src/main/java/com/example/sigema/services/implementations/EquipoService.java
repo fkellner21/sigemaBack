@@ -3,6 +3,7 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.Equipo;
 import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.Unidad;
+import com.example.sigema.models.UnidadEmail;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.services.IEquipoService;
 import com.example.sigema.services.IModeloEquipoService;
@@ -24,6 +25,9 @@ public class EquipoService implements IEquipoService {
     private final IEquipoRepository equipoRepository;
     private final IModeloEquipoService modeloEquipoService;
     private final IUnidadService unidadService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService, IUnidadService unidadService) {
@@ -135,8 +139,123 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(equipo.isActivo());
 
-        return equipoRepository.save(equipoEditar);
+
+        Equipo equipoGuardado = equipoRepository.save(equipoEditar);
+
+        verificarFrecuenciaYEnviarAlerta(equipoGuardado, modeloEquipo);
+
+        return equipoGuardado;
     }
+
+    //MENSAJES HTML
+    String htmlPreventiva = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { font-size: 22px; color: #ff9900; font-weight: bold; margin-bottom: 10px; }
+        .content { font-size: 16px; color: #333; }
+        .footer { margin-top: 20px; font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">⚠️ Alerta preventiva</div>
+        <div class="content">
+            El equipo <strong>%s</strong> ha alcanzado el <strong>90%%</strong> de la frecuencia de mantenimiento.<br>
+            <br>
+            Modelo: <strong>%s</strong><br>
+            Frecuencia establecida: <strong>%d</strong><br>
+            Unidades actuales: <strong>%.2f</strong>
+        </div>
+        <div class="footer">
+            Este correo fue generado automáticamente por el sistema de mantenimiento.
+        </div>
+    </div>
+</body>
+</html>
+""";
+
+    String htmlCritica = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fff3f3; padding: 20px; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid #e74c3c; }
+        .header { font-size: 22px; color: #e74c3c; font-weight: bold; margin-bottom: 10px; }
+        .content { font-size: 16px; color: #333; }
+        .footer { margin-top: 20px; font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">🔴 ALERTA DE MANTENIMIENTO</div>
+        <div class="content">
+            El equipo <strong>%s</strong> ha alcanzado o superado el <strong>100%%</strong> de su frecuencia de mantenimiento.<br>
+            <br>
+            Modelo: <strong>%s</strong><br>
+            Frecuencia establecida: <strong>%d</strong><br>
+            Unidades actuales: <strong>%.2f</strong>
+        </div>
+        <div class="footer">
+            Este correo fue generado automáticamente por el sistema de mantenimiento.
+        </div>
+    </div>
+</body>
+</html>
+""";
+
+
+    private void verificarFrecuenciaYEnviarAlerta(Equipo equipo, ModeloEquipo modelo) {
+        Double actual = equipo.getCantidadUnidadMedida();
+        int frecuencia = modelo.getFrecuenciaUnidadMedida();
+
+        if (frecuencia == 0 || actual == null) return;
+
+        double porcentaje = (actual / frecuencia) * 100;
+
+        String html = null;
+        boolean esCritico = false;
+
+        if (porcentaje >= 90 && porcentaje < 100) {
+            html = String.format(htmlPreventiva,
+                    equipo.getMatricula(),
+                    modelo.getModelo(),
+                    frecuencia,
+                    actual
+            );
+        } else if (porcentaje >= 100) {
+            html = String.format(htmlCritica,
+                    equipo.getMatricula(),
+                    modelo.getModelo(),
+                    frecuencia,
+                    actual
+            );
+            esCritico = true;
+        }
+
+        if (html != null) {
+            Unidad unidad = equipo.getUnidad();
+            if (unidad != null && unidad.getEmails() != null) {
+                for (UnidadEmail ue : unidad.getEmails()) {
+                    String destinatario = ue.getEmail();
+                    emailService.enviarAlertaMantenimiento(
+                            equipo,
+                            modelo,
+                            html,
+                            esCritico,
+                            destinatario
+                    );
+                }
+
+            }
+        }
+    }
+
+
 
     @Override
     public List<Equipo> obtenerEquiposPorIdModelo(Long idModelo, Long idUnidad) {

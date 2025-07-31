@@ -7,7 +7,6 @@ import com.example.sigema.models.Unidad;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.services.IEquipoService;
-import com.example.sigema.services.IMantenimientoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.utilidades.SigemaException;
@@ -19,11 +18,13 @@ import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.format.TextStyle;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional
@@ -220,9 +221,17 @@ public class EquipoService implements IEquipoService {
         sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, columnas.length - 1));
         rowIndex++;
 
+        LocalDate fecha = LocalDate.now();
+        String fechaFormateada = String.format(
+                "%d de %s de %d",
+                fecha.getDayOfMonth(),
+                fecha.getMonth().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                fecha.getYear()
+        );
+
         XSSFRow titleRow2 = sheet.createRow(rowIndex);
         XSSFCell titleCell2 = titleRow2.createCell(0);
-        titleCell2.setCellValue("Paso Carrasco, 12 de Mayo de 2025");
+        titleCell2.setCellValue("Paso Carrasco, " + fechaFormateada);
         titleCell2.setCellStyle(subtitleStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, columnas.length - 1));
 
@@ -234,8 +243,8 @@ public class EquipoService implements IEquipoService {
         titleCell3.setCellValue(titulo);
         titleCell3.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, columnas.length - 1));
-        rowIndex++;
 
+        rowIndex++;
         rowIndex++;
 
         XSSFCellStyle headerStyle = workbook.createCellStyle();
@@ -366,4 +375,3 @@ public class EquipoService implements IEquipoService {
         style.setRightBorderColor(IndexedColors.BLACK.getIndex());
     }
 }
-

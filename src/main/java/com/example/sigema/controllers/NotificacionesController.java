@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notificaciones")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class NotificacionesController {
 
     private final JwtUtils jwtUtils;

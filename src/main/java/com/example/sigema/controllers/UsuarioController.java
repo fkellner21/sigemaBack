@@ -22,7 +22,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired

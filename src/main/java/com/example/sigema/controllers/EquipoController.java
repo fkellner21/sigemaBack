@@ -25,7 +25,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/equipos")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class EquipoController {
 
     private final IEquipoService equiposService;

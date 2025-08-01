@@ -21,7 +21,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/tramites")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class TramitesController {
 
     private final ITramitesService tramitesService;

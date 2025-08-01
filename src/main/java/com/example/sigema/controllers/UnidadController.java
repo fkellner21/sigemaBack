@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/unidades")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class UnidadController {
 
     private final IUnidadService unidadService;

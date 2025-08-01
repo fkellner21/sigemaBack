@@ -45,13 +45,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
                 "http://127.0.0.1:*",
                 "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
                 "https://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net",
-                "https://black-sky-08a0d770f.2.azurestaticapps.net",
-                "https://*.azurestaticapps.net" // Para otros despliegues
+                "https://black-sky-08a0d770f.2.azurestaticapps.net"
+
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));

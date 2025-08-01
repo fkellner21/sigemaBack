@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tiposEquipos")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class TiposEquiposController {
 
     private final ITiposEquiposService tiposEquiposService;

@@ -197,8 +197,10 @@ public class EquipoService implements IEquipoService {
             El equipo <strong>%s</strong> ha alcanzado o superado el <strong>100%%</strong> de su frecuencia de mantenimiento.<br>
             <br>
             Modelo: <strong>%s</strong><br>
-            Frecuencia establecida: <strong>%d</strong><br>
-            Unidades actuales: <strong>%.2f</strong>
+            Frecuencia por uso establecida: <strong>%d AGREGAR UNIDAD DE MEDIDA DEL MODELO EQUIPO</strong><br>
+            Cantidad actual: <strong>%.2f AGREGAR UNIDAD DE MEDIDA DEL MODELO EQUIPO</strong>
+            Frecuencia por tiempo establecida: <strong>%d AGREGAR TEXTO MESES</strong><br>
+            Tiempo desde último service: <strong>%.2f AGERGAR TEXTO MESES, QUE SEA UN DECIMAL</strong>
         </div>
         <div class="footer">
             Este correo fue generado automáticamente por el sistema de mantenimiento.

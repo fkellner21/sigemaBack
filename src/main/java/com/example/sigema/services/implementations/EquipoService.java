@@ -392,7 +392,7 @@ public class EquipoService implements IEquipoService {
 
     @Override
     public ReporteActa generarActaEquipo(Equipo equipo, boolean esDotacion) throws IOException {
-        ClassPathResource plantillaResource = new ClassPathResource("recursos/PlantillaReporteEquipos.docx");
+        ClassPathResource plantillaResource = new ClassPathResource("recursos/PlantillaReporteEquipo.docx");
 
         LocalDate fecha = LocalDate.now();
         String fechaFormateada = String.format(

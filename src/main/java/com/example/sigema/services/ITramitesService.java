@@ -1,9 +1,6 @@
 package com.example.sigema.services;
 
-import com.example.sigema.models.Actuacion;
-import com.example.sigema.models.Tramite;
-import com.example.sigema.models.TramiteDTO;
-import com.example.sigema.models.Usuario;
+import com.example.sigema.models.*;
 import com.example.sigema.models.enums.EstadoTramite;
 
 import java.util.Date;
@@ -24,5 +21,5 @@ public interface ITramitesService {
     void Eliminar(Long id) throws Exception;
     Actuacion CrearActuacion(Long idTramite, Actuacion actuacion, Long idUsuario) throws Exception;
 
-    Tramite CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception;
+    EquipoActas CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception;
 }

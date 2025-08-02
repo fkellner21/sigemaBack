@@ -30,6 +30,9 @@ public class Equipo implements Serializable {
     @Column
     private String observaciones;
 
+    @Column
+    private String numeroMotor;
+
     @Column(nullable = false)
     private double cantidadUnidadMedida = 0;
 

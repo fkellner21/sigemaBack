@@ -91,7 +91,6 @@ public class TramiteService implements ITramitesService {
 
         Tramite tramite = mapearTramiteDesdeDTO(t,idUsuario, new Tramite(), true);
 
-
         Usuario quienCrea = usuarioService.ObtenerPorId(idUsuario);
 
         VisualizacionTramite vista = new VisualizacionTramite();
@@ -220,8 +219,9 @@ public class TramiteService implements ITramitesService {
     }
 
     @Override
-    public Tramite CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception {
+    public EquipoActas CambiarEstado(Long id, EstadoTramite estado, Long idUsuario) throws Exception {
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
+        EquipoActas equipoActas = new EquipoActas();
 
         if (tramite == null) {
             throw new SigemaException("El tramite no fue encontrado");
@@ -248,7 +248,7 @@ public class TramiteService implements ITramitesService {
         if (estado == EstadoTramite.Aprobado) {
             switch (tramite.getTipoTramite()) {
                 case BajaEquipo:
-                    equipoService.Eliminar(tramite.getEquipo().getId());
+                    equipoActas = equipoService.Eliminar(tramite.getEquipo().getId());
                     agregarVisualizacion(tramite, usuario, "Aprueba");
                     break;
 
@@ -296,7 +296,7 @@ public class TramiteService implements ITramitesService {
 
         CrearNotificacion(tramite, usuario, TipoNotificacion.CambioEstadoTramite);
 
-        return tramite;
+        return equipoActas;
     }
 
     private void agregarVisualizacion(Tramite tramite, Usuario usuario, String descripcion) {

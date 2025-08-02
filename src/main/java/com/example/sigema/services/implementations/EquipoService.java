@@ -1,9 +1,6 @@
 package com.example.sigema.services.implementations;
 
-import com.example.sigema.models.Equipo;
-import com.example.sigema.models.Mantenimiento;
-import com.example.sigema.models.ModeloEquipo;
-import com.example.sigema.models.Unidad;
+import com.example.sigema.models.*;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.services.IEquipoService;
@@ -15,16 +12,16 @@ import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Service
 @Transactional
@@ -53,10 +50,10 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public Equipo Crear(Equipo equipo) throws Exception {
+    public EquipoActas Crear(Equipo equipo) throws Exception {
         equipo.validar();
         equipo.setActivo(true);
-
+        EquipoActas equipoActas = new EquipoActas();
         Equipo equipoExistente = equipoRepository.findByMatricula(equipo.getMatricula().toUpperCase());
         if(equipoExistente != null){
             throw new SigemaException("Ya existe un equipo con esa matrícula");
@@ -87,14 +84,21 @@ public class EquipoService implements IEquipoService {
         equipo.setLongitud(unidad.getLongitud());
         equipo.setFechaUltimaPosicion(new Date());
 
-        return equipoRepository.save(equipo);
+        equipoActas.setEquipo(equipoRepository.save(equipo));
+
+        List<ReporteActa> actas = new ArrayList<>();
+        actas.add(generarActaEquipo(equipo, true));
+
+        equipoActas.setActas(actas);
+
+        return equipoActas;
     }
 
     @Override
-    public void Eliminar(Long id) throws Exception {
+    public EquipoActas Eliminar(Long id) throws Exception {
         Equipo equipo = ObtenerPorId(id);
         equipo.setActivo(false);
-        Editar(id, equipo);
+        return Editar(id, equipo);
     }
 
     @Override
@@ -103,9 +107,10 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public Equipo Editar(Long id, Equipo equipo) throws Exception {
+    public EquipoActas Editar(Long id, Equipo equipo) throws Exception {
         equipo.validar();
-
+        EquipoActas equipoActas = new EquipoActas();
+        List<ReporteActa> actas = new ArrayList<>();
         Long idModelo = equipo.getIdModeloEquipo();
 
         if (idModelo == null || idModelo == 0) {
@@ -138,6 +143,10 @@ public class EquipoService implements IEquipoService {
 
         Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
 
+        if(!Objects.equals(equipoEditar.getUnidad().getId(), unidad.getId())){
+            actas.add(generarActaEquipo(equipoEditar, false));
+        }
+
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
         equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
@@ -145,8 +154,14 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(equipo.isActivo());
+        equipoRepository.save(equipoEditar);
 
-        return equipoRepository.save(equipoEditar);
+        actas.add(generarActaEquipo(equipoEditar, equipo.isActivo()));
+
+        equipoActas.setEquipo(equipoEditar);
+        equipoActas.setActas(actas);
+
+        return equipoActas;
     }
 
     @Override
@@ -225,7 +240,7 @@ public class EquipoService implements IEquipoService {
         String fechaFormateada = String.format(
                 "%d de %s de %d",
                 fecha.getDayOfMonth(),
-                fecha.getMonth().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                fecha.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")),
                 fecha.getYear()
         );
 
@@ -373,5 +388,107 @@ public class EquipoService implements IEquipoService {
         style.setBottomBorderColor(IndexedColors.BLACK.getIndex());
         style.setLeftBorderColor(IndexedColors.BLACK.getIndex());
         style.setRightBorderColor(IndexedColors.BLACK.getIndex());
+    }
+
+    @Override
+    public ReporteActa generarActaEquipo(Equipo equipo, boolean esDotacion) throws IOException {
+        ClassPathResource plantillaResource = new ClassPathResource("recursos/PlantillaReporteEquipo.docx");
+
+        LocalDate fecha = LocalDate.now();
+        String fechaFormateada = String.format(
+                "%d de %s de %d",
+                fecha.getDayOfMonth(),
+                fecha.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")),
+                fecha.getYear()
+        );
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMMyy", Locale.forLanguageTag("es-ES"));
+        String fechaFormateadaEquipo = fecha.format(formatter).toUpperCase();
+
+        try (InputStream plantillaStream = plantillaResource.getInputStream();
+             XWPFDocument doc = new XWPFDocument(plantillaStream);
+             ByteArrayOutputStream outStream = new ByteArrayOutputStream()) {
+
+            Map<String, String> reemplazos = Map.of(
+                    "{textoFecha}", fechaFormateada,
+                    "{textoActa}", esDotacion ? "ALTA" : "BAJA",
+                    "{textoCaracter}", esDotacion ? "Dotación" : "Baja",
+                    "{textoEquipo}", equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getTipoEquipo() != null
+                            ? equipo.getModeloEquipo().getTipoEquipo().getNombre() : "",
+                    "{textoMatricula}", equipo.getMatricula() != null ? equipo.getMatricula() : "",
+                    "{textoMarca}", equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getMarca() != null
+                            ? equipo.getModeloEquipo().getMarca().getNombre() : "",
+                    "{textoFechaEquipo}", fechaFormateadaEquipo,
+                    "{textoModelo}", equipo.getModeloEquipo() != null ? equipo.getModeloEquipo().getModelo() : "",
+                    "{textoMotor}", equipo.getNumeroMotor() != null ? equipo.getNumeroMotor() : "",
+                    "{textoUnidad}", equipo.getUnidad() != null ? equipo.getUnidad().getNombre() : ""
+            );
+
+            for (Map.Entry<String, String> entry : reemplazos.entrySet()) {
+                for (XWPFParagraph p : doc.getParagraphs()) {
+                    reemplazarTexto(p, entry.getKey(), entry.getValue());
+                }
+
+                reemplazarTextoEnTablas(doc, entry.getKey(), entry.getValue());
+            }
+
+            doc.write(outStream);
+
+            ReporteActa reporteActa = new ReporteActa();
+            String nombreArchivo = "Acta de " + (esDotacion ? "Alta" : "Baja") + " de Equipo_" + fechaFormateadaEquipo + ".docx";
+            reporteActa.setNombre(nombreArchivo);
+            reporteActa.setArchivo(outStream.toByteArray());
+            return reporteActa;
+        }
+    }
+
+    private void reemplazarTexto(XWPFParagraph paragraph, String buscar, String reemplazo) {
+        if (reemplazo == null) {
+            reemplazo = "";
+        }
+
+        if (paragraph == null || buscar == null || buscar.isEmpty()) {
+            return;
+        }
+
+        List<XWPFRun> runs = paragraph.getRuns();
+        if (runs == null || runs.isEmpty()) {
+            return;
+        }
+
+        StringBuilder paragraphText = new StringBuilder();
+        for (XWPFRun run : runs) {
+            String text = run.getText(0);
+            if (text != null) {
+                paragraphText.append(text);
+            }
+        }
+
+        String textoCompleto = paragraphText.toString();
+
+        if (!textoCompleto.contains(buscar)) {
+            return;
+        }
+
+        textoCompleto = textoCompleto.replace(buscar, reemplazo);
+
+        // Quitar todos los runs y poner el texto reemplazado
+        for (int i = runs.size() - 1; i >= 0; i--) {
+            paragraph.removeRun(i);
+        }
+
+        paragraph.createRun().setText(textoCompleto);
+    }
+
+    private void reemplazarTextoEnTablas(XWPFDocument doc, String buscar, String reemplazo) {
+        for (XWPFTable tabla : doc.getTables()) {
+            for (XWPFTableRow fila : tabla.getRows()) {
+                for (XWPFTableCell celda : fila.getTableCells()) {
+                    for (XWPFParagraph p : celda.getParagraphs()) {
+                        reemplazarTexto(p, buscar, reemplazo);
+                    }
+                }
+            }
+        }
     }
 }

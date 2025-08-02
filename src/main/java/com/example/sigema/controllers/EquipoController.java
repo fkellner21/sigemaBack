@@ -1,9 +1,6 @@
 package com.example.sigema.controllers;
 
-import com.example.sigema.models.Equipo;
-import com.example.sigema.models.EquipoDashboardDTO;
-import com.example.sigema.models.Tramite;
-import com.example.sigema.models.TramiteDTO;
+import com.example.sigema.models.*;
 import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.models.enums.TipoTramite;
 import com.example.sigema.services.IEquipoService;
@@ -111,13 +108,13 @@ public class EquipoController {
     public ResponseEntity<?> crear(@RequestBody Equipo equipo) {
         try {
             String rol = jwtUtils.extractRol(getToken());
-            Equipo creado = equiposService.Crear(equipo);
+            EquipoActas equipoActas = equiposService.Crear(equipo);
             TramiteDTO tramite= new TramiteDTO();
-            tramite.setIdEquipo(creado.getId());
+            tramite.setIdEquipo(equipoActas.getEquipo().getId());
 
             tramite.setTexto("Tramite creado automaticamente al recibir un equipo como alta.");
             tramite.setTipoTramite(TipoTramite.AltaEquipo);
-            tramite.setIdUnidadDestino(creado.getUnidad().getId());
+            tramite.setIdUnidadDestino(equipoActas.getEquipo().getUnidad().getId());
 
             Long idUnidad = jwtUtils.extractIdUnidad(getToken());
             if(idUnidad!=null){
@@ -135,7 +132,7 @@ public class EquipoController {
                 tramiteService.CambiarEstado(tramiteCreado.getId(), EstadoTramite.Aprobado, idUsuario);
             }
 
-            return ResponseEntity.ok().body(creado);
+            return ResponseEntity.ok().body(equipoActas.getActas());
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -152,16 +149,14 @@ public class EquipoController {
             Long idUnidadDestino = 0L;
             String rol = jwtUtils.extractRol(getToken());
             EstadoTramite estadoTramite = EstadoTramite.Iniciado;
-            String respuesta="";
+            EquipoActas equipoActas = null;
 
             if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
                 idUnidadDestino = equipo.getUnidad().getId();
                 estadoTramite = EstadoTramite.Aprobado;
-                equiposService.Eliminar(id);
-                respuesta="Equipo eliminado con éxito.";
+                equipoActas = equiposService.Eliminar(id);
             }else{
                 idUnidadDestino = unidadService.obtenerGranUnidad().getId();
-                respuesta="Tramite para dar de baja el equipo creado con éxito.";
             }
 
             TramiteDTO tramiteBaja = new TramiteDTO();
@@ -185,7 +180,11 @@ public class EquipoController {
                 tramiteService.CambiarEstado(tramite.getId(), estadoTramite, idUsuario);
             }
 
-            return ResponseEntity.ok().body(respuesta);
+            if(equipoActas == null){
+                equipoActas = new EquipoActas();
+            }
+
+            return ResponseEntity.ok().body(equipoActas.getActas());
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -257,9 +256,9 @@ public class EquipoController {
                 tramiteService.CambiarEstado(tramiteAltaCreado.getId(), EstadoTramite.Aprobado, idUsuario);
             }
 
-            Equipo editado = equiposService.Editar(id, equipo);
+            EquipoActas equipoActas = equiposService.Editar(id, equipo);
 
-            return ResponseEntity.ok().body(editado);
+            return ResponseEntity.ok().body(equipoActas.actas);
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

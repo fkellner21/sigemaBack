@@ -1,18 +1,20 @@
 package com.example.sigema.services.implementations;
 
-import com.example.sigema.models.Equipo;
-import com.example.sigema.models.ModeloEquipo;
-import com.example.sigema.models.Unidad;
-import com.example.sigema.models.UnidadEmail;
+import com.example.sigema.models.*;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.services.IMantenimientoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +28,13 @@ public class EquipoService implements IEquipoService {
     private final IModeloEquipoService modeloEquipoService;
     private final IUnidadService unidadService;
 
+
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    @Lazy
+    private IMantenimientoService mantenimientoService;
 
     @Autowired
     public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService, IUnidadService unidadService) {
@@ -147,28 +154,29 @@ public class EquipoService implements IEquipoService {
         return equipoGuardado;
     }
 
-    //MENSAJES HTML
     String htmlPreventiva = """
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; }
-        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .header { font-size: 22px; color: #ff9900; font-weight: bold; margin-bottom: 10px; }
+        body { font-family: Arial, sans-serif; background-color: #fffaf0; padding: 20px; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid #f39c12; }
+        .header { font-size: 22px; color: #f39c12; font-weight: bold; margin-bottom: 10px; }
         .content { font-size: 16px; color: #333; }
         .footer { margin-top: 20px; font-size: 12px; color: #999; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">⚠️ Alerta preventiva</div>
+        <div class="header">🟠 ALERTA PREVENTIVA DE MANTENIMIENTO</div>
         <div class="content">
-            El equipo <strong>%s</strong> ha alcanzado el <strong>90%%</strong> de la frecuencia de mantenimiento.<br>
+            El equipo <strong>%s</strong> ha superado el <strong>80%%</strong> de su frecuencia de mantenimiento.<br>
             <br>
             Modelo: <strong>%s</strong><br>
-            Frecuencia establecida: <strong>%d</strong><br>
-            Unidades actuales: <strong>%.2f</strong>
+            Frecuencia por uso establecida: <strong>%d %s</strong><br>
+            Cantidad actual: <strong>%.2f %s</strong><br>
+            Frecuencia por tiempo establecida: <strong>%d meses</strong><br>
+            Tiempo desde el último service: <strong>%.2f meses</strong>
         </div>
         <div class="footer">
             Este correo fue generado automáticamente por el sistema de mantenimiento.
@@ -177,6 +185,7 @@ public class EquipoService implements IEquipoService {
 </body>
 </html>
 """;
+
 
     String htmlCritica = """
 <!DOCTYPE html>
@@ -197,10 +206,10 @@ public class EquipoService implements IEquipoService {
             El equipo <strong>%s</strong> ha alcanzado o superado el <strong>100%%</strong> de su frecuencia de mantenimiento.<br>
             <br>
             Modelo: <strong>%s</strong><br>
-            Frecuencia por uso establecida: <strong>%d AGREGAR UNIDAD DE MEDIDA DEL MODELO EQUIPO</strong><br>
-            Cantidad actual: <strong>%.2f AGREGAR UNIDAD DE MEDIDA DEL MODELO EQUIPO</strong>
-            Frecuencia por tiempo establecida: <strong>%d AGREGAR TEXTO MESES</strong><br>
-            Tiempo desde último service: <strong>%.2f AGERGAR TEXTO MESES, QUE SEA UN DECIMAL</strong>
+            Frecuencia por uso establecida: <strong>%d %s</strong><br>
+            Cantidad actual: <strong>%.2f %s</strong><br>
+            Frecuencia por tiempo establecida: <strong>%d meses</strong><br>
+            Tiempo desde el último service: <strong>%.2f meses</strong>
         </div>
         <div class="footer">
             Este correo fue generado automáticamente por el sistema de mantenimiento.
@@ -213,49 +222,89 @@ public class EquipoService implements IEquipoService {
 
     private void verificarFrecuenciaYEnviarAlerta(Equipo equipo, ModeloEquipo modelo) {
         Double actual = equipo.getCantidadUnidadMedida();
-        int frecuencia = modelo.getFrecuenciaUnidadMedida();
+        int frecuenciaUnidad = modelo.getFrecuenciaUnidadMedida();
+        int frecuenciaTiempo = modelo.getFrecuenciaTiempo();
 
-        if (frecuencia == 0 || actual == null) return;
+        if (frecuenciaUnidad == 0 || actual == null) return;
 
-        double porcentaje = (actual / frecuencia) * 100;
+        try {
+            // Obtener el último mantenimiento con esService = true, ordenado por fecha descendente
+            List<Mantenimiento> mantenimientos = mantenimientoService.obtenerPorEquipo(equipo.getId());
 
-        String html = null;
-        boolean esCritico = false;
+            Mantenimiento ultimoService = mantenimientos.stream()
+                    .filter(Mantenimiento::isEsService)
+                    .max((m1, m2) -> m1.getFechaMantenimiento().compareTo(m2.getFechaMantenimiento()))
+                    .orElse(null);
 
-        if (porcentaje >= 90 && porcentaje < 100) {
-            html = String.format(htmlPreventiva,
-                    equipo.getMatricula(),
-                    modelo.getModelo(),
-                    frecuencia,
-                    actual
-            );
-        } else if (porcentaje >= 100) {
-            html = String.format(htmlCritica,
-                    equipo.getMatricula(),
-                    modelo.getModelo(),
-                    frecuencia,
-                    actual
-            );
-            esCritico = true;
-        }
+            if (ultimoService == null) throw new SigemaException("El servicio no existe");
 
-        if (html != null) {
-            Unidad unidad = equipo.getUnidad();
-            if (unidad != null && unidad.getEmails() != null) {
-                for (UnidadEmail ue : unidad.getEmails()) {
-                    String destinatario = ue.getEmail();
+            // Cálculo por unidad de medida
+            double valor = actual - ultimoService.getCantidadUnidadMedida();
+            double porcentajeUnidad = (valor / frecuenciaUnidad) * 100;
+
+            // Cálculo por tiempo (meses decimales)
+            LocalDate fechaUltimoService = ultimoService.getFechaMantenimiento()
+                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            LocalDate hoy = LocalDate.now();
+
+            long diasEntre = ChronoUnit.DAYS.between(fechaUltimoService, hoy);
+            double mesesDecimales = diasEntre / 30.0;
+
+            // Condiciones de alerta crítica y preventiva
+            boolean esCriticoPorUso = porcentajeUnidad >= 100;
+            boolean alertaPorUso = porcentajeUnidad >= 80 && porcentajeUnidad < 100;
+
+            boolean esCriticoPorTiempo = mesesDecimales >= frecuenciaTiempo;
+            boolean alertaPorTiempo = mesesDecimales >= (frecuenciaTiempo - 1) && mesesDecimales < frecuenciaTiempo;
+
+            String html = null;
+            boolean esCritico = false;
+
+            if (esCriticoPorUso || esCriticoPorTiempo) {
+                esCritico = true;
+                html = String.format(htmlCritica,
+                        equipo.getMatricula(),                                  // %s
+                        modelo.getModelo(),                                     // %s
+                        frecuenciaUnidad,                                       // %d
+                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
+                        actual,                                                // %.2f
+                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
+                        frecuenciaTiempo,                                       // %d
+                        mesesDecimales                                         // %.2f
+                );
+            } else if (alertaPorUso || alertaPorTiempo) {
+                html = String.format(htmlPreventiva,
+                        equipo.getMatricula(),
+                        modelo.getModelo(),
+                        frecuenciaUnidad,
+                        modelo.getUnidadMedida().name().toLowerCase(),
+                        actual,
+                        modelo.getUnidadMedida().name().toLowerCase(),
+                        frecuenciaTiempo,
+                        mesesDecimales
+                );
+            }
+
+            if (html != null && equipo.getUnidad() != null && equipo.getUnidad().getEmails() != null) {
+                for (UnidadEmail ue : equipo.getUnidad().getEmails()) {
                     emailService.enviarAlertaMantenimiento(
                             equipo,
                             modelo,
                             html,
                             esCritico,
-                            destinatario
+                            ue.getEmail()
                     );
                 }
-
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
+
+
 
 
 

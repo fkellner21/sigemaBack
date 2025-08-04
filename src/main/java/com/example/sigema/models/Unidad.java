@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Unidades")
@@ -28,6 +30,10 @@ public class Unidad implements Serializable {
 
     @Column(nullable = false)
     private boolean esGranUnidad;
+
+    @OneToMany(mappedBy = "unidad", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UnidadEmail> emails = new ArrayList<>();
+
 
     public void validar() throws SigemaException {
         if(nombre.isEmpty()){

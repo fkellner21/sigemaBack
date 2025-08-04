@@ -1,21 +1,25 @@
 package com.example.sigema.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
-
 @Entity
-@Table(name = "TiposMantenimientos")
+@Table(name = "UnidadEmails")
 @Getter
 @Setter
-public class TipoMantenimiento implements Serializable {
+public class UnidadEmail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String nombre;
+    private String email;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "unidad_id", nullable = false)
+    private Unidad unidad;
 }

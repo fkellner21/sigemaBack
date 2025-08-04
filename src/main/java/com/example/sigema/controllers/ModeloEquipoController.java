@@ -30,7 +30,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/modelosEquipo")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class ModeloEquipoController {
 
     private final IModeloEquipoService modeloEquipoService;

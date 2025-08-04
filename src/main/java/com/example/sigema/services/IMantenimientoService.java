@@ -23,5 +23,6 @@ public interface IMantenimientoService {
     List<Mantenimiento> obtenerPorEquipo(Long idEquipo) throws Exception;
 
     List<Mantenimiento> ObtenerTodosPorFechas(Long idUnidad, Date fechaDesde, Date fechaHasta) throws Exception;
+    Mantenimiento ObtenerUltimoMantenimientoPorIdEquipo(Long idEquipo);
 }
 

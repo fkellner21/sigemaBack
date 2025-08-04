@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/repuestos")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class RepuestoController {
 
     private final IRepuestoService repuestosService;

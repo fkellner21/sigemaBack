@@ -2,16 +2,21 @@ package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.*;
 import com.example.sigema.repositories.IEquipoRepository;
+import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.services.IEquipoService;
 import com.example.sigema.services.IMantenimientoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.utilidades.SigemaException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -19,6 +24,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.core.io.ClassPathResource;
+import java.io.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.*;
 
 @Service
 @Transactional
@@ -27,6 +37,7 @@ public class EquipoService implements IEquipoService {
     private final IEquipoRepository equipoRepository;
     private final IModeloEquipoService modeloEquipoService;
     private final IUnidadService unidadService;
+    private final IMantenimientoRepository mantenimientoRepository;
 
 
     @Autowired
@@ -37,10 +48,11 @@ public class EquipoService implements IEquipoService {
     private IMantenimientoService mantenimientoService;
 
     @Autowired
-    public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService, IUnidadService unidadService) {
+    public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService, IUnidadService unidadService, IMantenimientoRepository mantenimientoRepository) {
         this.equipoRepository = equipoRepository;
         this.modeloEquipoService = modeloEquipoService;
         this.unidadService = unidadService;
+        this.mantenimientoRepository = mantenimientoRepository;
     }
 
     @Override
@@ -53,10 +65,10 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public Equipo Crear(Equipo equipo) throws Exception {
+    public EquipoActas Crear(Equipo equipo) throws Exception {
         equipo.validar();
         equipo.setActivo(true);
-
+        EquipoActas equipoActas = new EquipoActas();
         Equipo equipoExistente = equipoRepository.findByMatricula(equipo.getMatricula().toUpperCase());
         if(equipoExistente != null){
             throw new SigemaException("Ya existe un equipo con esa matrícula");
@@ -87,14 +99,21 @@ public class EquipoService implements IEquipoService {
         equipo.setLongitud(unidad.getLongitud());
         equipo.setFechaUltimaPosicion(new Date());
 
-        return equipoRepository.save(equipo);
+        equipoActas.setEquipo(equipoRepository.save(equipo));
+
+        List<ReporteActa> actas = new ArrayList<>();
+        actas.add(generarActaEquipo(equipo, true));
+
+        equipoActas.setActas(actas);
+
+        return equipoActas;
     }
 
     @Override
-    public void Eliminar(Long id) throws Exception {
+    public EquipoActas Eliminar(Long id) throws Exception {
         Equipo equipo = ObtenerPorId(id);
         equipo.setActivo(false);
-        Editar(id, equipo);
+        return Editar(id, equipo);
     }
 
     @Override
@@ -103,9 +122,10 @@ public class EquipoService implements IEquipoService {
     }
 
     @Override
-    public Equipo Editar(Long id, Equipo equipo) throws Exception {
+    public EquipoActas Editar(Long id, Equipo equipo) throws Exception {
         equipo.validar();
-
+        EquipoActas equipoActas = new EquipoActas();
+        List<ReporteActa> actas = new ArrayList<>();
         Long idModelo = equipo.getIdModeloEquipo();
 
         if (idModelo == null || idModelo == 0) {
@@ -138,6 +158,10 @@ public class EquipoService implements IEquipoService {
 
         Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
 
+        if(!Objects.equals(equipoEditar.getUnidad().getId(), unidad.getId())){
+            actas.add(generarActaEquipo(equipoEditar, false));
+        }
+
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
         equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
@@ -145,13 +169,18 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(equipo.isActivo());
+        equipoRepository.save(equipoEditar);
 
+        actas.add(generarActaEquipo(equipoEditar, equipo.isActivo()));
+
+        equipoActas.setEquipo(equipoEditar);
+        equipoActas.setActas(actas);
 
         Equipo equipoGuardado = equipoRepository.save(equipoEditar);
 
         verificarFrecuenciaYEnviarAlerta(equipoGuardado, modeloEquipo);
 
-        return equipoGuardado;
+        return equipoActas;
     }
 
     String htmlPreventiva = """
@@ -312,5 +341,322 @@ public class EquipoService implements IEquipoService {
             return equipoRepository.findByModeloEquipoIdAndUnidad_Id(idModelo, idUnidad);
         }
     }
-}
 
+    public void GenerarExcelIndicadoresGestion(HttpServletResponse response, Long idUnidad) throws SigemaException {
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("INDICADORES DE GESTIÓN");
+            List<Equipo> equipos = obtenerTodos(idUnidad);
+            String[] columnas = {
+                    "UNIDAD", "MATRÍCULA", "EQUIPO", "CAPACIDAD", "MARCA",
+                    "MODELO", "AÑO", "ESTADO", "HORAS/KMS", "ÚLTIMO MANTENIMIENTO", "OBSERVACIONES"
+            };
+
+            if (idUnidad == null || idUnidad == 0) {
+                equipos = equipos.stream()
+                        .sorted(Comparator.comparing(e -> e.getUnidad().getId()))
+                        .toList();
+            }
+
+            int rowIndex = generarTitulosExcel(workbook, sheet, 0, columnas, "INDICADORES DE GESTIÓN DEL EQUIPAMIENTO DE INGENIEROS " +
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", Locale.of("es", "ES"))).toUpperCase());
+
+            generarFilasExcelIndicadoresGestion(workbook, sheet, equipos, rowIndex);
+
+            int headerRowIndex = rowIndex - 1;
+            int lastRowWithData = rowIndex + equipos.size() - 1;
+            sheet.setAutoFilter(new CellRangeAddress(headerRowIndex, lastRowWithData, 0, columnas.length - 1));
+
+            for (int i = 0; i < columnas.length; i++) {
+                sheet.autoSizeColumn(i);
+                int currentWidth = sheet.getColumnWidth(i);
+                sheet.setColumnWidth(i, (int) (currentWidth * 1.7));
+            }
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=INDICADORES_DE_GESTIÓN.xlsx");
+
+            workbook.write(response.getOutputStream());
+            workbook.close();
+
+        } catch (Exception ex) {
+            throw new SigemaException("Ha ocurrido un error al generar el reporte de indicadores de gestión");
+        }
+    }
+
+    private int generarTitulosExcel(XSSFWorkbook workbook, XSSFSheet sheet, int rowIndex, String[] columnas, String titulo) {
+        XSSFCellStyle titleStyle = workbook.createCellStyle();
+        XSSFFont titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 15);
+        titleStyle.setFont(titleFont);
+        titleStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        XSSFCellStyle subtitleStyle = workbook.createCellStyle();
+        XSSFFont subtitleFont = workbook.createFont();
+        subtitleFont.setBold(true);
+        subtitleFont.setFontHeightInPoints((short) 13);
+        subtitleStyle.setFont(subtitleFont);
+
+        XSSFRow titleRow1 = sheet.createRow(rowIndex);
+        XSSFCell titleCell1 = titleRow1.createCell(0);
+        titleCell1.setCellValue("ÁREA LOGÍSTICA DE INGENIEROS");
+        titleCell1.setCellStyle(subtitleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, columnas.length - 1));
+        rowIndex++;
+
+        LocalDate fecha = LocalDate.now();
+        String fechaFormateada = String.format(
+                "%d de %s de %d",
+                fecha.getDayOfMonth(),
+                fecha.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")),
+                fecha.getYear()
+        );
+
+        XSSFRow titleRow2 = sheet.createRow(rowIndex);
+        XSSFCell titleCell2 = titleRow2.createCell(0);
+        titleCell2.setCellValue("Paso Carrasco, " + fechaFormateada);
+        titleCell2.setCellStyle(subtitleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, columnas.length - 1));
+
+        rowIndex++;
+        rowIndex++;
+
+        XSSFRow titleRow3 = sheet.createRow(rowIndex);
+        XSSFCell titleCell3 = titleRow3.createCell(0);
+        titleCell3.setCellValue(titulo);
+        titleCell3.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, columnas.length - 1));
+
+        rowIndex++;
+        rowIndex++;
+
+        XSSFCellStyle headerStyle = workbook.createCellStyle();
+        XSSFFont font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 13);
+        headerStyle.setFont(font);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        addBorders(headerStyle);
+
+        XSSFRow headerRow = sheet.createRow(rowIndex);
+        headerRow.setHeightInPoints(25);
+        for (int i = 0; i < columnas.length; i++) {
+            XSSFCell cell = headerRow.createCell(i);
+            cell.setCellValue(columnas[i]);
+            cell.setCellStyle(headerStyle);
+        }
+        rowIndex++;
+
+        return rowIndex;
+    }
+
+    private void generarFilasExcelIndicadoresGestion(XSSFWorkbook workbook, XSSFSheet sheet, List<Equipo> equipos, int rowIndex){
+        XSSFFont dataFont = workbook.createFont();
+        dataFont.setFontHeightInPoints((short) 12);
+        dataFont.setBold(false);
+
+        CreationHelper createHelper = workbook.getCreationHelper();
+        XSSFCellStyle dateCellStyle = workbook.createCellStyle();
+        dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
+        dateCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        dateCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        dateCellStyle.setFont(dataFont);
+        addBorders(dateCellStyle);
+
+        XSSFCellStyle centeredStyle = workbook.createCellStyle();
+        centeredStyle.setAlignment(HorizontalAlignment.CENTER);
+        centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        centeredStyle.setFont(dataFont);
+        addBorders(centeredStyle);
+
+        XSSFCellStyle normalStyle = workbook.createCellStyle();
+        normalStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        normalStyle.setFont(dataFont);
+        addBorders(normalStyle);
+
+        for (int i = 0; i < equipos.size(); i++) {
+            Equipo equipo = equipos.get(i);
+            Mantenimiento ultimoMantenimiento = mantenimientoRepository.findTopByEquipo_IdOrderByFechaMantenimientoDesc(equipo.getId()).orElse(null);
+
+            XSSFRow row = sheet.createRow(rowIndex + i);
+            row.setHeightInPoints(25);
+
+            XSSFCell cell0 = row.createCell(0);
+            cell0.setCellValue(equipo.getUnidad() != null && equipo.getUnidad().getNombre() != null ? equipo.getUnidad().getNombre() : "---");
+            cell0.setCellStyle(normalStyle);
+
+            XSSFCell cell1 = row.createCell(1);
+            cell1.setCellValue(equipo.getMatricula() != null ? equipo.getMatricula() : "---");
+            cell1.setCellStyle(normalStyle);
+
+            XSSFCell cell2 = row.createCell(2);
+            cell2.setCellValue(equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getModelo() != null ? equipo.getModeloEquipo().getModelo() : "---");
+            cell2.setCellStyle(normalStyle);
+
+            XSSFCell cell3 = row.createCell(3);
+            if (equipo.getModeloEquipo() != null) {
+                cell3.setCellValue(equipo.getModeloEquipo().getCapacidad() + " ");
+                cell3.setCellStyle(centeredStyle);
+            } else {
+                cell3.setCellValue("---");
+            }
+
+            XSSFCell cell4 = row.createCell(4);
+            cell4.setCellValue(equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getMarca() != null && equipo.getModeloEquipo().getMarca().getNombre() != null ?
+                    equipo.getModeloEquipo().getMarca().getNombre() : "---");
+            cell4.setCellStyle(centeredStyle);
+
+            XSSFCell cell5 = row.createCell(5);
+            if (equipo.getModeloEquipo() != null) {
+                cell5.setCellValue(equipo.getModeloEquipo().getModelo());
+                cell5.setCellStyle(centeredStyle);
+            } else {
+                cell5.setCellValue("---");
+            }
+
+            XSSFCell cell6 = row.createCell(6);
+            if (equipo.getModeloEquipo() != null) {
+                cell6.setCellValue(equipo.getModeloEquipo().getAnio());
+                cell6.setCellStyle(centeredStyle);
+            } else {
+                cell6.setCellValue("---");
+            }
+
+            XSSFCell cell7 = row.createCell(7);
+            cell7.setCellValue(equipo.getEstado() != null ? equipo.getEstado().name() : "---");
+            cell7.setCellStyle(centeredStyle);
+
+            XSSFCell cell8 = row.createCell(8);
+            String cantidadUnidadMedida = "---";
+            if (equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getUnidadMedida() != null) {
+                cantidadUnidadMedida = equipo.getCantidadUnidadMedida() + " " + equipo.getModeloEquipo().getUnidadMedida().name();
+            }
+            cell8.setCellValue(cantidadUnidadMedida);
+            cell8.setCellStyle(centeredStyle);
+
+            XSSFCell cell9 = row.createCell(9);
+            if (ultimoMantenimiento != null && ultimoMantenimiento.getFechaMantenimiento() != null) {
+                cell9.setCellValue(ultimoMantenimiento.getFechaMantenimiento());
+                cell9.setCellStyle(dateCellStyle);
+            }
+
+            XSSFCell cell10 = row.createCell(10);
+            cell10.setCellValue(equipo.getObservaciones() != null ? equipo.getObservaciones() : "");
+            cell10.setCellStyle(normalStyle);
+        }
+    }
+
+    private void addBorders(XSSFCellStyle style) {
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        style.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        style.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        style.setRightBorderColor(IndexedColors.BLACK.getIndex());
+    }
+
+    @Override
+    public ReporteActa generarActaEquipo(Equipo equipo, boolean esDotacion) throws IOException {
+        ClassPathResource plantillaResource = new ClassPathResource("recursos/PlantillaReporteEquipo.docx");
+
+        LocalDate fecha = LocalDate.now();
+        String fechaFormateada = String.format(
+                "%d de %s de %d",
+                fecha.getDayOfMonth(),
+                fecha.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")),
+                fecha.getYear()
+        );
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMMyy", Locale.forLanguageTag("es-ES"));
+        String fechaFormateadaEquipo = fecha.format(formatter).toUpperCase();
+
+        try (InputStream plantillaStream = plantillaResource.getInputStream();
+             XWPFDocument doc = new XWPFDocument(plantillaStream);
+             ByteArrayOutputStream outStream = new ByteArrayOutputStream()) {
+
+            Map<String, String> reemplazos = Map.of(
+                    "{textoFecha}", fechaFormateada,
+                    "{textoActa}", esDotacion ? "ALTA" : "BAJA",
+                    "{textoCaracter}", esDotacion ? "Dotación" : "Baja",
+                    "{textoEquipo}", equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getTipoEquipo() != null
+                            ? equipo.getModeloEquipo().getTipoEquipo().getNombre() : "",
+                    "{textoMatricula}", equipo.getMatricula() != null ? equipo.getMatricula() : "",
+                    "{textoMarca}", equipo.getModeloEquipo() != null && equipo.getModeloEquipo().getMarca() != null
+                            ? equipo.getModeloEquipo().getMarca().getNombre() : "",
+                    "{textoFechaEquipo}", fechaFormateadaEquipo,
+                    "{textoModelo}", equipo.getModeloEquipo() != null ? equipo.getModeloEquipo().getModelo() : "",
+                    "{textoMotor}", equipo.getNumeroMotor() != null ? equipo.getNumeroMotor() : "",
+                    "{textoUnidad}", equipo.getUnidad() != null ? equipo.getUnidad().getNombre() : ""
+            );
+
+            for (Map.Entry<String, String> entry : reemplazos.entrySet()) {
+                for (XWPFParagraph p : doc.getParagraphs()) {
+                    reemplazarTexto(p, entry.getKey(), entry.getValue());
+                }
+
+                reemplazarTextoEnTablas(doc, entry.getKey(), entry.getValue());
+            }
+
+            doc.write(outStream);
+
+            ReporteActa reporteActa = new ReporteActa();
+            String nombreArchivo = "Acta de " + (esDotacion ? "Alta" : "Baja") + " de Equipo_" + fechaFormateadaEquipo + ".docx";
+            reporteActa.setNombre(nombreArchivo);
+            reporteActa.setArchivo(outStream.toByteArray());
+            return reporteActa;
+        }
+    }
+
+    private void reemplazarTexto(XWPFParagraph paragraph, String buscar, String reemplazo) {
+        if (reemplazo == null) {
+            reemplazo = "";
+        }
+
+        if (paragraph == null || buscar == null || buscar.isEmpty()) {
+            return;
+        }
+
+        List<XWPFRun> runs = paragraph.getRuns();
+        if (runs == null || runs.isEmpty()) {
+            return;
+        }
+
+        StringBuilder paragraphText = new StringBuilder();
+        for (XWPFRun run : runs) {
+            String text = run.getText(0);
+            if (text != null) {
+                paragraphText.append(text);
+            }
+        }
+
+        String textoCompleto = paragraphText.toString();
+
+        if (!textoCompleto.contains(buscar)) {
+            return;
+        }
+
+        textoCompleto = textoCompleto.replace(buscar, reemplazo);
+
+        for (int i = runs.size() - 1; i >= 0; i--) {
+            paragraph.removeRun(i);
+        }
+
+        paragraph.createRun().setText(textoCompleto);
+    }
+
+    private void reemplazarTextoEnTablas(XWPFDocument doc, String buscar, String reemplazo) {
+        for (XWPFTable tabla : doc.getTables()) {
+            for (XWPFTableRow fila : tabla.getRows()) {
+                for (XWPFTableCell celda : fila.getTableCells()) {
+                    for (XWPFParagraph p : celda.getParagraphs()) {
+                        reemplazarTexto(p, buscar, reemplazo);
+                    }
+                }
+            }
+        }
+    }
+}

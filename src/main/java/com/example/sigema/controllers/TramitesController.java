@@ -21,7 +21,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/tramites")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class TramitesController {
 
     private final ITramitesService tramitesService;
@@ -180,8 +180,9 @@ public class TramitesController {
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody EstadoTramiteRequest estadoTramite) {
         try {
             Long idUsuario= jwtUtils.extractIdUsuario(getToken());
-            tramitesService.CambiarEstado(id,estadoTramite.getEstadoTramite(),idUsuario);
-            return ResponseEntity.ok().build();
+            EquipoActas equipoActas = tramitesService.CambiarEstado(id,estadoTramite.getEstadoTramite(),idUsuario);
+
+            return ResponseEntity.ok().body(equipoActas.getActas());
         } catch(SigemaException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

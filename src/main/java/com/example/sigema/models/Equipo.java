@@ -70,6 +70,7 @@ public class Equipo implements Serializable {
     @JsonIgnore
     private List<Mantenimiento> mantenimientos;
 
+
     public void validar() throws SigemaException {
 
         if (cantidadUnidadMedida < 0) {
@@ -91,5 +92,11 @@ public class Equipo implements Serializable {
         if ((idUnidad == null || idUnidad == 0) && (unidad == null || unidad.getId() == null || unidad.getId() == 0)) {
             throw new SigemaException("Debe asociar una unidad válida al equipo");
         }
+    }
+
+    public boolean requiereAlerta() {
+        boolean requiere = false;
+        //todo la logica
+        return requiere;
     }
 }

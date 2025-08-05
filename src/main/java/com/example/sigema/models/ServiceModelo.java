@@ -21,5 +21,4 @@ public class ServiceModelo implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "service_modelo_id")
     private List<RepuestoMantenimiento> repuestosMantenimiento;
-
 }

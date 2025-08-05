@@ -52,7 +52,6 @@ public class Repuesto implements Serializable {
     @JsonIgnore
     private List<RepuestoMantenimiento> repuestosMantenimiento;
 
-
     public void validar() throws SigemaException {
         if(idModelo == null){
             throw new SigemaException("Debe ingresar el modelo");

@@ -278,4 +278,16 @@ public class EquipoController {
 
         equiposService.GenerarExcelIndicadoresGestion(response, idUnidad);
     }
+
+    @GetMapping("reporteInformePrevisiones")
+    public void reporteInformePrevisiones(HttpServletResponse response) throws SigemaException {
+        Long idUnidad = jwtUtils.extractIdUnidad(getToken());
+        String rol = jwtUtils.extractRol(getToken());
+
+        if(Objects.equals(rol, "ROLE_ADMINISTRADOR") || Objects.equals(rol, "ROLE_BRIGADA")){
+            idUnidad = null;
+        }
+
+        equiposService.generarExcelInformeAnioProximo(response, idUnidad);
+    }
 }

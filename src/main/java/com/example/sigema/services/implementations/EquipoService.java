@@ -1,10 +1,12 @@
 package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.*;
+import com.example.sigema.models.enums.EstadoEquipo;
+import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.repositories.IMantenimientoRepository;
+import com.example.sigema.repositories.ITramitesRepository;
 import com.example.sigema.services.IEquipoService;
-import com.example.sigema.services.IMantenimientoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.utilidades.SigemaException;
@@ -15,20 +17,15 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
 import java.io.*;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -38,21 +35,17 @@ public class EquipoService implements IEquipoService {
     private final IModeloEquipoService modeloEquipoService;
     private final IUnidadService unidadService;
     private final IMantenimientoRepository mantenimientoRepository;
-
-
-    @Autowired
-    private EmailService emailService;
+    private final ITramitesRepository tramitesRepository;
 
     @Autowired
-    @Lazy
-    private IMantenimientoService mantenimientoService;
-
-    @Autowired
-    public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService, IUnidadService unidadService, IMantenimientoRepository mantenimientoRepository) {
+    public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService,
+                         IUnidadService unidadService, IMantenimientoRepository mantenimientoRepository,
+                         ITramitesRepository tramitesRepository) {
         this.equipoRepository = equipoRepository;
         this.modeloEquipoService = modeloEquipoService;
         this.unidadService = unidadService;
         this.mantenimientoRepository = mantenimientoRepository;
+        this.tramitesRepository = tramitesRepository;
     }
 
     @Override
@@ -176,161 +169,7 @@ public class EquipoService implements IEquipoService {
         equipoActas.setEquipo(equipoEditar);
         equipoActas.setActas(actas);
 
-        Equipo equipoGuardado = equipoRepository.save(equipoEditar);
-
-        verificarFrecuenciaYEnviarAlerta(equipoGuardado, modeloEquipo);
-
         return equipoActas;
-    }
-
-    String htmlPreventiva = """
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #fffaf0; padding: 20px; }
-        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid #f39c12; }
-        .header { font-size: 22px; color: #f39c12; font-weight: bold; margin-bottom: 10px; }
-        .content { font-size: 16px; color: #333; }
-        .footer { margin-top: 20px; font-size: 12px; color: #999; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">🟠 ALERTA PREVENTIVA DE MANTENIMIENTO</div>
-        <div class="content">
-            El equipo <strong>%s</strong> ha superado el <strong>80%%</strong> de su frecuencia de mantenimiento.<br>
-            <br>
-            Modelo: <strong>%s</strong><br>
-            Frecuencia por uso establecida: <strong>%d %s</strong><br>
-            Cantidad actual: <strong>%.2f %s</strong><br>
-            Frecuencia por tiempo establecida: <strong>%d meses</strong><br>
-            Tiempo desde el último service: <strong>%.2f meses</strong>
-        </div>
-        <div class="footer">
-            Este correo fue generado automáticamente por el sistema de mantenimiento.
-        </div>
-    </div>
-</body>
-</html>
-""";
-
-
-    String htmlCritica = """
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #fff3f3; padding: 20px; }
-        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid #e74c3c; }
-        .header { font-size: 22px; color: #e74c3c; font-weight: bold; margin-bottom: 10px; }
-        .content { font-size: 16px; color: #333; }
-        .footer { margin-top: 20px; font-size: 12px; color: #999; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">🔴 ALERTA DE MANTENIMIENTO</div>
-        <div class="content">
-            El equipo <strong>%s</strong> ha alcanzado o superado el <strong>100%%</strong> de su frecuencia de mantenimiento.<br>
-            <br>
-            Modelo: <strong>%s</strong><br>
-            Frecuencia por uso establecida: <strong>%d %s</strong><br>
-            Cantidad actual: <strong>%.2f %s</strong><br>
-            Frecuencia por tiempo establecida: <strong>%d meses</strong><br>
-            Tiempo desde el último service: <strong>%.2f meses</strong>
-        </div>
-        <div class="footer">
-            Este correo fue generado automáticamente por el sistema de mantenimiento.
-        </div>
-    </div>
-</body>
-</html>
-""";
-
-
-    private void verificarFrecuenciaYEnviarAlerta(Equipo equipo, ModeloEquipo modelo) {
-        Double actual = equipo.getCantidadUnidadMedida();
-        int frecuenciaUnidad = modelo.getFrecuenciaUnidadMedida();
-        int frecuenciaTiempo = modelo.getFrecuenciaTiempo();
-
-        if (frecuenciaUnidad == 0 || actual == null) return;
-
-        try {
-            // Obtener el último mantenimiento con esService = true, ordenado por fecha descendente
-            List<Mantenimiento> mantenimientos = mantenimientoService.obtenerPorEquipo(equipo.getId());
-
-            Mantenimiento ultimoService = mantenimientos.stream()
-                    .filter(Mantenimiento::isEsService)
-                    .max((m1, m2) -> m1.getFechaMantenimiento().compareTo(m2.getFechaMantenimiento()))
-                    .orElse(null);
-
-            // Cálculo por unidad de medida
-            double valor = actual;
-            if (ultimoService!=null)   valor = actual - ultimoService.getCantidadUnidadMedida();
-            double porcentajeUnidad = (valor / frecuenciaUnidad) * 100;
-
-            // Cálculo por tiempo (meses decimales)
-            long mesesDecimales=0L;
-            if(ultimoService!=null){
-            LocalDate fechaUltimoService = ultimoService.getFechaMantenimiento()
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            LocalDate hoy = LocalDate.now();
-
-            mesesDecimales = ChronoUnit.MONTHS.between(fechaUltimoService, hoy);
-            }
-
-            // Condiciones de alerta crítica y preventiva
-            boolean esCriticoPorUso = porcentajeUnidad >= 100;
-            boolean alertaPorUso = porcentajeUnidad >= 80 && porcentajeUnidad < 100;
-
-            boolean esCriticoPorTiempo = mesesDecimales >= frecuenciaTiempo;
-            boolean alertaPorTiempo = mesesDecimales >= (frecuenciaTiempo - 1) && mesesDecimales < frecuenciaTiempo;
-
-            String html = null;
-            boolean esCritico = false;
-
-            if (esCriticoPorUso || esCriticoPorTiempo) {
-                esCritico = true;
-                html = String.format(htmlCritica,
-                        equipo.getMatricula(),                                  // %s
-                        modelo.getModelo(),                                     // %s
-                        frecuenciaUnidad,                                       // %d
-                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
-                        actual,                                                // %.2f
-                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
-                        frecuenciaTiempo,                                       // %d
-                        mesesDecimales                                         // %.2f
-                );
-            } else if (alertaPorUso || alertaPorTiempo) {
-                html = String.format(htmlPreventiva,
-                        equipo.getMatricula(),
-                        modelo.getModelo(),
-                        frecuenciaUnidad,
-                        modelo.getUnidadMedida().name().toLowerCase(),
-                        actual,
-                        modelo.getUnidadMedida().name().toLowerCase(),
-                        frecuenciaTiempo,
-                        mesesDecimales
-                );
-            }
-
-            if (html != null && equipo.getUnidad() != null && equipo.getUnidad().getEmails() != null) {
-                for (UnidadEmail ue : equipo.getUnidad().getEmails()) {
-                    emailService.enviarAlertaMantenimiento(
-                            equipo,
-                            modelo,
-                            html,
-                            esCritico,
-                            ue.getEmail()
-                    );
-                }
-            }
-
-        } catch (Exception e) {
-            throw new SigemaException("Error al enviár el email de alerta por cercanía de mantenimiento.");
-        }
     }
 
     @Override
@@ -359,7 +198,7 @@ public class EquipoService implements IEquipoService {
             }
 
             int rowIndex = generarTitulosExcel(workbook, sheet, 0, columnas, "INDICADORES DE GESTIÓN DEL EQUIPAMIENTO DE INGENIEROS " +
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", Locale.of("es", "ES"))).toUpperCase());
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", Locale.of("es", "ES"))).toUpperCase(), false);
 
             generarFilasExcelIndicadoresGestion(workbook, sheet, equipos, rowIndex);
 
@@ -378,13 +217,12 @@ public class EquipoService implements IEquipoService {
 
             workbook.write(response.getOutputStream());
             workbook.close();
-
         } catch (Exception ex) {
             throw new SigemaException("Ha ocurrido un error al generar el reporte de indicadores de gestión");
         }
     }
 
-    private int generarTitulosExcel(XSSFWorkbook workbook, XSSFSheet sheet, int rowIndex, String[] columnas, String titulo) {
+    private int generarTitulosExcel(XSSFWorkbook workbook, XSSFSheet sheet, int rowIndex, String[] columnas, String titulo, boolean mostrarColumnas) {
         XSSFCellStyle titleStyle = workbook.createCellStyle();
         XSSFFont titleFont = workbook.createFont();
         titleFont.setBold(true);
@@ -442,12 +280,15 @@ public class EquipoService implements IEquipoService {
 
         XSSFRow headerRow = sheet.createRow(rowIndex);
         headerRow.setHeightInPoints(25);
-        for (int i = 0; i < columnas.length; i++) {
-            XSSFCell cell = headerRow.createCell(i);
-            cell.setCellValue(columnas[i]);
-            cell.setCellStyle(headerStyle);
+
+        if(mostrarColumnas) {
+            for (int i = 0; i < columnas.length; i++) {
+                XSSFCell cell = headerRow.createCell(i);
+                cell.setCellValue(columnas[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            rowIndex++;
         }
-        rowIndex++;
 
         return rowIndex;
     }
@@ -657,6 +498,136 @@ public class EquipoService implements IEquipoService {
                     }
                 }
             }
+        }
+    }
+
+    public void generarExcelInformeAnioProximo(HttpServletResponse response, Long idUnidad) throws SigemaException {
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook();
+
+            String[] columnasBase = {"TIPO", "CÓDIGO SICE", "REPUESTO", "CANTIDAD", "CARACTERISTICAS", "OBSERVACIONES"};
+            String[] columnasEquipo = {"UNIDAD", "TIPO EQUIPO", "MATRICULA", "ESTADO"};
+
+            String[] columnasCompletas = Stream.concat(Arrays.stream(columnasEquipo), Arrays.stream(columnasBase))
+                    .toArray(String[]::new);
+
+            List<Equipo> equipos = obtenerTodos(idUnidad);
+
+            XSSFCellStyle titleStyle = workbook.createCellStyle();
+            XSSFFont titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 13);
+            titleStyle.setFont(titleFont);
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            XSSFSheet sheetMantenimientos = workbook.createSheet("MANTENIMIENTOS PREVENTIVOS");
+            int rowIndexMantenimientos = generarTitulosExcel(workbook, sheetMantenimientos, 0, columnasCompletas,
+                    "INFORME MANTENIMIENTOS PREVENTIVOS " +
+                            LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", new Locale("es", "ES"))).toUpperCase(), true);
+
+            XSSFSheet sheetRepuestos = workbook.createSheet("REPUESTOS SOLICITADOS");
+            int rowIndexRepuestos = generarTitulosExcel(workbook, sheetRepuestos, 0, columnasCompletas,
+                    "INFORME REPUESTOS SOLICITADOS " +
+                            LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", new Locale("es", "ES"))).toUpperCase(), true);
+
+            List<EstadoTramite> estadosTramites = List.of(EstadoTramite.Iniciado, EstadoTramite.EnTramite);
+
+            XSSFCellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setAlignment(HorizontalAlignment.LEFT);
+            dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            addBorders(dataStyle);
+
+            for (Equipo e : equipos) {
+                boolean tieneMantenimientos = e.getModeloEquipo() != null
+                        && e.getModeloEquipo().getServiceModelo() != null
+                        && !e.getModeloEquipo().getServiceModelo().getRepuestosMantenimiento().isEmpty();
+
+                List<Tramite> tramites = tramitesRepository.findByEquipo_IdAndEstadoIn(e.getId(), estadosTramites);
+                boolean tieneRepuestosSolicitados = !tramites.isEmpty();
+
+                if (tieneMantenimientos) {
+                    int frecuenciaMeses = e.getModeloEquipo().getFrecuenciaTiempo();
+                    List<RepuestoMantenimiento> repuestosMantenimiento = e.getModeloEquipo().getServiceModelo().getRepuestosMantenimiento();
+
+                    for (RepuestoMantenimiento rm : repuestosMantenimiento) {
+                        Repuesto repuesto = rm.getRepuesto();
+                        XSSFRow row = sheetMantenimientos.createRow(rowIndexMantenimientos++);
+                        int col = 0;
+                        row.createCell(col++).setCellValue(e.getUnidad().getNombre());
+                        row.createCell(col++).setCellValue(e.getModeloEquipo().getTipoEquipo().getCodigo());
+                        row.createCell(col++).setCellValue(e.getMatricula());
+                        row.createCell(col++).setCellValue(e.getEstado().toString());
+
+                        row.createCell(col++).setCellValue(repuesto.getTipo().toString());
+                        row.createCell(col++).setCellValue(repuesto.getCodigoSICE());
+                        row.createCell(col++).setCellValue(repuesto.getNombre());
+                        row.createCell(col++).setCellValue(rm.getCantidadUsada() * (frecuenciaMeses <= 6 ? 2 : 1));
+                        row.createCell(col++).setCellValue(repuesto.getCaracteristicas());
+                        row.createCell(col).setCellValue(repuesto.getObservaciones());
+
+                        for (int i = 0; i < columnasCompletas.length; i++) {
+                            row.getCell(i).setCellStyle(dataStyle);
+                        }
+                    }
+                }
+
+                if (tieneRepuestosSolicitados) {
+                    for (Tramite tramite : tramites) {
+                        Repuesto repuesto = tramite.getRepuesto();
+                        if (repuesto != null) {
+                            XSSFRow row = sheetRepuestos.createRow(rowIndexRepuestos++);
+                            int col = 0;
+                            row.createCell(col++).setCellValue(e.getUnidad().getNombre());
+                            row.createCell(col++).setCellValue(e.getModeloEquipo().getTipoEquipo().getCodigo());
+                            row.createCell(col++).setCellValue(e.getMatricula());
+                            row.createCell(col++).setCellValue(e.getEstado().toString());
+
+                            row.createCell(col++).setCellValue(repuesto.getTipo().toString());
+                            row.createCell(col++).setCellValue(repuesto.getCodigoSICE());
+                            row.createCell(col++).setCellValue(repuesto.getNombre());
+                            row.createCell(col++).setCellValue(repuesto.getCantidad());
+                            row.createCell(col++).setCellValue(repuesto.getCaracteristicas());
+                            row.createCell(col).setCellValue(repuesto.getObservaciones());
+
+                            for (int i = 0; i < columnasCompletas.length; i++) {
+                                row.getCell(i).setCellStyle(dataStyle);
+                            }
+                        }
+                    }
+                }
+            }
+
+            sheetMantenimientos.setAutoFilter(new CellRangeAddress(5, rowIndexMantenimientos - 1, 0, columnasCompletas.length - 1));
+            sheetRepuestos.setAutoFilter(new CellRangeAddress(5, rowIndexRepuestos - 1, 0, columnasCompletas.length - 1));
+
+            for (int i = 0; i < columnasCompletas.length; i++) {
+                sheetMantenimientos.autoSizeColumn(i);
+                sheetRepuestos.autoSizeColumn(i);
+
+                int widthM = sheetMantenimientos.getColumnWidth(i);
+                int widthR = sheetRepuestos.getColumnWidth(i);
+
+                sheetMantenimientos.setColumnWidth(i, (int) (widthM * 1.5));
+                sheetRepuestos.setColumnWidth(i, (int) (widthR * 1.5));
+            }
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=INFORME_PREVISIONES.xlsx");
+
+            workbook.write(response.getOutputStream());
+            workbook.close();
+
+        } catch (Exception ex) {
+            throw new SigemaException("Ha ocurrido un error al generar el informe de repuestos para el año proximo");
+        }
+    }
+
+    private void crearEncabezadoTabla(XSSFWorkbook workbook, XSSFSheet sheet, String[] columnas, XSSFCellStyle style) {
+        XSSFRow headerRow = sheet.createRow(0);
+        for (int i = 0; i < columnas.length; i++) {
+            XSSFCell cell = headerRow.createCell(i);
+            cell.setCellValue(columnas[i]);
+            cell.setCellStyle(style);
         }
     }
 }

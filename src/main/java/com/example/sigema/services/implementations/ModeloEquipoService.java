@@ -76,6 +76,7 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloExistenteOpt.setUnidadMedida(modeloEquipo.getUnidadMedida());
         modeloExistenteOpt.setFrecuenciaTiempo(modeloEquipo.getFrecuenciaTiempo());
         modeloExistenteOpt.setFrecuenciaUnidadMedida(modeloEquipo.getFrecuenciaUnidadMedida());
+        modeloExistenteOpt.setServiceModelo(modeloEquipo.getServiceModelo());
 
         return modeloEquipoRepository.save(modeloExistenteOpt);
     }
@@ -89,5 +90,4 @@ public class ModeloEquipoService implements IModeloEquipoService {
     public List<ModeloEquipo> ObtenerTodos() {
         return modeloEquipoRepository.findAll();
     }
-
 }

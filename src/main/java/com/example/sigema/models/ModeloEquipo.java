@@ -76,6 +76,13 @@ public class ModeloEquipo implements Serializable {
     @Column(nullable = false)
     private int frecuenciaTiempo;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "service_modelo_id", referencedColumnName = "id")
+    private ServiceModelo serviceModelo;
+
+    @Transient
+    private Long idServiceModelo;
+
     public void validar() throws SigemaException{
         if(anio < 1900){
             throw new SigemaException("El año debe ser mayor o igual a 1900");

@@ -1,6 +1,7 @@
 package com.example.sigema.repositories;
 
 import com.example.sigema.models.Equipo;
+import com.example.sigema.models.enums.EstadoEquipo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

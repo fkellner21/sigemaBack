@@ -615,7 +615,7 @@ public class EquipoService implements IEquipoService {
 
             XSSFSheet sheetResumen = workbook.createSheet("RESUMEN REPUESTOS");
             int rowIndexResumen = 0;
-            String[] columnasResumen = {"CÓDIGO SICE", "REPUESTO", "TIPO", "CARACTERISTICAS", "OBSERVACIONES", "CANTIDAD TOTAL"};
+            String[] columnasResumen = {"CÓDIGO SICE", "REPUESTO", "TIPO", "CARACTERISTICAS", "CANTIDAD TOTAL"};
             rowIndexResumen = generarTitulosExcel(workbook, sheetResumen, rowIndexResumen, columnasResumen,
                     "RESUMEN DE REPUESTOS AGRUPADOS POR CÓDIGO SICE", true);
 
@@ -630,7 +630,6 @@ public class EquipoService implements IEquipoService {
                 row.createCell(col++).setCellValue(r.nombre);
                 row.createCell(col++).setCellValue(r.tipo);
                 row.createCell(col++).setCellValue(r.caracteristicas);
-                row.createCell(col++).setCellValue(r.observaciones);
                 row.createCell(col).setCellValue(r.cantidad);
 
                 for (int i = 0; i < columnasResumen.length; i++) {
@@ -676,7 +675,6 @@ public class EquipoService implements IEquipoService {
         String nombre;
         String tipo;
         String caracteristicas;
-        String observaciones;
         double cantidad;
 
         public ResumenRepuesto(Repuesto r, double cantidadInicial) {
@@ -684,7 +682,6 @@ public class EquipoService implements IEquipoService {
             this.nombre = r.getNombre();
             this.tipo = r.getTipo().toString();
             this.caracteristicas = r.getCaracteristicas();
-            this.observaciones = r.getObservaciones();
             this.cantidad = cantidadInicial;
         }
 

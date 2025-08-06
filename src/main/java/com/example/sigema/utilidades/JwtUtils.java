@@ -1,6 +1,7 @@
 package com.example.sigema.utilidades;
 
 import com.example.sigema.models.CustomUserDetails;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.Decoders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -34,54 +35,78 @@ public class JwtUtils {
     }
 
     public String extractUsername(String token) {
+        try{
+
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+        } catch (JwtException e) {
+        return null;
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
+        try{
         String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
+    try{
         Date expiration = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getExpiration();
-
         return expiration.before(new Date());
+    } catch (JwtException e) {
+        return true;
+    }
     }
 
     public String extractRol(String token) {
+        try{
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .get("rol", String.class);
+        } catch (JwtException e) {
+            return null;
+        }
     }
 
     public Long extractIdUnidad(String token) {
+        try{
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .get("idUnidad", Long.class);
+        } catch (JwtException e) {
+            return null;
+        }
     }
 
     public Long extractIdUsuario(String token) {
+    try{
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .get("idUsuario", Long.class);
+        } catch (JwtException e) {
+        return null;
+        }
     }
 }

@@ -198,7 +198,7 @@ public class EquipoService implements IEquipoService {
             }
 
             int rowIndex = generarTitulosExcel(workbook, sheet, 0, columnas, "INDICADORES DE GESTIÓN DEL EQUIPAMIENTO DE INGENIEROS " +
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", Locale.of("es", "ES"))).toUpperCase(), false);
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", Locale.of("es", "ES"))).toUpperCase(), true);
 
             generarFilasExcelIndicadoresGestion(workbook, sheet, equipos, rowIndex);
 
@@ -380,8 +380,8 @@ public class EquipoService implements IEquipoService {
             XSSFCell cell9 = row.createCell(9);
             if (ultimoMantenimiento != null && ultimoMantenimiento.getFechaMantenimiento() != null) {
                 cell9.setCellValue(ultimoMantenimiento.getFechaMantenimiento());
-                cell9.setCellStyle(dateCellStyle);
             }
+            cell9.setCellStyle(dateCellStyle);
 
             XSSFCell cell10 = row.createCell(10);
             cell10.setCellValue(equipo.getObservaciones() != null ? equipo.getObservaciones() : "");
@@ -507,9 +507,8 @@ public class EquipoService implements IEquipoService {
 
             String[] columnasBase = {"TIPO", "CÓDIGO SICE", "REPUESTO", "CANTIDAD", "CARACTERISTICAS", "OBSERVACIONES"};
             String[] columnasEquipo = {"UNIDAD", "TIPO EQUIPO", "MATRICULA", "ESTADO"};
-
-            String[] columnasCompletas = Stream.concat(Arrays.stream(columnasEquipo), Arrays.stream(columnasBase))
-                    .toArray(String[]::new);
+            String[] columnasCompletas = Stream.concat(Arrays.stream(columnasEquipo), Arrays.stream(columnasBase)).toArray(String[]::new);
+            String[] columnasRepuestos = Arrays.stream(columnasCompletas).filter(c -> !c.equals("CANTIDAD")).toArray(String[]::new);
 
             List<Equipo> equipos = obtenerTodos(idUnidad);
 
@@ -526,7 +525,7 @@ public class EquipoService implements IEquipoService {
                             LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", new Locale("es", "ES"))).toUpperCase(), true);
 
             XSSFSheet sheetRepuestos = workbook.createSheet("REPUESTOS SOLICITADOS");
-            int rowIndexRepuestos = generarTitulosExcel(workbook, sheetRepuestos, 0, columnasCompletas,
+            int rowIndexRepuestos = generarTitulosExcel(workbook, sheetRepuestos, 0, columnasRepuestos,
                     "INFORME REPUESTOS SOLICITADOS " +
                             LocalDate.now().format(DateTimeFormatter.ofPattern("MMM.yy", new Locale("es", "ES"))).toUpperCase(), true);
 
@@ -536,6 +535,8 @@ public class EquipoService implements IEquipoService {
             dataStyle.setAlignment(HorizontalAlignment.LEFT);
             dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
             addBorders(dataStyle);
+
+            Map<String, ResumenRepuesto> resumenRepuestos = new HashMap<>();
 
             for (Equipo e : equipos) {
                 boolean tieneMantenimientos = e.getModeloEquipo() != null
@@ -551,6 +552,8 @@ public class EquipoService implements IEquipoService {
 
                     for (RepuestoMantenimiento rm : repuestosMantenimiento) {
                         Repuesto repuesto = rm.getRepuesto();
+                        double cantidad = rm.getCantidadUsada() * (frecuenciaMeses <= 6 ? 2 : 1);
+
                         XSSFRow row = sheetMantenimientos.createRow(rowIndexMantenimientos++);
                         int col = 0;
                         row.createCell(col++).setCellValue(e.getUnidad().getNombre());
@@ -561,13 +564,20 @@ public class EquipoService implements IEquipoService {
                         row.createCell(col++).setCellValue(repuesto.getTipo().toString());
                         row.createCell(col++).setCellValue(repuesto.getCodigoSICE());
                         row.createCell(col++).setCellValue(repuesto.getNombre());
-                        row.createCell(col++).setCellValue(rm.getCantidadUsada() * (frecuenciaMeses <= 6 ? 2 : 1));
+                        row.createCell(col++).setCellValue(cantidad);
                         row.createCell(col++).setCellValue(repuesto.getCaracteristicas());
                         row.createCell(col).setCellValue(repuesto.getObservaciones());
 
                         for (int i = 0; i < columnasCompletas.length; i++) {
                             row.getCell(i).setCellStyle(dataStyle);
                         }
+
+                        resumenRepuestos.merge(repuesto.getCodigoSICE(),
+                                new ResumenRepuesto(repuesto, cantidad),
+                                (existente, nuevo) -> {
+                                    existente.agregarCantidad(nuevo.cantidad);
+                                    return existente;
+                                });
                     }
                 }
 
@@ -585,30 +595,69 @@ public class EquipoService implements IEquipoService {
                             row.createCell(col++).setCellValue(repuesto.getTipo().toString());
                             row.createCell(col++).setCellValue(repuesto.getCodigoSICE());
                             row.createCell(col++).setCellValue(repuesto.getNombre());
-                            row.createCell(col++).setCellValue(repuesto.getCantidad());
                             row.createCell(col++).setCellValue(repuesto.getCaracteristicas());
                             row.createCell(col).setCellValue(repuesto.getObservaciones());
 
-                            for (int i = 0; i < columnasCompletas.length; i++) {
+                            for (int i = 0; i < columnasRepuestos.length; i++) {
                                 row.getCell(i).setCellStyle(dataStyle);
                             }
+
+                            resumenRepuestos.merge(repuesto.getCodigoSICE(),
+                                    new ResumenRepuesto(repuesto, repuesto.getCantidad()),
+                                    (existente, nuevo) -> {
+                                        existente.agregarCantidad(nuevo.cantidad);
+                                        return existente;
+                                    });
                         }
                     }
                 }
             }
 
+            XSSFSheet sheetResumen = workbook.createSheet("RESUMEN REPUESTOS");
+            int rowIndexResumen = 0;
+            String[] columnasResumen = {"CÓDIGO SICE", "REPUESTO", "TIPO", "CARACTERISTICAS", "OBSERVACIONES", "CANTIDAD TOTAL"};
+            rowIndexResumen = generarTitulosExcel(workbook, sheetResumen, rowIndexResumen, columnasResumen,
+                    "RESUMEN DE REPUESTOS AGRUPADOS POR CÓDIGO SICE", true);
+
+            List<ResumenRepuesto> resumenOrdenado = resumenRepuestos.values().stream()
+                    .sorted(Comparator.comparing(r -> r.codigoSice))
+                    .toList();
+
+            for (ResumenRepuesto r : resumenOrdenado) {
+                XSSFRow row = sheetResumen.createRow(rowIndexResumen++);
+                int col = 0;
+                row.createCell(col++).setCellValue(r.codigoSice);
+                row.createCell(col++).setCellValue(r.nombre);
+                row.createCell(col++).setCellValue(r.tipo);
+                row.createCell(col++).setCellValue(r.caracteristicas);
+                row.createCell(col++).setCellValue(r.observaciones);
+                row.createCell(col).setCellValue(r.cantidad);
+
+                for (int i = 0; i < columnasResumen.length; i++) {
+                    row.getCell(i).setCellStyle(dataStyle);
+                }
+            }
+
             sheetMantenimientos.setAutoFilter(new CellRangeAddress(5, rowIndexMantenimientos - 1, 0, columnasCompletas.length - 1));
-            sheetRepuestos.setAutoFilter(new CellRangeAddress(5, rowIndexRepuestos - 1, 0, columnasCompletas.length - 1));
+            sheetRepuestos.setAutoFilter(new CellRangeAddress(5, rowIndexRepuestos - 1, 0, columnasRepuestos.length - 1));
+            sheetResumen.setAutoFilter(new CellRangeAddress(5, rowIndexResumen - 1, 0, columnasResumen.length - 1));
 
             for (int i = 0; i < columnasCompletas.length; i++) {
                 sheetMantenimientos.autoSizeColumn(i);
-                sheetRepuestos.autoSizeColumn(i);
-
                 int widthM = sheetMantenimientos.getColumnWidth(i);
-                int widthR = sheetRepuestos.getColumnWidth(i);
-
                 sheetMantenimientos.setColumnWidth(i, (int) (widthM * 1.5));
+            }
+
+            for (int i = 0; i < columnasRepuestos.length; i++) {
+                sheetRepuestos.autoSizeColumn(i);
+                int widthR = sheetRepuestos.getColumnWidth(i);
                 sheetRepuestos.setColumnWidth(i, (int) (widthR * 1.5));
+            }
+
+            for (int i = 0; i < columnasResumen.length; i++) {
+                sheetResumen.autoSizeColumn(i);
+                int width = sheetResumen.getColumnWidth(i);
+                sheetResumen.setColumnWidth(i, (int) (width * 1.5));
             }
 
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -618,7 +667,29 @@ public class EquipoService implements IEquipoService {
             workbook.close();
 
         } catch (Exception ex) {
-            throw new SigemaException("Ha ocurrido un error al generar el informe de repuestos para el año proximo");
+            throw new SigemaException("Ha ocurrido un error al generar el informe de repuestos para el año próximo");
+        }
+    }
+
+    private static class ResumenRepuesto {
+        String codigoSice;
+        String nombre;
+        String tipo;
+        String caracteristicas;
+        String observaciones;
+        double cantidad;
+
+        public ResumenRepuesto(Repuesto r, double cantidadInicial) {
+            this.codigoSice = r.getCodigoSICE();
+            this.nombre = r.getNombre();
+            this.tipo = r.getTipo().toString();
+            this.caracteristicas = r.getCaracteristicas();
+            this.observaciones = r.getObservaciones();
+            this.cantidad = cantidadInicial;
+        }
+
+        public void agregarCantidad(double cantidadExtra) {
+            this.cantidad += cantidadExtra;
         }
     }
 

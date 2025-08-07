@@ -7,6 +7,7 @@ import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.repositories.ITramitesRepository;
 import com.example.sigema.services.IEquipoService;
+import com.example.sigema.services.IMantenimientoService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.utilidades.SigemaException;
@@ -22,8 +23,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -36,16 +39,19 @@ public class EquipoService implements IEquipoService {
     private final IUnidadService unidadService;
     private final IMantenimientoRepository mantenimientoRepository;
     private final ITramitesRepository tramitesRepository;
+    private final EmailService emailService;
 
     @Autowired
     public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService,
                          IUnidadService unidadService, IMantenimientoRepository mantenimientoRepository,
-                         ITramitesRepository tramitesRepository) {
+                         ITramitesRepository tramitesRepository)
+    {
         this.equipoRepository = equipoRepository;
         this.modeloEquipoService = modeloEquipoService;
         this.unidadService = unidadService;
         this.mantenimientoRepository = mantenimientoRepository;
         this.tramitesRepository = tramitesRepository;
+        this.emailService = new EmailService();
     }
 
     @Override
@@ -163,12 +169,12 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(equipo.isActivo());
         equipoRepository.save(equipoEditar);
-
         actas.add(generarActaEquipo(equipoEditar, equipo.isActivo()));
 
         equipoActas.setEquipo(equipoEditar);
         equipoActas.setActas(actas);
 
+        verificarFrecuenciaYEnviarAlerta(equipoEditar, modeloEquipo);
         return equipoActas;
     }
 
@@ -696,6 +702,169 @@ public class EquipoService implements IEquipoService {
             XSSFCell cell = headerRow.createCell(i);
             cell.setCellValue(columnas[i]);
             cell.setCellStyle(style);
+        }
+    }
+
+    String htmlPreventiva = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fffaf0; padding: 20px; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid #f39c12; }
+        .header { font-size: 22px; color: #f39c12; font-weight: bold; margin-bottom: 10px; }
+        .content { font-size: 16px; color: #333; }
+        .footer { margin-top: 20px; font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">🟠 ALERTA PREVENTIVA DE MANTENIMIENTO</div>
+        <div class="content">
+            El equipo <strong>%s</strong> ha superado el <strong>80%%</strong> de su frecuencia de mantenimiento.
+
+            
+
+            Modelo: <strong>%s</strong>
+
+            Frecuencia por uso establecida: <strong>%d %s</strong>
+
+            Cantidad actual: <strong>%.2f %s</strong>
+
+            Frecuencia por tiempo establecida: <strong>%d meses</strong>
+
+            Tiempo desde el último service: <strong>%.2f meses</strong>
+        </div>
+        <div class="footer">
+            Este correo fue generado automáticamente por el sistema de mantenimiento.
+        </div>
+    </div>
+</body>
+</html>
+""";
+
+
+    String htmlCritica = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fff3f3; padding: 20px; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 6px solid #e74c3c; }
+        .header { font-size: 22px; color: #e74c3c; font-weight: bold; margin-bottom: 10px; }
+        .content { font-size: 16px; color: #333; }
+        .footer { margin-top: 20px; font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">🔴 ALERTA DE MANTENIMIENTO</div>
+        <div class="content">
+            El equipo <strong>%s</strong> ha alcanzado o superado el <strong>100%%</strong> de su frecuencia de mantenimiento.
+
+            
+
+            Modelo: <strong>%s</strong>
+
+            Frecuencia por uso establecida: <strong>%d %s</strong>
+
+            Cantidad actual: <strong>%.2f %s</strong>
+
+            Frecuencia por tiempo establecida: <strong>%d meses</strong>
+
+            Tiempo desde el último service: <strong>%.2f meses</strong>
+        </div>
+        <div class="footer">
+            Este correo fue generado automáticamente por el sistema de mantenimiento.
+        </div>
+    </div>
+</body>
+</html>
+""";
+
+
+    private void verificarFrecuenciaYEnviarAlerta(Equipo equipo, ModeloEquipo modelo) {
+        Double actual = equipo.getCantidadUnidadMedida();
+        int frecuenciaUnidad = modelo.getFrecuenciaUnidadMedida();
+        int frecuenciaTiempo = modelo.getFrecuenciaTiempo();
+
+        if (frecuenciaUnidad == 0 || actual == null) return;
+
+        try {
+            // Obtener el último mantenimiento con esService = true, ordenado por fecha descendente
+            List<Mantenimiento> mantenimientos = mantenimientoRepository.findByEquipo_IdOrderByFechaMantenimientoDesc(equipo.getId());
+
+            Mantenimiento ultimoService = mantenimientos.stream()
+                    .filter(Mantenimiento::isEsService)
+                    .max((m1, m2) -> m1.getFechaMantenimiento().compareTo(m2.getFechaMantenimiento()))
+                    .orElse(null);
+
+            if (ultimoService == null) {
+
+            }
+
+            // Cálculo por unidad de medida
+            double valor = actual - ultimoService.getCantidadUnidadMedida();
+            double porcentajeUnidad = (valor / frecuenciaUnidad) * 100;
+
+            // Cálculo por tiempo (meses decimales)
+            LocalDate fechaUltimoService = ultimoService.getFechaMantenimiento()
+                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            LocalDate hoy = LocalDate.now();
+
+            long diasEntre = ChronoUnit.DAYS.between(fechaUltimoService, hoy);
+            double mesesDecimales = diasEntre / 30.0;
+
+            // Condiciones de alerta crítica y preventiva
+            boolean esCriticoPorUso = porcentajeUnidad >= 100;
+            boolean alertaPorUso = porcentajeUnidad >= 80 && porcentajeUnidad < 100;
+
+            boolean esCriticoPorTiempo = mesesDecimales >= frecuenciaTiempo;
+            boolean alertaPorTiempo = mesesDecimales >= (frecuenciaTiempo - 1) && mesesDecimales < frecuenciaTiempo;
+
+            String html = null;
+            boolean esCritico = false;
+
+            if (esCriticoPorUso || esCriticoPorTiempo) {
+                esCritico = true;
+                html = String.format(htmlCritica,
+                        equipo.getMatricula(),                                  // %s
+                        modelo.getModelo(),                                     // %s
+                        frecuenciaUnidad,                                       // %d
+                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
+                        actual,                                                // %.2f
+                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
+                        frecuenciaTiempo,                                       // %d
+                        mesesDecimales                                         // %.2f
+                );
+            } else if (alertaPorUso || alertaPorTiempo) {
+                html = String.format(htmlPreventiva,
+                        equipo.getMatricula(),
+                        modelo.getModelo(),
+                        frecuenciaUnidad,
+                        modelo.getUnidadMedida().name().toLowerCase(),
+                        actual,
+                        modelo.getUnidadMedida().name().toLowerCase(),
+                        frecuenciaTiempo,
+                        mesesDecimales
+                );
+            }
+
+            if (html != null && equipo.getUnidad() != null && equipo.getUnidad().getEmails() != null) {
+                for (UnidadEmail ue : equipo.getUnidad().getEmails()) {
+                    emailService.enviarAlertaMantenimiento(
+                            equipo,
+                            modelo,
+                            html,
+                            esCritico,
+                            ue.getEmail()
+                    );
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

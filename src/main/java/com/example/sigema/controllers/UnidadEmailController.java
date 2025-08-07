@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/unidad-emails")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class UnidadEmailController {
 
     @Autowired

@@ -44,14 +44,14 @@ public class EquipoService implements IEquipoService {
     @Autowired
     public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService,
                          IUnidadService unidadService, IMantenimientoRepository mantenimientoRepository,
-                         ITramitesRepository tramitesRepository)
+                         ITramitesRepository tramitesRepository, EmailService emailService)
     {
         this.equipoRepository = equipoRepository;
         this.modeloEquipoService = modeloEquipoService;
         this.unidadService = unidadService;
         this.mantenimientoRepository = mantenimientoRepository;
         this.tramitesRepository = tramitesRepository;
-        this.emailService = new EmailService();
+        this.emailService = emailService;
     }
 
     @Override
@@ -799,22 +799,21 @@ public class EquipoService implements IEquipoService {
                     .max((m1, m2) -> m1.getFechaMantenimiento().compareTo(m2.getFechaMantenimiento()))
                     .orElse(null);
 
-            if (ultimoService == null) {
-
-            }
-
             // Cálculo por unidad de medida
-            double valor = actual - ultimoService.getCantidadUnidadMedida();
+            double valor = actual;
+            if (ultimoService!=null)   valor = actual - ultimoService.getCantidadUnidadMedida();
             double porcentajeUnidad = (valor / frecuenciaUnidad) * 100;
 
             // Cálculo por tiempo (meses decimales)
-            LocalDate fechaUltimoService = ultimoService.getFechaMantenimiento()
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            float mesesDecimales=0f;
+            if(ultimoService!=null){
+                LocalDate fechaUltimoService = ultimoService.getFechaMantenimiento()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            LocalDate hoy = LocalDate.now();
+                LocalDate hoy = LocalDate.now();
 
-            long diasEntre = ChronoUnit.DAYS.between(fechaUltimoService, hoy);
-            double mesesDecimales = diasEntre / 30.0;
+                mesesDecimales = ChronoUnit.MONTHS.between(fechaUltimoService, hoy);
+            }
 
             // Condiciones de alerta crítica y preventiva
             boolean esCriticoPorUso = porcentajeUnidad >= 100;
@@ -864,7 +863,7 @@ public class EquipoService implements IEquipoService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new SigemaException("Error al enviár el email de alerta por cercanía de mantenimiento.");
         }
     }
 }

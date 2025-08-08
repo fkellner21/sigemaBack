@@ -26,4 +26,5 @@ public interface IEquipoService {
     void GenerarExcelIndicadoresGestion(HttpServletResponse response, Long idUnidad) throws SigemaException;
     ReporteActa generarActaEquipo(Equipo equipo, boolean esDotacion) throws IOException;
     void generarExcelInformeAnioProximo(HttpServletResponse response, Long idUnidad) throws SigemaException;
+
 }

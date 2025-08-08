@@ -12,8 +12,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
     public void enviarAlertaMantenimiento(Equipo equipo, ModeloEquipo modelo, String contenidoHtml, boolean esCritico, String destinatario) {
         try {

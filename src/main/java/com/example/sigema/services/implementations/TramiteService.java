@@ -25,15 +25,17 @@ public class TramiteService implements ITramitesService {
     private final IEquipoService equipoService;
     private final IRepuestoService repuestoService;
     private final INotificacionesService notificacionesService;
+    private final ILogService logService;
 
     public TramiteService (ITramitesRepository tramitesRepository, IUnidadService unidadService, IUsuarioService usuarioService,
-                           IEquipoService equipoService, IRepuestoService repuestoService, INotificacionesService notificacionesService){
+                           IEquipoService equipoService, IRepuestoService repuestoService, INotificacionesService notificacionesService, ILogService logService){
         this.tramitesRepository = tramitesRepository;
         this.unidadService = unidadService;
         this.usuarioService = usuarioService;
         this.equipoService = equipoService;
         this.repuestoService = repuestoService;
         this.notificacionesService = notificacionesService;
+        this.logService = logService;
     }
 
     @Override
@@ -102,6 +104,10 @@ public class TramiteService implements ITramitesService {
         tramite = tramitesRepository.save(tramite);
 
         CrearNotificacion(tramite, quienCrea, TipoNotificacion.NuevoTramite);
+
+        String destino = tramite.getUnidadDestino() != null ? tramite.getUnidadDestino().getNombre() : "Todos";
+
+        logService.guardarLog("Se ha creado el tramite (Tipo: " + tramite.getTipoTramite() + ", Origen: " + tramite.getUnidadOrigen().getNombre() + ", Destino: " + destino, true);
 
         return tramite;
     }
@@ -175,18 +181,34 @@ public class TramiteService implements ITramitesService {
 
         tramite = tramitesRepository.save(tramite);
 
+        logService.guardarLog("Se ha editado el tramite (Tipo: " + tramite.getTipoTramite().toString() + ", Origen: " + tramite.getUnidadOrigen().getNombre() + ", Destino: " + tramite.getUnidadDestino().getNombre(), true);
+
         return tramite;
     }
 
     @Override
     public void Eliminar(Long id) throws Exception{
         Tramite tramite = tramitesRepository.findById(id).orElse(null);
+        String tipo = "";
+        String origen = "";
+        String destino = "";
 
         if(tramite == null){
             throw new SigemaException("El tramite no fue encontrado");
         }
 
+        tipo = tramite.getTipoTramite().toString();
+        origen = tramite.getUnidadOrigen().getNombre();
+
+        if(tramite.getUnidadDestino() != null) {
+            destino = tramite.getUnidadDestino().getNombre();
+        }else{
+            destino = "Todos";
+        }
+
         tramitesRepository.delete(tramite);
+
+        logService.guardarLog("Se ha eliminado el tramite (Tipo: " + tipo + ", Origen: " + origen + ", Destino: " + destino, true);
     }
 
     @Override
@@ -214,6 +236,9 @@ public class TramiteService implements ITramitesService {
         tramitesRepository.save(tramite);
 
         CrearNotificacion(tramite, usuario, TipoNotificacion.NuevaActuacion);
+
+        String destino = tramite.getUnidadDestino() != null ? tramite.getUnidadDestino().getNombre() : "Todos";
+        logService.guardarLog("Se ha creado una actuación para el tramite (Tipo: " + tramite.getTipoTramite() + ", Origen: " + tramite.getUnidadOrigen().getNombre() + ", Destino: " + destino, true);
 
         return actuacion;
     }
@@ -295,6 +320,9 @@ public class TramiteService implements ITramitesService {
         tramite = tramitesRepository.save(tramite);
 
         CrearNotificacion(tramite, usuario, TipoNotificacion.CambioEstadoTramite);
+
+        String destino = tramite.getUnidadDestino() != null ? tramite.getUnidadDestino().getNombre() : "Todos";
+        logService.guardarLog("Se ha cambiado el estado del tramite (Estado: "+ tramite.getEstado().toString() + ",Tipo: " + tramite.getTipoTramite() + ", Origen: " + tramite.getUnidadOrigen().getNombre() + ", Destino: " + destino, true);
 
         return equipoActas;
     }
@@ -392,8 +420,6 @@ public class TramiteService implements ITramitesService {
         }
 
         usuarios.remove(usuario);
-
-
 
         String textoOrigen = "";
         String textoDestino = "";

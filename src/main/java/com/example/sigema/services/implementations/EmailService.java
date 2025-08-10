@@ -2,6 +2,7 @@ package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.Equipo;
 import com.example.sigema.models.ModeloEquipo;
+import com.example.sigema.services.ILogService;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -13,10 +14,12 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private JavaMailSender mailSender;
+    private final ILogService logService;
 
     @Autowired
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(JavaMailSender mailSender, ILogService logService) {
         this.mailSender = mailSender;
+        this.logService = logService;
     }
 
     public void enviarAlertaMantenimiento(Equipo equipo, ModeloEquipo modelo, String contenidoHtml, boolean esCritico, String destinatario) {
@@ -29,9 +32,9 @@ public class EmailService {
             helper.setText(contenidoHtml, true);
 
             mailSender.send(message);
+            logService.guardarLog("Se ha enviado el email de alerta para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", false);
         } catch (Exception e) {
-            // Podés loguearlo o lanzar una excepción personalizada
-            System.err.println("Error al enviar el correo: " + e.getMessage());
+            logService.guardarLog("No se ha enviado el email de alerta para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + "), Error: " + e.getMessage(), false);
         }
     }
 }

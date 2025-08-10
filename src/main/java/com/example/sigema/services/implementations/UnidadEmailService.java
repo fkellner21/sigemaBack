@@ -4,6 +4,7 @@ import com.example.sigema.models.Unidad;
 import com.example.sigema.models.UnidadEmail;
 import com.example.sigema.repositories.IUnidadEmailRepository;
 import com.example.sigema.repositories.IUnidadRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IUnidadEmailService;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,9 @@ public class UnidadEmailService implements IUnidadEmailService {
     @Autowired
     private IUnidadEmailRepository unidadEmailRepository;
 
+    @Autowired
+    private ILogService logService;
+
     @Override
     public UnidadEmail agregarEmail(Long unidadId, String email) throws Exception {
         Unidad unidad = unidadRepository.findById(unidadId)
@@ -31,7 +35,11 @@ public class UnidadEmailService implements IUnidadEmailService {
         unidadEmail.setEmail(email);
         unidadEmail.setUnidad(unidad);
 
-        return unidadEmailRepository.save(unidadEmail);
+        UnidadEmail ue = unidadEmailRepository.save(unidadEmail);
+
+        logService.guardarLog("Se han asignado el/los email/s "+ ue.getEmail() +" en la unidad " + unidad.getNombre(), true);
+
+        return ue;
     }
 
     @Override
@@ -48,6 +56,7 @@ public class UnidadEmailService implements IUnidadEmailService {
         }
 
         unidadEmailRepository.deleteById(emailId);
+        logService.guardarLog("Se han elimnado el/los email/s "+ email.getEmail() +" en la unidad " + unidad.getNombre(), true);
     }
 
 

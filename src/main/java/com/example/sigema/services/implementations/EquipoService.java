@@ -6,11 +6,10 @@ import com.example.sigema.models.enums.EstadoTramite;
 import com.example.sigema.repositories.IEquipoRepository;
 import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.repositories.ITramitesRepository;
-import com.example.sigema.services.IEquipoService;
-import com.example.sigema.services.IMantenimientoService;
-import com.example.sigema.services.IModeloEquipoService;
-import com.example.sigema.services.IUnidadService;
+import com.example.sigema.services.*;
 import com.example.sigema.utilidades.SigemaException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
@@ -20,6 +19,7 @@ import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -40,11 +40,15 @@ public class EquipoService implements IEquipoService {
     private final IMantenimientoRepository mantenimientoRepository;
     private final ITramitesRepository tramitesRepository;
     private final EmailService emailService;
+    private final ILogService logService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     public EquipoService(IEquipoRepository equipoRepository, IModeloEquipoService modeloEquipoService,
                          IUnidadService unidadService, IMantenimientoRepository mantenimientoRepository,
-                         ITramitesRepository tramitesRepository, EmailService emailService)
+                         ITramitesRepository tramitesRepository, EmailService emailService, ILogService logService)
     {
         this.equipoRepository = equipoRepository;
         this.modeloEquipoService = modeloEquipoService;
@@ -52,6 +56,7 @@ public class EquipoService implements IEquipoService {
         this.mantenimientoRepository = mantenimientoRepository;
         this.tramitesRepository = tramitesRepository;
         this.emailService = emailService;
+        this.logService = logService;
     }
 
     @Override
@@ -69,25 +74,25 @@ public class EquipoService implements IEquipoService {
         equipo.setActivo(true);
         EquipoActas equipoActas = new EquipoActas();
         Equipo equipoExistente = equipoRepository.findByMatricula(equipo.getMatricula().toUpperCase());
-        if(equipoExistente != null){
+        if (equipoExistente != null) {
             throw new SigemaException("Ya existe un equipo con esa matrícula");
         }
 
         ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(equipo.getIdModeloEquipo()).orElse(null);
 
-        if(modeloEquipo == null){
+        if (modeloEquipo == null) {
             throw new SigemaException("El modelo de equipo ingresado no existe");
         }
 
         Long idUnidad = equipo.getIdUnidad();
 
-        if(equipo.getUnidad() != null && equipo.getUnidad().getId() != 0){
+        if (equipo.getUnidad() != null && equipo.getUnidad().getId() != 0) {
             idUnidad = equipo.getUnidad().getId();
         }
 
         Unidad unidad = unidadService.ObtenerPorId(idUnidad).orElse(null);
 
-        if(unidad == null){
+        if (unidad == null) {
             throw new SigemaException("La unidad ingresada no existe");
         }
 
@@ -104,6 +109,7 @@ public class EquipoService implements IEquipoService {
         actas.add(generarActaEquipo(equipo, true));
 
         equipoActas.setActas(actas);
+        logService.guardarLog("Se ha creado el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
 
         return equipoActas;
     }
@@ -111,13 +117,20 @@ public class EquipoService implements IEquipoService {
     @Override
     public EquipoActas Eliminar(Long id) throws Exception {
         Equipo equipo = ObtenerPorId(id);
+
         equipo.setActivo(false);
+        equipo.setMatricula(null);
+        logService.guardarLog("Se ha eliminado el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+
         return Editar(id, equipo);
     }
 
     @Override
     public Equipo ObtenerPorId(Long id) throws Exception {
-        return equipoRepository.findById(id).orElse(null);
+        return equipoRepository.findById(id).map(e -> {
+            entityManager.refresh(e);
+            return e;
+        }).orElse(null);
     }
 
     @Override
@@ -126,6 +139,7 @@ public class EquipoService implements IEquipoService {
         EquipoActas equipoActas = new EquipoActas();
         List<ReporteActa> actas = new ArrayList<>();
         Long idModelo = equipo.getIdModeloEquipo();
+        boolean eliminarEquipo = equipo.isActivo();
 
         if (idModelo == null || idModelo == 0) {
             ModeloEquipo me = equipo.getModeloEquipo();
@@ -139,7 +153,10 @@ public class EquipoService implements IEquipoService {
         ModeloEquipo modeloEquipo = modeloEquipoService.ObtenerPorId(idModelo)
                 .orElseThrow(() -> new SigemaException("Modelo de equipo no encontrado"));
 
-        Equipo equipoEditar = ObtenerPorId(id);
+        Equipo equipoEditar = equipoRepository.findById(id)
+                .orElseThrow(() -> new SigemaException("El equipo no existe"));
+
+        entityManager.refresh(equipoEditar);
 
         if(modeloEquipo == null){
             throw new SigemaException("El modelo de equipo ingresado no existe");
@@ -161,20 +178,26 @@ public class EquipoService implements IEquipoService {
             actas.add(generarActaEquipo(equipoEditar, false));
         }
 
+        if(equipoEditar.isActivo() != eliminarEquipo){
+            actas.add(generarActaEquipo(equipoEditar, eliminarEquipo));
+        }
+
         equipoEditar.setEstado(equipo.getEstado());
         equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
-        equipoEditar.setMatricula(equipo.getMatricula().toUpperCase());
+        equipoEditar.setMatricula(equipo.getMatricula() != null ? equipo.getMatricula().toUpperCase() : null);
         equipoEditar.setUnidad(unidad);
         equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
-        equipoEditar.setActivo(equipo.isActivo());
+        equipoEditar.setActivo(eliminarEquipo);
         equipoRepository.save(equipoEditar);
-        actas.add(generarActaEquipo(equipoEditar, equipo.isActivo()));
 
         equipoActas.setEquipo(equipoEditar);
         equipoActas.setActas(actas);
 
         verificarFrecuenciaYEnviarAlerta(equipoEditar, modeloEquipo);
+
+        logService.guardarLog("Se ha editado el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+
         return equipoActas;
     }
 
@@ -223,6 +246,8 @@ public class EquipoService implements IEquipoService {
 
             workbook.write(response.getOutputStream());
             workbook.close();
+
+            logService.guardarLog("Se ha generado el reporte de indicadores de gestión", true);
         } catch (Exception ex) {
             throw new SigemaException("Ha ocurrido un error al generar el reporte de indicadores de gestión");
         }
@@ -454,6 +479,9 @@ public class EquipoService implements IEquipoService {
             String nombreArchivo = "Acta de " + (esDotacion ? "Alta" : "Baja") + " de Equipo_" + fechaFormateadaEquipo + ".docx";
             reporteActa.setNombre(nombreArchivo);
             reporteActa.setArchivo(outStream.toByteArray());
+
+            logService.guardarLog("Se ha generado el acta de " + (esDotacion ? "Alta" : "Baja") + " del equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+
             return reporteActa;
         }
     }
@@ -670,7 +698,7 @@ public class EquipoService implements IEquipoService {
 
             workbook.write(response.getOutputStream());
             workbook.close();
-
+            logService.guardarLog("Se ha generado el reporte de informe de previsiones", true);
         } catch (Exception ex) {
             throw new SigemaException("Ha ocurrido un error al generar el informe de repuestos para el año próximo");
         }
@@ -860,8 +888,9 @@ public class EquipoService implements IEquipoService {
                             ue.getEmail()
                     );
                 }
-            }
 
+                logService.guardarLog("Se ha enviado la alerta de mantenimiento para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", false);
+            }
         } catch (Exception e) {
             throw new SigemaException("Error al enviár el email de alerta por cercanía de mantenimiento.");
         }

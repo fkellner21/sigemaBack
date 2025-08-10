@@ -1,15 +1,13 @@
 package com.example.sigema.services.implementations;
 import com.example.sigema.models.*;
 import com.example.sigema.repositories.IMantenimientoRepository;
-import com.example.sigema.services.IEquipoService;
-import com.example.sigema.services.IMantenimientoService;
-import com.example.sigema.services.IModeloEquipoService;
-import com.example.sigema.services.IRepuestoService;
+import com.example.sigema.services.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -21,12 +19,14 @@ public class MantenimientoService implements IMantenimientoService {
     private final IMantenimientoRepository repo;
     private final IEquipoService equipoService;
     private final IRepuestoService repuestoService;
+    private final ILogService logService;
 
     @Autowired
-    public MantenimientoService(IMantenimientoRepository repo, IEquipoService equipoService, IRepuestoService repuestoService){
+    public MantenimientoService(IMantenimientoRepository repo, IEquipoService equipoService, IRepuestoService repuestoService, ILogService logService){
         this.repo = repo;
         this.equipoService = equipoService;
         this.repuestoService = repuestoService;
+        this.logService = logService;
     }
 
     @Override
@@ -74,7 +74,13 @@ public class MantenimientoService implements IMantenimientoService {
 
         nuevo.setRepuestosMantenimiento(mantenimiento.getRepuestosMantenimiento());
         nuevo.validar();
-        return repo.save(nuevo);
+
+        Mantenimiento creado = repo.save(nuevo);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String fechaHora = String.format(String.valueOf(creado.getFechaMantenimiento()), formatter);
+        logService.guardarLog("Se ha creado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+
+        return creado;
     }
 
     @Override
@@ -114,7 +120,13 @@ public class MantenimientoService implements IMantenimientoService {
 
             existente.setRepuestosMantenimiento(actuales);
             existente.validar();
-            return repo.save(existente);
+            Mantenimiento editado = repo.save(existente);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String fechaHora = String.format(mantenimientoActualizado.getFechaMantenimiento(), formatter);
+            logService.guardarLog("Se ha editado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+
+            return editado;
         }
 
         return null;
@@ -122,7 +134,19 @@ public class MantenimientoService implements IMantenimientoService {
 
     @Override
     public void eliminar(Long id) {
-        repo.deleteById(id);
+        try {
+            Mantenimiento el = obtenerPorId(id).orElse(null);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            assert el != null;
+            String fechaHora = String.format(String.valueOf(el.getFechaMantenimiento()), formatter);
+            Equipo equipo = equipoService.ObtenerPorId(el.getIdEquipo());
+
+            repo.deleteById(id);
+
+            logService.guardarLog("Se ha eliminado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+        }catch (Exception ex){
+
+        }
     }
 
     @Override
@@ -157,6 +181,4 @@ public class MantenimientoService implements IMantenimientoService {
     public Mantenimiento ObtenerUltimoMantenimientoPorIdEquipo(Long idEquipo) {
         return repo.findTopByEquipo_IdOrderByFechaMantenimientoDesc(idEquipo).orElse(null);
     }
-
-
 }

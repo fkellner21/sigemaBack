@@ -2,6 +2,7 @@ package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.Marca;
 import com.example.sigema.repositories.IMarcaRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IMarcaService;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
@@ -14,9 +15,11 @@ import java.util.Optional;
 @Transactional
 public class MarcaService implements IMarcaService {
     private final IMarcaRepository marcaRepository;
+    private final ILogService logService;
 
-    public MarcaService(IMarcaRepository marcaRepository) {
+    public MarcaService(IMarcaRepository marcaRepository, ILogService logService) {
         this.marcaRepository = marcaRepository;
+        this.logService = logService;
     }
 
     @Override
@@ -29,7 +32,11 @@ public class MarcaService implements IMarcaService {
             throw new SigemaException("Ya existe una marca con ese nombre");
         }
 
-        return marcaRepository.save(marca);
+        Marca creado = marcaRepository.save(marca);
+
+        logService.guardarLog("Se ha creado la marca " + marca.getNombre(), true);
+
+        return creado;
     }
 
     @Override
@@ -50,7 +57,11 @@ public class MarcaService implements IMarcaService {
 
         marcaExistenteOpt.setNombre(marca.getNombre());
 
-        return marcaRepository.save(marcaExistenteOpt);
+        Marca editado = marcaRepository.save(marcaExistenteOpt);
+
+        logService.guardarLog("Se ha editado la marca " + marca.getNombre(), true);
+
+        return editado;
     }
 
     @Override

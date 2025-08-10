@@ -3,6 +3,7 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.Unidad;
 import com.example.sigema.models.UnidadEmail;
 import com.example.sigema.repositories.IUnidadRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IUnidadService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,12 @@ import java.util.Optional;
 public class UnidadService implements IUnidadService {
 
     private final IUnidadRepository unidadRepository;
+    private final ILogService logService;
 
     @Autowired
-    public UnidadService(IUnidadRepository unidadRepository) {
+    public UnidadService(IUnidadRepository unidadRepository, ILogService logService) {
         this.unidadRepository = unidadRepository;
+        this.logService = logService;
     }
 
     @Override
@@ -56,12 +59,21 @@ public class UnidadService implements IUnidadService {
             throw new SigemaException("Ya existe una unidad del tipo gran unidad, solamente puede haber una");
         }
 
-        return unidadRepository.save(unidad);
+        Unidad creado =  unidadRepository.save(unidad);
+
+        logService.guardarLog("Se ha creado la unidad " + creado.getNombre(), true);
+
+        return creado;
     }
 
     @Override
     public void Eliminar(Long id) throws Exception {
+        Unidad u = ObtenerPorId(id).orElse(null);
+        assert u != null;
+        String nombre = u.getNombre();
+
         unidadRepository.deleteById(id);
+        logService.guardarLog("Se ha eliminado la unidad " + nombre, true);
     }
 
     @Override
@@ -85,6 +97,9 @@ public class UnidadService implements IUnidadService {
         unidadEditar.setLongitud(unidad.getLongitud());
         unidadEditar.setEsGranUnidad(unidad.isEsGranUnidad());
 
-        return unidadRepository.save(unidadEditar);
+        Unidad editado = unidadRepository.save(unidadEditar);
+        logService.guardarLog("Se ha editado la unidad " + editado.getNombre(), true);
+
+        return editado;
     }
 }

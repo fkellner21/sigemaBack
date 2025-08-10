@@ -2,6 +2,7 @@ package com.example.sigema.services.implementations;
 
 import com.example.sigema.models.TipoEquipo;
 import com.example.sigema.repositories.ITiposEquiposRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.ITiposEquiposService;
 import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
@@ -15,9 +16,11 @@ import java.util.Optional;
 public class TiposEquiposService implements ITiposEquiposService {
 
     private final ITiposEquiposRepository tiposEquiposRepository;
+    private final ILogService logService;
 
-    public TiposEquiposService(ITiposEquiposRepository tiposEquiposRepository) {
+    public TiposEquiposService(ITiposEquiposRepository tiposEquiposRepository, ILogService logService) {
         this.tiposEquiposRepository = tiposEquiposRepository;
+        this.logService = logService;
     }
 
     @Override
@@ -30,7 +33,10 @@ public class TiposEquiposService implements ITiposEquiposService {
             throw new SigemaException("Ya existe un tipo de equipo con el código " + tipoEquipo.getCodigo());
         }
 
-        return tiposEquiposRepository.save(tipoEquipo);
+        TipoEquipo creado = tiposEquiposRepository.save(tipoEquipo);
+        logService.guardarLog("Se ha creado el tipo equipo " + creado.getNombre(), true);
+
+        return creado;
     }
 
     @Override
@@ -53,7 +59,10 @@ public class TiposEquiposService implements ITiposEquiposService {
         tipoEquipoBuscado.setCodigo(tipoEquipo.getCodigo());
         tipoEquipoBuscado.setActivo(tipoEquipo.isActivo());
 
-        return tiposEquiposRepository.save(tipoEquipoBuscado);
+        TipoEquipo editado = tiposEquiposRepository.save(tipoEquipoBuscado);
+        logService.guardarLog("Se ha editado el tipo equipo " + editado.getNombre(), true);
+
+        return editado;
     }
 
     @Override

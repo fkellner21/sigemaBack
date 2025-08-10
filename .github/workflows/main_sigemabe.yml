@@ -18,7 +18,8 @@ jobs:
       - name: Delete all old artifacts to free storage
         uses: geekyeggo/delete-artifact@v2
         with:
-          name: '**' 
+          name: '**'
+        continue-on-error: true
 
       - name: Set up Java version
         uses: actions/setup-java@v4
@@ -70,3 +71,4 @@ jobs:
           app-name: 'sigemaBE'
           slot-name: 'Production'
           package: app.jar
+

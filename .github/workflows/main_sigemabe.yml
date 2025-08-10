@@ -15,10 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: geekyeggo/delete-artifact@v2
-        with:
-          name: nombre-del-artifact
-
       - name: Set up Java version
         uses: actions/setup-java@v4
         with:
@@ -38,6 +34,11 @@ jobs:
         with:
           name: java-app
           path: staging/app.jar
+
+      - uses: geekyeggo/delete-artifact@v2
+        with:
+          name: java-app
+
 
   deploy:
     runs-on: windows-latest
@@ -69,4 +70,5 @@ jobs:
           app-name: 'sigemaBE'
           slot-name: 'Production'
           package: app.jar
+
 

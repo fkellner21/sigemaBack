@@ -1,18 +1,24 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
 name: Deploy
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: windows-latest
     permissions:
-      id-token: write
       contents: read # Requerido para actions/checkout
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Delete all old artifacts to free storage
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: '**' 
 
       - name: Set up Java version
         uses: actions/setup-java@v4
@@ -25,7 +31,30 @@ jobs:
 
       - name: Rename JAR to app.jar
         run: |
-          copy target\*.jar app.jar
+          mkdir staging
+          copy target\*.jar staging\app.jar
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-app
+          path: staging/app.jar
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: java-app
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -35,6 +64,7 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_43251BE649214CF0918B6920E7AF6501 }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'sigemaBE'

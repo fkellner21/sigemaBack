@@ -33,11 +33,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          auth-type: service-principal
-          client-id: ${{ secrets.CLIENT_ID }}
-          tenant-id: ${{ secrets.TENANT_ID }}
-          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.CLIENT_SECRET }}
+          auth-type: SERVICE_PRINCIPAL
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -45,4 +43,5 @@ jobs:
           app-name: 'sigemaBE'
           slot-name: 'Production'
           package: 'target/*.jar'
+
 

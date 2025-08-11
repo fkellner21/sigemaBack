@@ -33,10 +33,13 @@ jobs:
       - name: Login to Azure using service principal
         uses: azure/login@v2
         with:
-          auth-type: 'service-principal'
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_45095D43DBCB4DFEA607546C7DC22D1C }}
-          client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}   # <- asegurate de tener este secreto en GitHub
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_16651AECAEA3414B9A29370AF0872D05 }}
+          auth-type: SERVICE_PRINCIPAL
+          creds: |
+            {
+              "clientId": "${{ secrets.AZUREAPPSERVICE_CLIENTID_45095D43DBCB4DFEA607546C7DC22D1C }}",
+              "clientSecret": "${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}",
+              "tenantId": "${{ secrets.AZUREAPPSERVICE_TENANTID_16651AECAEA3414B9A29370AF0872D05 }}"
+            }
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp

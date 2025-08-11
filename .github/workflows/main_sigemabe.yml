@@ -8,7 +8,6 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read
-      id-token: write
     
     steps:
       - name: Checkout repository
@@ -26,18 +25,18 @@ jobs:
       - name: Prepare package for deploy
         run: |
           mkdir -p staging
-          # Copiar y renombrar el jar generado a staging/app.jar
           cp target/*.jar staging/app.jar
 
       - name: List staging files
         run: ls -l staging/
 
-      - name: Login to Azure
+      - name: Login to Azure using service principal
         uses: azure/login@v2
         with:
+          auth-type: 'service-principal'
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_45095D43DBCB4DFEA607546C7DC22D1C }}
+          client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}   # <- asegurate de tener este secreto en GitHub
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_16651AECAEA3414B9A29370AF0872D05 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_43251BE649214CF0918B6920E7AF6501 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp

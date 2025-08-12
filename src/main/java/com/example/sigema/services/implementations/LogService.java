@@ -3,7 +3,6 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.Usuario;
 import com.example.sigema.repositories.IRepositoryUsuario;
 import com.example.sigema.services.ILogService;
-import com.example.sigema.services.IUsuarioService;
 import com.example.sigema.utilidades.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

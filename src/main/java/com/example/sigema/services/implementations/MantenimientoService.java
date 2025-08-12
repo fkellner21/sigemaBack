@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Propagation;
 
 @Service
 @Transactional
@@ -139,13 +140,20 @@ public class MantenimientoService implements IMantenimientoService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             assert el != null;
             String fechaHora = String.format(String.valueOf(el.getFechaMantenimiento()), formatter);
-            Equipo equipo = equipoService.ObtenerPorId(el.getIdEquipo());
+            Equipo equipo = equipoService.ObtenerPorId(el.getEquipo().getId());
 
-            repo.deleteById(id);
+            if(el.getRepuestosMantenimiento() != null) {
+                el.getRepuestosMantenimiento().clear();
+                repo.save(el);
+                repo.flush();
+            }
+
+            repo.borrarPorId(id);
+            repo.flush();
 
             logService.guardarLog("Se ha eliminado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
         }catch (Exception ex){
-
+            int a = 1;
         }
     }
 

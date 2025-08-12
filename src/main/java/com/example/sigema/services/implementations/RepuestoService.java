@@ -4,6 +4,7 @@ import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.Repuesto;
 import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.repositories.IRepuestoRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.IRepuestoService;
 import com.example.sigema.utilidades.SigemaException;
@@ -19,10 +20,12 @@ public class RepuestoService implements IRepuestoService
 {
     private final IRepuestoRepository repuestoRepository;
     private final IModeloEquipoService modeloEquipoService;
+    private final ILogService logService;
 
-    public RepuestoService(IRepuestoRepository rRepository, IModeloEquipoService modeloEquipoService) {
+    public RepuestoService(IRepuestoRepository rRepository, IModeloEquipoService modeloEquipoService, ILogService logService) {
         this.repuestoRepository = rRepository;
         this.modeloEquipoService = modeloEquipoService;
+        this.logService = logService;
     }
 
     @Override
@@ -37,7 +40,11 @@ public class RepuestoService implements IRepuestoService
 
         r.setModeloEquipo(modelo);
 
-        return repuestoRepository.save(r);
+        Repuesto creado = repuestoRepository.save(r);
+
+        logService.guardarLog("Se ha creado el repuesto (SICE: " + creado.getCodigoSICE() + ", Nombre: " + creado.getNombre() + ") para el modelo equipo " + modelo.getModelo(), true);
+
+        return creado;
     }
 
     @Override
@@ -63,7 +70,11 @@ public class RepuestoService implements IRepuestoService
         rpuestoExt.setCaracteristicas(r.getCaracteristicas());
         rpuestoExt.setObservaciones(r.getObservaciones());
 
-        return repuestoRepository.save(rpuestoExt);
+        Repuesto editado = repuestoRepository.save(rpuestoExt);
+
+        logService.guardarLog("Se ha editado el repuesto (SICE: " + editado.getCodigoSICE() + ", Nombre: " + editado.getNombre() + ") para el modelo equipo " + rpuestoExt.getModeloEquipo().getModelo(), true);
+
+        return editado;
     }
 
     @Override

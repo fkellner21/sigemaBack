@@ -6,6 +6,7 @@ import com.example.sigema.models.Unidad;
 import com.example.sigema.models.Grado;
 import com.example.sigema.repositories.IRepositoryUsuario;
 import com.example.sigema.services.IGradoService;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IUnidadService;
 import com.example.sigema.services.IUsuarioService;
 import com.example.sigema.utilidades.SigemaException;
@@ -21,12 +22,14 @@ public class UsuarioService implements IUsuarioService {
     private final IUnidadService unidadService;
     private final IGradoService gradoService;
     private final SecurityConfig securityConfig;
+    private final ILogService logService;
 
-    public UsuarioService(IRepositoryUsuario repositorio, IGradoService gradoService, IUnidadService unidadService, SecurityConfig securityConfig) {
+    public UsuarioService(IRepositoryUsuario repositorio, IGradoService gradoService, IUnidadService unidadService, SecurityConfig securityConfig, ILogService logService) {
         this.repositorio = repositorio;
         this.gradoService = gradoService;
         this.unidadService = unidadService;
         this.securityConfig = securityConfig;
+        this.logService = logService;
     }
 
     @Override
@@ -56,7 +59,10 @@ public class UsuarioService implements IUsuarioService {
         usuario.setGrado(grado);
         usuario.setPassword(securityConfig.passwordEncoder().encode(usuario.getPassword()));
 
-        return repositorio.save(usuario);
+        Usuario creado = repositorio.save(usuario);
+        logService.guardarLog("Se ha creado el usuario (CI: " + creado.getCedula() + ", Nombre: " + creado.getNombreCompleto() + ")", true);
+
+        return creado;
     }
 
     @Override
@@ -118,6 +124,7 @@ public class UsuarioService implements IUsuarioService {
         }
 
         Grado grado = gradoService.ObtenerPorId(usuario.getIdGrado());
+        String ci = usuarioAModificar.getCedula();
 
         usuarioAModificar.setGrado(grado);
         usuarioAModificar.setNombreCompleto(usuario.getNombreCompleto());
@@ -128,12 +135,21 @@ public class UsuarioService implements IUsuarioService {
 
         if(!usuarioAModificar.isActivo()){
             usuarioAModificar.setCedula(UUID.randomUUID().toString());
+        }else{
+            ci = usuarioAModificar.getCedula();
         }
 
         if(usuario.getPassword() != null && !usuario.getPassword().isEmpty()){
             usuarioAModificar.setPassword(securityConfig.passwordEncoder().encode(usuario.getPassword()));
         }
 
-        return repositorio.save(usuarioAModificar);
+        Usuario editado = repositorio.save(usuarioAModificar);
+        if(editado.isActivo()) {
+            logService.guardarLog("Se ha editado el usuario (CI: " + ci + ", Nombre: " + editado.getNombreCompleto() + ")", true);
+        }else{
+            logService.guardarLog("Se ha inactivado al usuario (CI: " + ci + ", Nombre: " + editado.getNombreCompleto() + ")", true);
+        }
+
+        return editado;
     }
 }

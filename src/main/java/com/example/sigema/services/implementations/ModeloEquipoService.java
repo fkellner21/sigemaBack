@@ -4,6 +4,7 @@ import com.example.sigema.models.Marca;
 import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.TipoEquipo;
 import com.example.sigema.repositories.IModeloEquipoRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IMarcaService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.ITiposEquiposService;
@@ -20,11 +21,13 @@ public class ModeloEquipoService implements IModeloEquipoService {
     private final IModeloEquipoRepository modeloEquipoRepository;
     private final IMarcaService marcaService;
     private final ITiposEquiposService tiposEquiposService;
+    private final ILogService logService;
 
-    public ModeloEquipoService(IModeloEquipoRepository modeloEquipoRepository, IMarcaService marcaService, ITiposEquiposService tiposEquiposService) {
+    public ModeloEquipoService(IModeloEquipoRepository modeloEquipoRepository, IMarcaService marcaService, ITiposEquiposService tiposEquiposService, ILogService logService) {
         this.modeloEquipoRepository = modeloEquipoRepository;
         this.marcaService = marcaService;
         this.tiposEquiposService = tiposEquiposService;
+        this.logService = logService;
     }
 
     @Override
@@ -45,7 +48,10 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloEquipo.setMarca(marca);
         modeloEquipo.setTipoEquipo(tipoEquipo);
 
-        return modeloEquipoRepository.save(modeloEquipo);
+        ModeloEquipo creado = modeloEquipoRepository.save(modeloEquipo);
+        logService.guardarLog("Se ha creado el modelo equipo " + creado.getModelo(), true);
+
+        return creado;
     }
 
     @Override
@@ -78,7 +84,10 @@ public class ModeloEquipoService implements IModeloEquipoService {
         modeloExistenteOpt.setFrecuenciaUnidadMedida(modeloEquipo.getFrecuenciaUnidadMedida());
         modeloExistenteOpt.setServiceModelo(modeloEquipo.getServiceModelo());
 
-        return modeloEquipoRepository.save(modeloExistenteOpt);
+        ModeloEquipo editado = modeloEquipoRepository.save(modeloExistenteOpt);
+        logService.guardarLog("Se ha editado el modelo equipo " + editado.getModelo(), true);
+
+        return editado;
     }
 
     @Override

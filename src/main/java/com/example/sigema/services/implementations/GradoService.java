@@ -3,6 +3,7 @@ package com.example.sigema.services.implementations;
 import com.example.sigema.models.Grado;
 import com.example.sigema.repositories.IRepositoryGrado;
 import com.example.sigema.services.IGradoService;
+import com.example.sigema.services.ILogService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,9 +12,11 @@ import java.util.List;
 public class GradoService implements IGradoService {
 
     private final IRepositoryGrado repositorio;
+    private final ILogService logService;
 
-    public GradoService(IRepositoryGrado repositorio) {
+    public GradoService(IRepositoryGrado repositorio, ILogService logService) {
         this.repositorio = repositorio;
+        this.logService = logService;
     }
 
     @Override
@@ -23,12 +26,21 @@ public class GradoService implements IGradoService {
 
     @Override
     public Grado Crear(Grado grado) throws Exception {
-        return repositorio.save(grado);
+        Grado gradoGuardado = null;
+        gradoGuardado = repositorio.save(grado);
+
+        logService.guardarLog("Se ha creado el grado " + grado.getNombre(), true);
+
+        return gradoGuardado;
     }
 
     @Override
     public void Eliminar(Long id) throws Exception {
+        Grado grado = ObtenerPorId(id);
+        String nombreGrado = grado.getNombre();
         repositorio.deleteById(id);
+
+        logService.guardarLog("Se ha eliminado el grado " + nombreGrado, true);
     }
 
     @Override
@@ -44,6 +56,9 @@ public class GradoService implements IGradoService {
 
         gradoExistente.setNombre(grado.getNombre());
 
-        return repositorio.save(gradoExistente);
+        Grado gEditado = repositorio.save(gradoExistente);
+        logService.guardarLog("Se ha editado el grado " + gEditado.getNombre(), true);
+
+        return gEditado;
     }
 }

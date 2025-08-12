@@ -32,9 +32,9 @@ public class EmailService {
             helper.setText(contenidoHtml, true);
 
             mailSender.send(message);
-            logService.guardarLog("Se ha enviado el email de alerta para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", false);
+            logService.guardarLog("Se ha enviado el email de alerta para el equipo (Matrícula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", false);
         } catch (Exception e) {
-            logService.guardarLog("No se ha enviado el email de alerta para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + "), Error: " + e.getMessage(), false);
+            logService.guardarLog("No se ha enviado el email de alerta para el equipo (Matrícula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + "), Error: " + e.getMessage(), false);
         }
     }
 }

@@ -79,7 +79,7 @@ public class MantenimientoService implements IMantenimientoService {
         Mantenimiento creado = repo.save(nuevo);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         String fechaHora = String.format(String.valueOf(creado.getFechaMantenimiento()), formatter);
-        logService.guardarLog("Se ha creado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+        logService.guardarLog("Se ha creado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matrícula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
 
         return creado;
     }
@@ -125,7 +125,7 @@ public class MantenimientoService implements IMantenimientoService {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String fechaHora = String.format(mantenimientoActualizado.getFechaMantenimiento(), formatter);
-            logService.guardarLog("Se ha editado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+            logService.guardarLog("Se ha editado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matrícula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
 
             return editado;
         }

@@ -4,6 +4,7 @@ import com.example.sigema.models.ModeloEquipo;
 import com.example.sigema.models.Repuesto;
 import com.example.sigema.models.enums.TipoRepuesto;
 import com.example.sigema.repositories.IRepuestoRepository;
+import com.example.sigema.services.ILogService;
 import com.example.sigema.services.IModeloEquipoService;
 import com.example.sigema.services.implementations.RepuestoService;
 import com.example.sigema.utilidades.SigemaException;
@@ -20,12 +21,14 @@ public class RepuestosTest {
     private IRepuestoRepository repuestoRepository;
     private RepuestoService repuestoService;
     private IModeloEquipoService modeloEquipoService;
+    private ILogService logService;
 
     @BeforeEach
     void setup() {
         repuestoRepository = mock(IRepuestoRepository.class);
         modeloEquipoService = mock(IModeloEquipoService.class);
-        repuestoService = new RepuestoService(repuestoRepository, modeloEquipoService);
+        logService = mock(ILogService.class);
+        repuestoService = new RepuestoService(repuestoRepository, modeloEquipoService, logService);
     }
 
     // Helper para crear un repuesto válido

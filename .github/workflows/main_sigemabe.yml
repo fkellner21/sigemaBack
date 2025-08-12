@@ -12,14 +12,7 @@ jobs:
       contents: read # Requerido para actions/checkout
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Delete all old artifacts to free storage
-        uses: geekyeggo/delete-artifact@v2
-        with:
-          name: '**'
-        continue-on-error: true
+      - uses: actions/checkout@v4
 
       - name: Set up Java version
         uses: actions/setup-java@v4
@@ -27,35 +20,16 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
-      - name: Build with Maven (skip tests)
-        run: mvn clean package -DskipTests=true
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
 
       - name: Rename JAR to app.jar
         run: |
           mkdir staging
           copy target\*.jar staging\app.jar
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-app
-          path: staging/app.jar
-
-  deploy:
-    runs-on: windows-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: java-app
+      - name: Listar archivos target
+        run: ls -l target/
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -65,11 +39,8 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_43251BE649214CF0918B6920E7AF6501 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'sigemaBE'
           slot-name: 'Production'
-          package: app.jar
-
-
+          package: 'target/*.jar'

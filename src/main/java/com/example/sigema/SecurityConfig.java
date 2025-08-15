@@ -79,7 +79,10 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net")
+                        .allowedOrigins("https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
+                                "capacitor://localhost",
+                                "http://localhost",
+                                "https://localhost:")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true); // Si usás cookies/autenticación

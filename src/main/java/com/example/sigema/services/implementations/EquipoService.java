@@ -143,6 +143,7 @@ public class EquipoService implements IEquipoService {
         boolean eliminarEquipo = equipo.isActivo();
         double lat = equipo.getLatitud();
         double lon = equipo.getLongitud();
+        double cant = equipo.getCantidadUnidadMedida();
 
         if (idModelo == null || idModelo == 0) {
             ModeloEquipo me = equipo.getModeloEquipo();
@@ -186,7 +187,7 @@ public class EquipoService implements IEquipoService {
         }
 
         equipoEditar.setEstado(equipo.getEstado());
-        equipoEditar.setCantidadUnidadMedida(equipo.getCantidadUnidadMedida());
+        equipoEditar.setCantidadUnidadMedida(cant);
         equipoEditar.setMatricula(equipo.getMatricula() != null ? equipo.getMatricula().toUpperCase() : null);
         equipoEditar.setUnidad(unidad);
         equipoEditar.setIdModeloEquipo(idModelo);

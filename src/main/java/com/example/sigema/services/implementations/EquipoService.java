@@ -189,6 +189,8 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(eliminarEquipo);
+        equipoEditar.setLatitud(equipo.getLatitud());
+        equipoEditar.setLongitud(equipo.getLongitud());
         equipoRepository.save(equipoEditar);
 
         equipoActas.setEquipo(equipoEditar);

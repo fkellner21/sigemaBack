@@ -8,6 +8,7 @@ import com.example.sigema.repositories.IMantenimientoRepository;
 import com.example.sigema.repositories.ITramitesRepository;
 import com.example.sigema.services.*;
 import com.example.sigema.utilidades.SigemaException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletResponse;
@@ -197,8 +198,15 @@ public class EquipoService implements IEquipoService {
         equipoActas.setActas(actas);
 
         verificarFrecuenciaYEnviarAlerta(equipoEditar, modeloEquipo);
+        ObjectMapper mapper = new ObjectMapper();
 
-        logService.guardarLog("Se ha editado el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
+        String jsonString = mapper.writeValueAsString(equipo);
+        String jsonString2 = mapper.writeValueAsString(equipoEditar);
+
+        logService.guardarLog("Objeto editar que llega por api: " + jsonString, true);
+        logService.guardarLog("Objeto equipoEditar que se guardo: " + jsonString2, true);
+
+        logService.guardarLog("Se ha editado el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ") ", true);
 
         return equipoActas;
     }

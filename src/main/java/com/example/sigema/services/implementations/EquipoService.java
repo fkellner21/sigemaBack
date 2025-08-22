@@ -141,6 +141,8 @@ public class EquipoService implements IEquipoService {
         List<ReporteActa> actas = new ArrayList<>();
         Long idModelo = equipo.getIdModeloEquipo();
         boolean eliminarEquipo = equipo.isActivo();
+        double lat = equipo.getLatitud();
+        double lon = equipo.getLongitud();
 
         if (idModelo == null || idModelo == 0) {
             ModeloEquipo me = equipo.getModeloEquipo();
@@ -190,8 +192,8 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setIdModeloEquipo(idModelo);
         equipoEditar.setObservaciones(equipo.getObservaciones());
         equipoEditar.setActivo(eliminarEquipo);
-        equipoEditar.setLatitud(equipo.getLatitud());
-        equipoEditar.setLongitud(equipo.getLongitud());
+        equipoEditar.setLatitud(lat);
+        equipoEditar.setLongitud(lon);
         equipoRepository.save(equipoEditar);
 
         equipoActas.setEquipo(equipoEditar);

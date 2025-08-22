@@ -846,8 +846,10 @@ public class EquipoService implements IEquipoService {
                         .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
                 LocalDate hoy = LocalDate.now();
-
-                mesesDecimales = ChronoUnit.MONTHS.between(fechaUltimoService, hoy);
+                long mesesCompletos = ChronoUnit.MONTHS.between(fechaUltimoService, hoy);
+                LocalDate fechaMasMeses = fechaUltimoService.plusMonths(mesesCompletos);
+                long diasExtra = ChronoUnit.DAYS.between(fechaMasMeses, hoy);
+                mesesDecimales = mesesCompletos + (float)diasExtra / 30.44f;
             }
 
             // Condiciones de alerta crítica y preventiva

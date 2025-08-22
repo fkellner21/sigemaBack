@@ -202,12 +202,6 @@ public class EquipoService implements IEquipoService {
         verificarFrecuenciaYEnviarAlerta(equipoEditar, modeloEquipo);
         ObjectMapper mapper = new ObjectMapper();
 
-        String jsonString = mapper.writeValueAsString(equipo);
-        String jsonString2 = mapper.writeValueAsString(equipoEditar);
-
-        logService.guardarLog("Objeto editar que llega por api: " + jsonString, true);
-        logService.guardarLog("Objeto equipoEditar que se guardo: " + jsonString2, true);
-
         logService.guardarLog("Se ha editado el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ") ", true);
 
         return equipoActas;

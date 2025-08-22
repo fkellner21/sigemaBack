@@ -768,7 +768,7 @@ public class EquipoService implements IEquipoService {
 
             Frecuencia por tiempo establecida: <strong>%d meses</strong>
 
-            Tiempo desde el último service: <strong>%.2f meses</strong>
+            Tiempo desde el último service: <strong>%d meses y %d días</strong>
         </div>
         <div class="footer">
             Este correo fue generado automáticamente por el sistema de mantenimiento.
@@ -807,7 +807,7 @@ public class EquipoService implements IEquipoService {
 
             Frecuencia por tiempo establecida: <strong>%d meses</strong>
 
-            Tiempo desde el último service: <strong>%.2f meses</strong>
+            Tiempo desde el último service: <strong>%d meses y %d días</strong>
         </div>
         <div class="footer">
             Este correo fue generado automáticamente por el sistema de mantenimiento.
@@ -841,15 +841,16 @@ public class EquipoService implements IEquipoService {
 
             // Cálculo por tiempo (meses decimales)
             float mesesDecimales=0f;
+            long mesesCompletos = 0;
+            long diasExtra = 0;
             if(ultimoService!=null){
                 LocalDate fechaUltimoService = ultimoService.getFechaMantenimiento()
                         .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
                 LocalDate hoy = LocalDate.now();
-                long mesesCompletos = ChronoUnit.MONTHS.between(fechaUltimoService, hoy);
+                mesesCompletos = ChronoUnit.MONTHS.between(fechaUltimoService, hoy);
                 LocalDate fechaMasMeses = fechaUltimoService.plusMonths(mesesCompletos);
-                long diasExtra = ChronoUnit.DAYS.between(fechaMasMeses, hoy);
-                mesesDecimales = mesesCompletos + (float)diasExtra / 30.44f;
+                diasExtra = ChronoUnit.DAYS.between(fechaMasMeses, hoy);
             }
 
             // Condiciones de alerta crítica y preventiva
@@ -865,14 +866,15 @@ public class EquipoService implements IEquipoService {
             if (esCriticoPorUso || esCriticoPorTiempo) {
                 esCritico = true;
                 html = String.format(htmlCritica,
-                        equipo.getMatricula(),                                  // %s
-                        modelo.getModelo(),                                     // %s
-                        frecuenciaUnidad,                                       // %d
-                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
-                        actual,                                                // %.2f
-                        modelo.getUnidadMedida().name().toLowerCase(),         // %s
-                        frecuenciaTiempo,                                       // %d
-                        mesesDecimales                                         // %.2f
+                        equipo.getMatricula(),
+                        modelo.getModelo(),
+                        frecuenciaUnidad,
+                        modelo.getUnidadMedida().name().toLowerCase(),
+                        actual,
+                        modelo.getUnidadMedida().name().toLowerCase(),
+                        frecuenciaTiempo,
+                        mesesCompletos,
+                        diasExtra
                 );
             } else if (alertaPorUso || alertaPorTiempo) {
                 html = String.format(htmlPreventiva,
@@ -883,7 +885,8 @@ public class EquipoService implements IEquipoService {
                         actual,
                         modelo.getUnidadMedida().name().toLowerCase(),
                         frecuenciaTiempo,
-                        mesesDecimales
+                        mesesCompletos,
+                        diasExtra
                 );
             }
 

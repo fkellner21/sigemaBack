@@ -5,13 +5,19 @@ import com.example.sigema.utilidades.SigemaException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
@@ -37,10 +43,19 @@ public class Equipo implements Serializable {
     private double cantidadUnidadMedida = 0;
 
     @Column(nullable = false)
+    @JsonSerialize(using = LatLonSerializer.class)
     private double latitud;
 
     @Column(nullable = false)
+    @JsonSerialize(using = LatLonSerializer.class)
     private double longitud;
+
+    public static class LatLonSerializer extends JsonSerializer<Double> {
+        @Override
+        public void serialize(Double value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeNumber(String.format(Locale.US, "%.8f", value));
+        }
+    }
 
     @Column(nullable = false)
     private Date fechaUltimaPosicion = new Date();

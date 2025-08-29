@@ -108,8 +108,11 @@ public class Tramite implements Serializable {
 
     public void actualizarEstado(Usuario quienAbre){
         //siempre que alguien de la unidad destino abra un tramite iniciado
-        if(estado == EstadoTramite.Iniciado && unidadDestino.equals(quienAbre.getUnidad()) && !Objects.equals(usuario.getId(), quienAbre.getId())){
+        if(estado == EstadoTramite.Iniciado && unidadDestino==null){
+            if(!unidadOrigen.equals(quienAbre.getUnidad())) estado=EstadoTramite.EnTramite;
+        } else if(unidadDestino!=null && estado == EstadoTramite.Iniciado && unidadDestino.equals(quienAbre.getUnidad()) && !Objects.equals(usuario.getId(), quienAbre.getId())){
             estado=EstadoTramite.EnTramite;
         }
+
     }
 }

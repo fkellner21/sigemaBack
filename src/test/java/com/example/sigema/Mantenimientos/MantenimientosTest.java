@@ -229,7 +229,7 @@ class MantenimientosTest {
     }
 
     @Test
-    void eliminar_DeberiaLlamarDeleteById() {
+    void eliminar_DeberiaLlamarDeleteById() throws Exception {
         // Arrange
         Long id = 1L;
 

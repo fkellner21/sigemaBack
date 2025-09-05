@@ -45,6 +45,7 @@ public class Mantenimiento implements Serializable {
     @JoinColumn(name = "equipo")
     private Equipo equipo;
 
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UnidadMedida unidadMedida;

@@ -177,7 +177,7 @@ public class MantenimientoService implements IMantenimientoService {
         if (idUnidad == null || idUnidad == 0) {
             mantenimientos = repo.findByFechaMantenimientoBetween(fechaDesde, fechaHasta);
         } else {
-            mantenimientos = repo.findByUnidad_IdAndFechaMantenimientoBetween(idUnidad, fechaDesde, fechaHasta);
+            mantenimientos = repo.findByEquipo_Unidad_IdAndFechaMantenimientoBetween(idUnidad, fechaDesde, fechaHasta);
         }
 
         return mantenimientos;

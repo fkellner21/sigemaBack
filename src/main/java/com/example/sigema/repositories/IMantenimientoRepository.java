@@ -1,6 +1,7 @@
 package com.example.sigema.repositories;
 
 import com.example.sigema.models.Mantenimiento;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,7 @@ public interface IMantenimientoRepository extends JpaRepository<Mantenimiento, L
     Optional<Mantenimiento> findTopByEquipo_IdOrderByFechaMantenimientoDesc(Long idEquipo);
 
     @Modifying
-    @Query("DELETE FROM Mantenimiento m WHERE m.id = :id")
+    @Transactional
+    @Query(value = "DELETE FROM Mantenimientos WHERE id = :id", nativeQuery = true)
     void borrarPorId(@Param("id") Long id);
 }

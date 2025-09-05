@@ -141,7 +141,8 @@ public class MantenimientoService implements IMantenimientoService {
     @Override
     @Transactional
     public void eliminar(Long id) throws Exception {
-        Mantenimiento el = obtenerPorId(id).orElseThrow(() -> new SigemaException("Mantenimiento no encontrado"));
+        Mantenimiento el = obtenerPorId(id)
+                .orElseThrow(() -> new SigemaException("Mantenimiento no encontrado"));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         String fechaHora = el.getFechaMantenimiento()
@@ -151,14 +152,8 @@ public class MantenimientoService implements IMantenimientoService {
 
         Equipo equipo = equipoService.ObtenerPorId(el.getEquipo().getId());
 
-        if (el.getRepuestosMantenimiento() != null && !el.getRepuestosMantenimiento().isEmpty()) {
-            repuestoMantenimientoRepository.borrarPorMantenimiento(el.getId());
-            repo.flush();
-            el.getRepuestosMantenimiento().clear();
-        }
-
-        repo.delete(el);
-        repo.flush();
+        repuestoMantenimientoRepository.borrarPorMantenimiento(id);
+        repo.borrarPorId(id);
 
         logService.guardarLog(
                 "Se ha eliminado un mantenimiento (Fecha: " + fechaHora +
@@ -167,7 +162,6 @@ public class MantenimientoService implements IMantenimientoService {
                 true
         );
     }
-
 
     @Override
     public List<Mantenimiento> obtenerPorEquipo(Long idEquipo) throws Exception {

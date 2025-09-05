@@ -27,9 +27,4 @@ public class RepuestoMantenimiento implements Serializable {
 
     @Column(nullable = false)
     private double cantidadUsada;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "mantenimiento_id", nullable = false)
-    @JsonIgnore
-    private Mantenimiento mantenimiento;
 }

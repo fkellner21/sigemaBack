@@ -1,7 +1,9 @@
 package com.example.sigema.services.implementations;
 import com.example.sigema.models.*;
 import com.example.sigema.repositories.IMantenimientoRepository;
+import com.example.sigema.repositories.IRepuestoMantenimientoRepository;
 import com.example.sigema.services.*;
+import com.example.sigema.utilidades.SigemaException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,16 @@ public class MantenimientoService implements IMantenimientoService {
     private final IEquipoService equipoService;
     private final IRepuestoService repuestoService;
     private final ILogService logService;
+    private final IRepuestoMantenimientoRepository repuestoMantenimientoRepository;
 
     @Autowired
-    public MantenimientoService(IMantenimientoRepository repo, IEquipoService equipoService, IRepuestoService repuestoService, ILogService logService){
+    public MantenimientoService(IMantenimientoRepository repo, IEquipoService equipoService, IRepuestoService repuestoService, ILogService logService,
+                                IRepuestoMantenimientoRepository repuestoMantenimientoRepository){
         this.repo = repo;
         this.equipoService = equipoService;
         this.repuestoService = repuestoService;
         this.logService = logService;
+        this.repuestoMantenimientoRepository = repuestoMantenimientoRepository;
     }
 
     @Override
@@ -134,28 +139,32 @@ public class MantenimientoService implements IMantenimientoService {
     }
 
     @Override
-    public void eliminar(Long id) {
-        try {
-            Mantenimiento el = obtenerPorId(id).orElse(null);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-            assert el != null;
-            String fechaHora = String.format(String.valueOf(el.getFechaMantenimiento()), formatter);
-            Equipo equipo = equipoService.ObtenerPorId(el.getEquipo().getId());
+    @Transactional
+    public void eliminar(Long id) throws Exception {
+        Mantenimiento el = obtenerPorId(id).orElseThrow(() -> new SigemaException("Mantenimiento no encontrado"));
 
-            if(el.getRepuestosMantenimiento() != null) {
-                el.getRepuestosMantenimiento().clear();
-                repo.save(el);
-                repo.flush();
-            }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String fechaHora = el.getFechaMantenimiento()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .format(formatter);
 
-            repo.borrarPorId(id);
-            repo.flush();
+        Equipo equipo = equipoService.ObtenerPorId(el.getEquipo().getId());
 
-            logService.guardarLog("Se ha eliminado un mantenimiento (Fecha: " + fechaHora + ") para el equipo (Matricula: " + equipo.getMatricula() + ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")", true);
-        }catch (Exception ex){
-            int a = 1;
+        if (el.getRepuestosMantenimiento() != null && !el.getRepuestosMantenimiento().isEmpty()) {
+            repuestoMantenimientoRepository.borrarPorMantenimiento(el.getId());
         }
+
+        repo.deleteById(el.getId());
+
+        logService.guardarLog(
+                "Se ha eliminado un mantenimiento (Fecha: " + fechaHora +
+                        ") para el equipo (Matricula: " + equipo.getMatricula() +
+                        ", Modelo: " + equipo.getModeloEquipo().getModelo() + ")",
+                true
+        );
     }
+
 
     @Override
     public List<Mantenimiento> obtenerPorEquipo(Long idEquipo) throws Exception {

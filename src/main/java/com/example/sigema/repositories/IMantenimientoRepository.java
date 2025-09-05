@@ -17,8 +17,7 @@ public interface IMantenimientoRepository extends JpaRepository<Mantenimiento, L
     // Buscar todos los mantenimientos de un equipo ordenados por fecha de mantenimiento descendente
     List<Mantenimiento> findByEquipo_IdOrderByFechaMantenimientoDesc(Long idEquipo);
 
-    // Buscar mantenimientos por equipo y fecha de mantenimiento entre dos fechas
-    List<Mantenimiento> findByEquipo_IdAndFechaMantenimientoBetween(Long idEquipo, Date desde, Date hasta);
+    List<Mantenimiento> findByUnidad_IdAndFechaMantenimientoBetween(Long idUnidad, Date desde, Date hasta);
 
     // Buscar mantenimientos (de cualquier equipo) entre fechas
     List<Mantenimiento> findByFechaMantenimientoBetween(Date desde, Date hasta);

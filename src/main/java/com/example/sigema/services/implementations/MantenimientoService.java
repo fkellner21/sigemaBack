@@ -162,7 +162,7 @@ public class MantenimientoService implements IMantenimientoService {
         return repo.findByEquipo_IdOrderByFechaMantenimientoDesc(idEquipo);
     }
     @Override
-    public List<Mantenimiento> ObtenerTodosPorFechas(Long idEquipo, Date desde, Date hasta) throws Exception {
+    public List<Mantenimiento> ObtenerTodosPorFechas(Long idUnidad, Date desde, Date hasta) throws Exception {
         ZoneId zone = ZoneId.of("America/Montevideo");
 
         // Normalizar fechas a inicio y fin del día
@@ -174,12 +174,10 @@ public class MantenimientoService implements IMantenimientoService {
 
         List<Mantenimiento> mantenimientos;
 
-        if (idEquipo == null || idEquipo == 0) {
-            // Buscar todos los mantenimientos entre las fechas
+        if (idUnidad == null || idUnidad == 0) {
             mantenimientos = repo.findByFechaMantenimientoBetween(fechaDesde, fechaHasta);
         } else {
-            // Buscar solo los mantenimientos de ese equipo entre las fechas
-            mantenimientos = repo.findByEquipo_IdAndFechaMantenimientoBetween(idEquipo, fechaDesde, fechaHasta);
+            mantenimientos = repo.findByUnidad_IdAndFechaMantenimientoBetween(idUnidad, fechaDesde, fechaHasta);
         }
 
         return mantenimientos;

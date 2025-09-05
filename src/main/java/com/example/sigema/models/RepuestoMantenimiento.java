@@ -1,5 +1,6 @@
 package com.example.sigema.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,4 +26,9 @@ public class RepuestoMantenimiento implements Serializable {
 
     @Column(nullable = false)
     private double cantidadUsada;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "mantenimiento_id", nullable = false)
+    @JsonBackReference
+    private Mantenimiento mantenimiento;
 }

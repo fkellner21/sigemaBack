@@ -153,9 +153,12 @@ public class MantenimientoService implements IMantenimientoService {
 
         if (el.getRepuestosMantenimiento() != null && !el.getRepuestosMantenimiento().isEmpty()) {
             repuestoMantenimientoRepository.borrarPorMantenimiento(el.getId());
+            repo.flush();
+            el.getRepuestosMantenimiento().clear();
         }
 
         repo.delete(el);
+        repo.flush();
 
         logService.guardarLog(
                 "Se ha eliminado un mantenimiento (Fecha: " + fechaHora +

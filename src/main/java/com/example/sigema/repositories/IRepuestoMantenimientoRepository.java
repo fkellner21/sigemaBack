@@ -11,6 +11,9 @@ public interface IRepuestoMantenimientoRepository extends JpaRepository<Repuesto
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM RepuestoMantenimiento r WHERE r.mantenimiento.id = :idMantenimiento")
+    @Query(
+            value = "DELETE FROM Repuestos_Mantenimientos WHERE mantenimiento = :idMantenimiento",
+            nativeQuery = true
+    )
     void borrarPorMantenimiento(@Param("idMantenimiento") Long idMantenimiento);
 }

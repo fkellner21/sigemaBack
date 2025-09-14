@@ -144,6 +144,7 @@ public class EquipoService implements IEquipoService {
         double lat = equipo.getLatitud();
         double lon = equipo.getLongitud();
         double cant = equipo.getCantidadUnidadMedida();
+        String numeroMotor = equipo.getNumeroMotor();
 
         if (idModelo == null || idModelo == 0) {
             ModeloEquipo me = equipo.getModeloEquipo();
@@ -195,6 +196,7 @@ public class EquipoService implements IEquipoService {
         equipoEditar.setActivo(eliminarEquipo);
         equipoEditar.setLatitud(lat);
         equipoEditar.setLongitud(lon);
+        equipoEditar.setNumeroMotor((numeroMotor));
         equipoRepository.save(equipoEditar);
 
         equipoActas.setEquipo(equipoEditar);

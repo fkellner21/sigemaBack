@@ -45,7 +45,7 @@ public class Repuesto implements Serializable {
     @JsonBackReference
     private ModeloEquipo modeloEquipo;
 
-    @Column(unique = true)
+    @Column
     private String codigoSICE;
 
     @OneToMany(mappedBy = "repuesto", cascade = CascadeType.ALL, orphanRemoval = true)

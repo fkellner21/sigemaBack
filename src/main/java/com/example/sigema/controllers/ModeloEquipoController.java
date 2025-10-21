@@ -166,7 +166,7 @@ public class ModeloEquipoController {
             return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Error al subir el documento: " + e.getMessage());
+            error.put("error", "Error al subir el documento: " + e.getMessage() + " Capacidad max 30mb");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

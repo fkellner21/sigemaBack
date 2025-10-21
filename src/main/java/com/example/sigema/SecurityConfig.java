@@ -48,11 +48,11 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:4200",
+                "http://localhost:57210",
                 "http://127.0.0.1:4200",
-                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
-                "https://sigemabe-d0gke3fdbnfza9et.canadacentral-01.azurewebsites.net",
-                "https://sigemabe2-c6g2gzdkcthfevfz.canadacentral-01.azurewebsites.net",
-                "https://green-mud-0cddc320f.1.azurestaticapps.net"
+                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",//front general azure
+                "https://sigemabe2-c6g2gzdkcthfevfz.canadacentral-01.azurewebsites.net",//BE GPS azure
+                "https://green-mud-0cddc320f.1.azurestaticapps.net"//front GPS azure
 
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
@@ -76,10 +76,13 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",
-                                "capacitor://localhost",
-                                "http://localhost",
-                                "https://localhost:")
+                        .allowedOrigins(
+                                "http://localhost:4200",
+                                "http://127.0.0.1:4200",
+                                "https://jolly-smoke-0b3e9eb0f.6.azurestaticapps.net",//front general azure
+                                "https://sigemabe2-c6g2gzdkcthfevfz.canadacentral-01.azurewebsites.net",//BE GPS azure
+                                "https://green-mud-0cddc320f.1.azurestaticapps.net"//front GPS azure
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true); // Si usás cookies/autenticación

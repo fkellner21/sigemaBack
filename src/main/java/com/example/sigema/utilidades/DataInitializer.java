@@ -230,7 +230,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Usuario adm = new Usuario();
         adm.setCedula("12345678");
-        adm.setPassword(passwordEncoder.encode("123"));
+        adm.setPassword(passwordEncoder.encode("123admin"));
         adm.setNombreCompleto("Admin");
         adm.setRol(Rol.ADMINISTRADOR);
         adm.setActivo(true);
@@ -238,44 +238,44 @@ public class DataInitializer implements CommandLineRunner {
         adm.setUnidad(unidadRepository.getReferenceById(1L));
         usuarioRepository.save(adm);
 
-        Usuario bri = new Usuario();
-        bri.setCedula("23456789");
-        bri.setPassword(passwordEncoder.encode("123"));
-        bri.setNombreCompleto("Brigada");
-        bri.setRol(Rol.BRIGADA);
-        bri.setActivo(true);
-        bri.setIdUnidad(2L);
-        bri.setUnidad(unidadRepository.getReferenceById(2L));
-        bri.setIdGrado(4L);
-        bri.setGrado(gradoRepository.getReferenceById(4L));
-        usuarioRepository.save(bri);
-
-        Usuario uni = new Usuario();
-        uni.setCedula("34567890");
-        uni.setPassword(passwordEncoder.encode("123"));
-        uni.setNombreCompleto("Unidad 1");
-        uni.setRol(Rol.UNIDAD);
-        uni.setActivo(true);
-        uni.setIdUnidad(3L);
-        uni.setUnidad(unidadRepository.getReferenceById(3L));
-        uni.setIdGrado(2L);
-        uni.setGrado(gradoRepository.getReferenceById(2L));
-        usuarioRepository.save(uni);
+//        Usuario bri = new Usuario();
+//        bri.setCedula("23456789");
+//        bri.setPassword(passwordEncoder.encode("123"));
+//        bri.setNombreCompleto("Brigada");
+//        bri.setRol(Rol.BRIGADA);
+//        bri.setActivo(true);
+//        bri.setIdUnidad(2L);
+//        bri.setUnidad(unidadRepository.getReferenceById(2L));
+//        bri.setIdGrado(4L);
+//        bri.setGrado(gradoRepository.getReferenceById(4L));
+//        usuarioRepository.save(bri);
+//
+//        Usuario uni = new Usuario();
+//        uni.setCedula("34567890");
+//        uni.setPassword(passwordEncoder.encode("123"));
+//        uni.setNombreCompleto("Unidad 1");
+//        uni.setRol(Rol.UNIDAD);
+//        uni.setActivo(true);
+//        uni.setIdUnidad(3L);
+//        uni.setUnidad(unidadRepository.getReferenceById(3L));
+//        uni.setIdGrado(2L);
+//        uni.setGrado(gradoRepository.getReferenceById(2L));
+//        usuarioRepository.save(uni);
 
         System.out.println("se cargaron los datos");
     }
 
-    String cedulaAdmin = "12345678";
-    boolean exists = usuarioRepository.findByCedula(cedulaAdmin).isPresent();
-    if (!exists) {
-        Usuario admin = new Usuario();
-        admin.setCedula(cedulaAdmin);
-        admin.setPassword(passwordEncoder.encode("123"));
-        admin.setNombreCompleto("Admin");
-        admin.setRol(Rol.ADMINISTRADOR);
-        admin.setActivo(true);
-        usuarioRepository.save(admin);
-        System.out.println("Usuario administrador creado con cédula '12345678' y contraseña '123'");
-    }
+//    String cedulaAdmin = "12345678";
+//    boolean exists = usuarioRepository.findByCedula(cedulaAdmin).isPresent();
+//    if (!exists) {
+//        Usuario admin = new Usuario();
+//        admin.setCedula(cedulaAdmin);
+//        admin.setPassword(passwordEncoder.encode("123"));
+//        admin.setNombreCompleto("Admin");
+//        admin.setRol(Rol.ADMINISTRADOR);
+//        admin.setActivo(true);
+//        usuarioRepository.save(admin);
+//        System.out.println("Usuario administrador creado con cédula '12345678' y contraseña '123'");
+//    }
     }
 }
